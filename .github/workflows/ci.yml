@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - release/**
+
+env:
+  # App Configuration
+  APP_NAME: AppTemplate
+  DOTNET_VERSION: 10.0.x
+  SOLUTION_FILE: src/AppTemplate.slnx
+  PROJECT_PATH: src/AppTemplate
+  PROJECT_FILE: src/AppTemplate/AppTemplate.csproj
+  
+  STEP_TIMEOUT_MINUTES: 60
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke_test:
+    name: Smoke Test (Debug Build)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Cache NuGet to speed up restores
+      - name: NuGet cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.sln*', '**/*.csproj', '**/Directory.Packages.props', '**/global.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-          
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            ${{ env.DOTNET_VERSION }}
+
+      - name: Install .NET workloads
+        run: |
+          dotnet workload restore "$env:SOLUTION_FILE"
+          dotnet workload install wasm-tools
+
+      # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.3.1
+
+      - name: Build ${{ env.APP_NAME }} (Debug)
+        shell: pwsh
+        run: msbuild $env:PROJECT_FILE /r
