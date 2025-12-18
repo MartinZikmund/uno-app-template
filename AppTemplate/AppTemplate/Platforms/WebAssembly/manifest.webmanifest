@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "AppTemplate",
+  "display": "standalone",
+  "name": "AppTemplate",
+  "short_name": "AppTemplate",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}
