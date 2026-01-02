@@ -1,4 +1,4 @@
-namespace AppTemplate.Services.Endpoints;
+namespace AppTemplate.Services;
 
 internal class DebugHttpHandler : DelegatingHandler
 {

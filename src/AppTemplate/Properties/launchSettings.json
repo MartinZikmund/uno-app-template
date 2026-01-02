@@ -27,15 +27,14 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    // Note: In order to select this profile, you'll need to comment the `Packaged` profile below until this is fixed: https://aka.platform.uno/wasdk-maui-debug-profile-issue
-    "AppTemplate (WinAppSDK Unpackaged)": {
-      "commandName": "Project",
-      "compatibleTargetFramework": "windows"
-    },
     "AppTemplate (WinAppSDK Packaged)": {
       "commandName": "MsixPackage",
       "compatibleTargetFramework": "windows"
     },
+    //"AppTemplate (WinAppSDK Unpackaged)": {
+    //  "commandName": "Project",
+    //  "compatibleTargetFramework": "windows"
+    //},
     "AppTemplate (Desktop)": {
       "commandName": "Project",
       "compatibleTargetFramework": "desktop"

@@ -23,5 +23,8 @@
             SkiaRenderer;
         </UnoFeatures>
     </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
+    </ItemGroup>
 
 </Project>
