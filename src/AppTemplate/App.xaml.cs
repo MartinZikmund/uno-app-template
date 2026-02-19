@@ -77,6 +77,7 @@ public partial class App : Application
 		// Singleton services
 		services.AddSingleton<IPreferences, Preferences>();
 		services.AddSingleton<IAppPreferences, AppPreferences>();
+		services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
 
 		// Per-window scoped services
 		services.AddScoped<IThemeManager, ThemeManager>();
