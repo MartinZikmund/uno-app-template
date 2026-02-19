@@ -2,6 +2,7 @@ using AppTemplate.Core.Infrastructure;
 using AppTemplate.Core.Services;
 using AppTemplate.Core.ViewModels;
 using AppTemplate.Services.Navigation;
+using AppTemplate.Services.Settings;
 using AppTemplate.ViewModels;
 using Uno.Resizetizer;
 
@@ -71,6 +72,10 @@ public partial class App : Application
 
 	private static void RegisterServices(HostBuilderContext context, IServiceCollection services)
 	{
+		// Singleton services
+		services.AddSingleton<IPreferences, Preferences>();
+		services.AddSingleton<IAppPreferences, AppPreferences>();
+
 		// Per-window scoped services
 		services.AddScoped<IWindowShellProvider, WindowShellProvider>();
 		services.AddScoped<INavigationService>(sp =>
