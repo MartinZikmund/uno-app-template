@@ -192,7 +192,7 @@ public sealed partial class WindowShell : Page, IWindowShell
 				nav.Navigate<MainViewModel>();
 				break;
 			case NavigationSection.Settings:
-				// Settings navigation will be added with the Settings page feature
+				nav.Navigate<SettingsViewModel>();
 				break;
 			default:
 				throw new NotSupportedException($"Navigation section not supported: {section}");

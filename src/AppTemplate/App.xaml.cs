@@ -84,6 +84,7 @@ public partial class App : Application
 		{
 			var service = new NavigationService(sp.GetRequiredService<IWindowShellProvider>());
 			service.RegisterView(typeof(Views.MainView), typeof(MainViewModel));
+			service.RegisterView(typeof(Views.SettingsView), typeof(SettingsViewModel));
 			return service;
 		});
 
@@ -92,6 +93,7 @@ public partial class App : Application
 
 		// Transient ViewModels (new instance per navigation)
 		services.AddTransient<MainViewModel>();
+		services.AddTransient<SettingsViewModel>();
 	}
 
 	private static void ConfigureLogging(HostBuilderContext context, ILoggingBuilder logBuilder)

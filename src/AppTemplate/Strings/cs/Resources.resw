@@ -120,4 +120,49 @@
   <data name="ApplicationName" xml:space="preserve">
     <value>App Template</value>
   </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Nastaven&#237;</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>Obecn&#233;</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Motiv</value>
+  </data>
+  <data name="About" xml:space="preserve">
+    <value>O aplikaci</value>
+  </data>
+  <data name="AboutAppDescription" xml:space="preserve">
+    <value>Aplikace Uno Platform</value>
+  </data>
+  <data name="Debugging" xml:space="preserve">
+    <value>Lad&#283;n&#237;</value>
+  </data>
+  <data name="ClearPreferences" xml:space="preserve">
+    <value>Smazat nastaven&#237;</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Smazat</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Ano</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Ne</value>
+  </data>
+  <data name="ElementTheme_Default" xml:space="preserve">
+    <value>Syst&#233;mov&#253; v&#253;choz&#237;</value>
+  </data>
+  <data name="ElementTheme_Light" xml:space="preserve">
+    <value>Sv&#283;tl&#253;</value>
+  </data>
+  <data name="ElementTheme_Dark" xml:space="preserve">
+    <value>Tmav&#253;</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>Dom&#367;</value>
+  </data>
 </root>

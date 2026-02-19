@@ -24,6 +24,9 @@
         </UnoFeatures>
     </PropertyGroup>
     <ItemGroup>
+      <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
+    </ItemGroup>
+    <ItemGroup>
       <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
     </ItemGroup>
 
