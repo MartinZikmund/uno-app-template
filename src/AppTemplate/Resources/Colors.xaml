@@ -1,0 +1,68 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--  Brand Colors  -->
+    <Color x:Key="BrandPrimaryColor">#0078D4</Color>
+    <Color x:Key="BrandSecondaryColor">#106EBE</Color>
+
+    <!--  Theme-aware Brand Brushes  -->
+    <SolidColorBrush x:Key="BrandPrimaryBrush" Color="{ThemeResource BrandPrimaryColor}" />
+    <SolidColorBrush x:Key="BrandSecondaryBrush" Color="{ThemeResource BrandSecondaryColor}" />
+
+    <!--  Semantic Colors - Light Theme  -->
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <Color x:Key="AppOverlayBackgroundColor">#E6FFFFFF</Color>
+            <SolidColorBrush x:Key="AppOverlayBackgroundBrush" Color="{ThemeResource AppOverlayBackgroundColor}" />
+
+            <Color x:Key="SubtleBackgroundColor">#F5F5F5</Color>
+            <SolidColorBrush x:Key="SubtleBackgroundBrush" Color="{ThemeResource SubtleBackgroundColor}" />
+
+            <Color x:Key="CardBackgroundColor">#FFFFFF</Color>
+            <SolidColorBrush x:Key="CardBackgroundBrush" Color="{ThemeResource CardBackgroundColor}" />
+
+            <Color x:Key="DividerColor">#E0E0E0</Color>
+            <SolidColorBrush x:Key="DividerBrush" Color="{ThemeResource DividerColor}" />
+
+            <Color x:Key="SuccessColor">#107C10</Color>
+            <SolidColorBrush x:Key="SuccessBrush" Color="{ThemeResource SuccessColor}" />
+
+            <Color x:Key="WarningColor">#FF8C00</Color>
+            <SolidColorBrush x:Key="WarningBrush" Color="{ThemeResource WarningColor}" />
+
+            <Color x:Key="ErrorColor">#D13438</Color>
+            <SolidColorBrush x:Key="ErrorBrush" Color="{ThemeResource ErrorColor}" />
+
+            <Color x:Key="InfoColor">#0078D4</Color>
+            <SolidColorBrush x:Key="InfoBrush" Color="{ThemeResource InfoColor}" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <Color x:Key="AppOverlayBackgroundColor">#CC202020</Color>
+            <SolidColorBrush x:Key="AppOverlayBackgroundBrush" Color="{ThemeResource AppOverlayBackgroundColor}" />
+
+            <Color x:Key="SubtleBackgroundColor">#2D2D2D</Color>
+            <SolidColorBrush x:Key="SubtleBackgroundBrush" Color="{ThemeResource SubtleBackgroundColor}" />
+
+            <Color x:Key="CardBackgroundColor">#1F1F1F</Color>
+            <SolidColorBrush x:Key="CardBackgroundBrush" Color="{ThemeResource CardBackgroundColor}" />
+
+            <Color x:Key="DividerColor">#3D3D3D</Color>
+            <SolidColorBrush x:Key="DividerBrush" Color="{ThemeResource DividerColor}" />
+
+            <Color x:Key="SuccessColor">#6CCB5F</Color>
+            <SolidColorBrush x:Key="SuccessBrush" Color="{ThemeResource SuccessColor}" />
+
+            <Color x:Key="WarningColor">#FCB714</Color>
+            <SolidColorBrush x:Key="WarningBrush" Color="{ThemeResource WarningColor}" />
+
+            <Color x:Key="ErrorColor">#F1707B</Color>
+            <SolidColorBrush x:Key="ErrorBrush" Color="{ThemeResource ErrorColor}" />
+
+            <Color x:Key="InfoColor">#60CDFF</Color>
+            <SolidColorBrush x:Key="InfoBrush" Color="{ThemeResource InfoColor}" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>

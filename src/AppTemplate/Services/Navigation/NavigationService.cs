@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using AppTemplate.Core.Services;
 using Uno.Disposables;
 
@@ -11,28 +12,61 @@ namespace AppTemplate.Services;
 public class NavigationService : INavigationService
 {
     private readonly Dictionary<Type, Type> _viewModelToViewMapping = new();
-    private readonly SerialDisposable _canGoBackDisposable = new();
+    private readonly SerialDisposable _backRequestedSubscription = new();
 
     private Frame? _frame;
+    private bool _lastCanGoBack;
+    private bool _isSubscribedToBackRequested;
 
     public NavigationService()
     {
     }
 
+    public event EventHandler? CanGoBackChanged;
+
     public bool CanGoBack
     {
         get
         {
-            EnsureInitialized();
+            if (_frame is null)
+            {
+                return false;
+            }
 
             return _frame.CanGoBack;
         }
     }
 
-    public void Initialize(Frame frame)
+    public void Initialize(object frame)
     {
-        _frame = frame;
+        if (frame is not Frame typedFrame)
+        {
+            throw new ArgumentException("Frame must be of type Microsoft.UI.Xaml.Controls.Frame", nameof(frame));
+        }
+
+        _frame = typedFrame;
         _frame.Navigated += OnNavigated;
+    }
+
+    public void RegisterViewsFromAssembly(Assembly assembly)
+    {
+        var viewTypes = assembly.GetTypes()
+            .Where(t => t.Name.EndsWith("View") && !t.IsAbstract && t.IsClass);
+
+        foreach (var viewType in viewTypes)
+        {
+            var viewModelTypeName = viewType.FullName?.Replace("Views.", "ViewModels.").Replace("View", "ViewModel");
+            if (viewModelTypeName is null)
+            {
+                continue;
+            }
+
+            var viewModelType = assembly.GetType(viewModelTypeName);
+            if (viewModelType is not null)
+            {
+                _viewModelToViewMapping[viewModelType] = viewType;
+            }
+        }
     }
 
     public bool GoBack()
@@ -65,14 +99,14 @@ public class NavigationService : INavigationService
     public void ClearBackStack()
     {
         EnsureInitialized();
-
         _frame.BackStack.Clear();
+        UpdateBackRequestedSubscription();
+        RaiseCanGoBackChangedIfNeeded();
     }
 
     private bool TryFindViewForViewModel(Type viewModelType, out Type? viewType)
     {
         EnsureInitialized();
-
         return _viewModelToViewMapping.TryGetValue(viewModelType, out viewType);
     }
 
@@ -87,27 +121,49 @@ public class NavigationService : INavigationService
 
     private void OnNavigated(object sender, NavigationEventArgs e)
     {
-        _canGoBackDisposable.Disposable = null;
-        if (CanGoBack)
-        {
+        UpdateBackRequestedSubscription();
+        RaiseCanGoBackChangedIfNeeded();
+    }
 
+    /// <summary>
+    /// Updates the BackRequested subscription based on current navigation state.
+    /// For Android 16+, the subscription state determines whether the app handles back navigation,
+    /// not the Handled property. Subscribe when we can go back, unsubscribe when we can't.
+    /// </summary>
+    private void UpdateBackRequestedSubscription()
+    {
 #if HAS_UNO
-            Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += OnNavigationManagerBackRequested;
-            _canGoBackDisposable.Disposable = Disposable.Create(() =>
-            {
-                Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested -= OnNavigationManagerBackRequested;
-            });
+        var shouldSubscribe = _frame?.CanGoBack ?? false;
+
+        if (shouldSubscribe && !_isSubscribedToBackRequested)
+        {
+            SystemNavigationManager.GetForCurrentView().BackRequested += OnBackRequested;
+            _isSubscribedToBackRequested = true;
+        }
+        else if (!shouldSubscribe && _isSubscribedToBackRequested)
+        {
+            SystemNavigationManager.GetForCurrentView().BackRequested -= OnBackRequested;
+            _isSubscribedToBackRequested = false;
+        }
 #endif
+    }
+
+    private void RaiseCanGoBackChangedIfNeeded()
+    {
+        var currentCanGoBack = _frame?.CanGoBack ?? false;
+        if (currentCanGoBack != _lastCanGoBack)
+        {
+            _lastCanGoBack = currentCanGoBack;
+            CanGoBackChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
 #if HAS_UNO
-    private void OnNavigationManagerBackRequested(object? sender, BackRequestedEventArgs e)
+    private void OnBackRequested(object? sender, BackRequestedEventArgs e)
     {
-        if (GoBack())
-        {
-            e.Handled = true;
-        }
+        // On Android 16+, the fact that we're subscribed indicates we want to handle back.
+        // We perform the navigation directly - subscription state controls behavior.
+        GoBack();
     }
 #endif
 }

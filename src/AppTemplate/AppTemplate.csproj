@@ -27,4 +27,8 @@
       <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\mzikmund-toolkit\src\MZikmund.Toolkit.WinUI\MZikmund.Toolkit.WinUI.csproj" />
+    </ItemGroup>
+
 </Project>

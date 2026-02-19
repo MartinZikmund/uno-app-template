@@ -65,7 +65,7 @@
                         VerticalAlignment="Center"
                         Command="{x:Bind ViewModel.GoBackCommand, Mode=OneWay}"
                         Style="{StaticResource NavigationBackButtonStyle}"
-                        ToolTipService.ToolTip="{xaml:Localize Key=Back}" />
+                        ToolTipService.ToolTip="Back" />
                 </Grid>
                 <Grid x:Name="DraggableTitleBar" Grid.Column="1" />
             </Grid>

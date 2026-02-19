@@ -1,5 +1,12 @@
-using AppTemplate.Core.Services;
 using AppTemplate.Services;
+using AppTemplate.Services.Dialogs;
+using AppTemplate.Services.Localization;
+using AppTemplate.Services.Settings;
+using AppTemplate.Services.Theming;
+using AppTemplate.Shell;
+using AppTemplate.ViewModels;
+using Microsoft.Extensions.Localization;
+using MZikmund.Toolkit.WinUI.Services;
 using Uno.Resizetizer;
 
 namespace AppTemplate;
@@ -56,31 +63,38 @@ public partial class App : Application
 
         Host = builder.Build();
 
-        // Do not repeat app initialization when the Window already has content,
-        // just ensure that the window is active
-        if (MainWindow.Content is not Frame rootFrame)
-        {
-            // Create a Frame to act as the navigation context and navigate to the first page
-            rootFrame = new Frame();
+        // Initialize the static Localizer
+        var stringLocalizer = Host.Services.GetRequiredService<IStringLocalizer>();
+        Localizer.Initialize(stringLocalizer);
 
-            // Place the frame in the current Window
-            MainWindow.Content = rootFrame;
-        }
+        // Create WindowShell as the root content
+        var shell = new WindowShell(Host.Services, MainWindow);
+        MainWindow.Content = shell;
 
-        if (rootFrame.Content == null)
-        {
-            // When the navigation stack isn't restored navigate to the first page,
-            // configuring the new page by passing required information as a navigation
-            // parameter
-            rootFrame.Navigate(typeof(MainPage), args.Arguments);
-        }
+        // Navigate to the main page
+        var navigationService = shell.ServiceProvider.GetRequiredService<INavigationService>();
+        navigationService.Navigate<MainViewModel>();
+
         // Ensure the current window is active
         MainWindow.Activate();
     }
 
     private void RegisterServices(HostBuilderContext context, IServiceCollection services)
     {
-        services.AddSingleton<INavigationService, NavigationService>();
+        // Singleton (app-wide)
+        services.AddSingleton<IPreferences, Preferences>();
+        services.AddSingleton<IAppPreferences, AppPreferences>();
+
+        // Scoped (per window)
+        services.AddScoped<IWindowShellProvider, WindowShellProvider>();
+        services.AddScoped<INavigationService, NavigationService>();
+        services.AddScoped<IThemeManager, ThemeManager>();
+        services.AddScoped<IDialogService, DialogService>();
+        services.AddScoped<WindowShellViewModel>();
+
+        // Transient (new per request)
+        services.AddTransient<MainViewModel>();
+        services.AddTransient<SettingsViewModel>();
     }
 
     private static void ConfigureLogging(HostBuilderContext context, ILoggingBuilder logBuilder)

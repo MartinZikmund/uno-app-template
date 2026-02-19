@@ -1,4 +1,5 @@
-using AppTemplate;
+using AppTemplate.Services.Settings;
+using AppTemplate.Services.Theming;
 using Windows.Foundation.Metadata;
 
 namespace AppTemplate.Shell;
@@ -13,9 +14,14 @@ public sealed partial class WindowShell : Page, IWindowShell
         InitializeComponent();
 
         _windowScope = serviceProvider.CreateScope();
+        _associatedWindow = associatedWindow;
+
         var windowShellProvider = (WindowShellProvider)ServiceProvider.GetRequiredService<IWindowShellProvider>();
         windowShellProvider.SetShell(this, associatedWindow);
-        ServiceProvider.GetRequiredService<INavigationService>().RegisterViewsFromAssembly(typeof(CountdownsApp).Assembly);
+
+        var navigationService = ServiceProvider.GetRequiredService<INavigationService>();
+        navigationService.Initialize(InnerFrame);
+        navigationService.RegisterViewsFromAssembly(typeof(App).Assembly);
 
         var settings = ServiceProvider.GetRequiredService<IAppPreferences>();
         var themeService = ServiceProvider.GetRequiredService<IThemeManager>();
@@ -23,7 +29,6 @@ public sealed partial class WindowShell : Page, IWindowShell
 
         ViewModel = ServiceProvider.GetRequiredService<WindowShellViewModel>();
 
-        _associatedWindow = associatedWindow;
         CustomizeWindow();
     }
 
@@ -40,10 +45,10 @@ public sealed partial class WindowShell : Page, IWindowShell
         if (ApiInformation.IsPropertyPresent("Microsoft.UI.Xaml.Window", "ExtendsContentIntoTitleBar"))
         {
 #if !HAS_UNO
-			_associatedWindow.ExtendsContentIntoTitleBar = true;
-			_associatedWindow.AppWindow.TitleBar.PreferredHeightOption = Microsoft.UI.Windowing.TitleBarHeightOption.Tall;
-			_associatedWindow.SetTitleBar(DraggableTitleBar);
-			HasCustomTitleBar = true;
+            _associatedWindow.ExtendsContentIntoTitleBar = true;
+            _associatedWindow.AppWindow.TitleBar.PreferredHeightOption = Microsoft.UI.Windowing.TitleBarHeightOption.Tall;
+            _associatedWindow.SetTitleBar(DraggableTitleBar);
+            HasCustomTitleBar = true;
 #endif
         }
 

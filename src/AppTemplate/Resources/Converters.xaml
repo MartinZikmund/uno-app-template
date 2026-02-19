@@ -1,0 +1,27 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:AppTemplate.Converters"
+    xmlns:toolkit="using:MZikmund.Toolkit.WinUI.Converters">
+
+    <!--  Bool Converters (from MZikmund.Toolkit.WinUI)  -->
+    <toolkit:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <toolkit:BoolToVisibilityConverter x:Key="BoolToVisibilityInverseConverter" Invert="True" />
+    <toolkit:BoolNegationConverter x:Key="BoolNegationConverter" />
+
+    <!--  Null Converters (from MZikmund.Toolkit.WinUI)  -->
+    <toolkit:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+    <toolkit:NullToVisibilityConverter x:Key="NullToVisibilityInverseConverter" Invert="True" />
+
+    <!--  String Converters (from MZikmund.Toolkit.WinUI)  -->
+    <toolkit:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+    <toolkit:StringToVisibilityConverter x:Key="EmptyStringToVisibilityConverter" Invert="True" />
+
+    <!--  Count Converters (from MZikmund.Toolkit.WinUI)  -->
+    <toolkit:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+    <toolkit:CountToVisibilityConverter x:Key="EmptyCountToVisibilityConverter" Invert="True" />
+
+    <!--  Enum Converters (app-specific, uses Localizer)  -->
+    <converters:EnumToLocalizedStringConverter x:Key="EnumToLocalizedStringConverter" />
+
+</ResourceDictionary>

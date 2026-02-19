@@ -4,13 +4,19 @@ namespace AppTemplate.Core.Services;
 
 public interface INavigationService
 {
-	void ClearBackStack();
+    event EventHandler? CanGoBackChanged;
 
-	void Navigate<TViewModel>();
+    bool CanGoBack { get; }
 
-	void Navigate<TViewModel>(object? parameter);
+    void Initialize(object frame);
 
-	bool GoBack();
+    void RegisterViewsFromAssembly(Assembly assembly);
 
-	bool CanGoBack { get; }
+    void ClearBackStack();
+
+    void Navigate<TViewModel>();
+
+    void Navigate<TViewModel>(object? parameter);
+
+    bool GoBack();
 }

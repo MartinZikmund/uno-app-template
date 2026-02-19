@@ -1,0 +1,44 @@
+<local:MainViewBase
+    x:Class="AppTemplate.Views.MainView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:AppTemplate.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    mc:Ignorable="d">
+
+    <Grid Padding="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel
+            Grid.Row="0"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="16">
+            <TextBlock
+                x:Uid="MainView.WelcomeText"
+                HorizontalAlignment="Center"
+                Style="{ThemeResource TitleLargeTextBlockStyle}"
+                Text="Welcome to App Template" />
+            <TextBlock
+                x:Uid="MainView.SubtitleText"
+                HorizontalAlignment="Center"
+                Style="{ThemeResource BodyTextBlockStyle}"
+                Text="Powered by Uno Platform" />
+        </StackPanel>
+
+        <Button
+            Grid.Row="1"
+            HorizontalAlignment="Right"
+            Command="{x:Bind ViewModel.OpenSettingsCommand}"
+            Content="Settings">
+            <Button.KeyboardAccelerators>
+                <KeyboardAccelerator Key="S" Modifiers="Control" />
+            </Button.KeyboardAccelerators>
+        </Button>
+    </Grid>
+</local:MainViewBase>
