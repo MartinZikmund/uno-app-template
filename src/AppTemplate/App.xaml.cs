@@ -86,6 +86,7 @@ public partial class App : Application
 		services.AddScoped<IDialogCoordinator, DialogCoordinator>();
 		services.AddScoped<IDialogService, DialogService>();
 		services.AddScoped<IConfirmationDialogService, ConfirmationDialogService>();
+		services.AddScoped<ILauncherService, LauncherService>();
 		services.AddScoped<INavigationService>(sp =>
 		{
 			var service = new NavigationService(sp.GetRequiredService<IWindowShellProvider>());
