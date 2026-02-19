@@ -1,10 +1,14 @@
-using System.Reflection;
+using AppTemplate.Core.Navigation;
 
 namespace AppTemplate.Core.Services;
 
 public interface INavigationService
 {
-	void ClearBackStack();
+	bool CanGoBack { get; }
+
+	NavigationSection? CurrentSection { get; }
+
+	void Initialize();
 
 	void Navigate<TViewModel>();
 
@@ -12,5 +16,5 @@ public interface INavigationService
 
 	bool GoBack();
 
-	bool CanGoBack { get; }
+	void ClearBackStack();
 }

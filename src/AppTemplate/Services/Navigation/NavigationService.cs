@@ -1,113 +1,181 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using AppTemplate.Core.Navigation;
 using AppTemplate.Core.Services;
-using Uno.Disposables;
+using Microsoft.UI.Xaml.Media.Animation;
 
 #if HAS_UNO
 using Windows.UI.Core;
 #endif
 
-namespace AppTemplate.Services;
+namespace AppTemplate.Services.Navigation;
 
-public class NavigationService : INavigationService
+public sealed class NavigationService : INavigationService
 {
-    private readonly Dictionary<Type, Type> _viewModelToViewMapping = new();
-    private readonly SerialDisposable _canGoBackDisposable = new();
+	private readonly IWindowShellProvider _shellProvider;
+	private readonly Dictionary<Type, Type> _viewModelToViewMap = new();
+	private bool _initialized;
+	private bool _backRequestedSubscribed;
 
-    private Frame? _frame;
+	public NavigationService(IWindowShellProvider shellProvider)
+	{
+		_shellProvider = shellProvider;
+	}
 
-    public NavigationService()
-    {
-    }
+	private Frame Frame => _shellProvider.RootFrame;
 
-    public bool CanGoBack
-    {
-        get
-        {
-            EnsureInitialized();
+	public bool CanGoBack => _initialized && Frame.CanGoBack;
 
-            return _frame.CanGoBack;
-        }
-    }
+	public NavigationSection? CurrentSection { get; private set; }
 
-    public void Initialize(Frame frame)
-    {
-        _frame = frame;
-        _frame.Navigated += OnNavigated;
-    }
-
-    public bool GoBack()
-    {
-        EnsureInitialized();
-
-        if (_frame.CanGoBack)
-        {
-            _frame.GoBack();
-            return true;
-        }
-
-        return false;
-    }
-
-    public void Navigate<TViewModel>() => Navigate<TViewModel>(null);
-
-    public void Navigate<TViewModel>(object? parameter)
-    {
-        EnsureInitialized();
-
-        if (!TryFindViewForViewModel(typeof(TViewModel), out var viewType))
-        {
-            throw new InvalidOperationException($"ViewModel type {typeof(TViewModel).Name} is not registered for navigation.");
-        }
-
-        _frame.Navigate(viewType, parameter);
-    }
-
-    public void ClearBackStack()
-    {
-        EnsureInitialized();
-
-        _frame.BackStack.Clear();
-    }
-
-    private bool TryFindViewForViewModel(Type viewModelType, out Type? viewType)
-    {
-        EnsureInitialized();
-
-        return _viewModelToViewMapping.TryGetValue(viewModelType, out viewType);
-    }
-
-    [MemberNotNull(nameof(_frame))]
-    private void EnsureInitialized()
-    {
-        if (_frame is null)
-        {
-            throw new InvalidOperationException("NavigationService is not initialized. Call Initialize(Frame) before using navigation methods.");
-        }
-    }
-
-    private void OnNavigated(object sender, NavigationEventArgs e)
-    {
-        _canGoBackDisposable.Disposable = null;
-        if (CanGoBack)
-        {
-
+	public void Initialize()
+	{
+		_initialized = true;
 #if HAS_UNO
-            Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += OnNavigationManagerBackRequested;
-            _canGoBackDisposable.Disposable = Disposable.Create(() =>
-            {
-                Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested -= OnNavigationManagerBackRequested;
-            });
+		Frame.Navigated += OnFrameNavigated;
+		UpdateBackRequestedSubscription();
 #endif
-        }
-    }
+	}
+
+	public void RegisterView(Type viewType, Type viewModelType)
+		=> _viewModelToViewMap[viewModelType] = viewType;
+
+	public void Navigate<TViewModel>() => Navigate<TViewModel>(null);
+
+	public void Navigate<TViewModel>(object? parameter)
+	{
+		if (!_initialized)
+		{
+			throw new InvalidOperationException("NavigationService not initialized. Call Initialize() first.");
+		}
+
+		if (!_viewModelToViewMap.TryGetValue(typeof(TViewModel), out var viewType))
+		{
+			throw new InvalidOperationException($"No view registered for ViewModel {typeof(TViewModel).Name}.");
+		}
+
+		var navInfo = GetNavigationInfo(viewType);
+		if (navInfo is not null)
+		{
+			CurrentSection = navInfo.Section;
+		}
+
+		var transitionInfo = GetTransitionInfo(navInfo?.Transition ?? NavigationTransition.Default, isForward: true);
+		Frame.Navigate(viewType, parameter, transitionInfo);
 
 #if HAS_UNO
-    private void OnNavigationManagerBackRequested(object? sender, BackRequestedEventArgs e)
-    {
-        if (GoBack())
-        {
-            e.Handled = true;
-        }
-    }
+		UpdateBackRequestedSubscription();
+#endif
+	}
+
+	public bool GoBack()
+	{
+		if (!CanGoBack)
+		{
+			return false;
+		}
+
+		var backEntry = Frame.BackStack.LastOrDefault();
+		var transition = NavigationTransition.Default;
+
+		if (backEntry is not null)
+		{
+			var navInfo = GetNavigationInfo(backEntry.SourcePageType);
+			transition = navInfo?.Transition ?? NavigationTransition.Default;
+			if (navInfo is not null)
+			{
+				CurrentSection = navInfo.Section;
+			}
+		}
+
+		Frame.GoBack(GetTransitionInfo(transition, isForward: false));
+
+#if HAS_UNO
+		UpdateBackRequestedSubscription();
+#endif
+
+		return true;
+	}
+
+	public void ClearBackStack()
+	{
+		Frame.BackStack.Clear();
+#if HAS_UNO
+		UpdateBackRequestedSubscription();
+#endif
+	}
+
+	private static NavigationInfoAttribute? GetNavigationInfo(Type viewType)
+	{
+		var attr = viewType.GetCustomAttribute<NavigationInfoAttribute>();
+		if (attr is not null)
+		{
+			return attr;
+		}
+
+		// Walk the inheritance chain — needed because the sealed view class
+		// may inherit from an intermediate ViewBase<T> that carries the attribute.
+		var baseType = viewType.BaseType;
+		while (baseType is not null && baseType != typeof(Page))
+		{
+			attr = baseType.GetCustomAttribute<NavigationInfoAttribute>();
+			if (attr is not null)
+			{
+				return attr;
+			}
+
+			baseType = baseType.BaseType;
+		}
+
+		return null;
+	}
+
+	private static NavigationTransitionInfo GetTransitionInfo(NavigationTransition transition, bool isForward)
+	{
+		return transition switch
+		{
+			NavigationTransition.DrillIn => new DrillInNavigationTransitionInfo(),
+			NavigationTransition.Entrance => new EntranceNavigationTransitionInfo(),
+			NavigationTransition.Suppress => new SuppressNavigationTransitionInfo(),
+			_ => new SlideNavigationTransitionInfo
+			{
+				Effect = isForward
+					? SlideNavigationTransitionEffect.FromRight
+					: SlideNavigationTransitionEffect.FromLeft,
+			},
+		};
+	}
+
+#if HAS_UNO
+	private void OnFrameNavigated(object sender, Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+	{
+		UpdateBackRequestedSubscription();
+	}
+
+	/// <summary>
+	/// Manages BackRequested subscription. On Android 16+, subscribing/unsubscribing
+	/// (not just Handled) controls whether the app or system handles the back gesture.
+	/// </summary>
+	private void UpdateBackRequestedSubscription()
+	{
+		var manager = SystemNavigationManager.GetForCurrentView();
+		if (Frame.CanGoBack && !_backRequestedSubscribed)
+		{
+			manager.BackRequested += OnBackRequested;
+			_backRequestedSubscribed = true;
+		}
+		else if (!Frame.CanGoBack && _backRequestedSubscribed)
+		{
+			manager.BackRequested -= OnBackRequested;
+			_backRequestedSubscribed = false;
+		}
+	}
+
+	private void OnBackRequested(object? sender, BackRequestedEventArgs e)
+	{
+		if (GoBack())
+		{
+			e.Handled = true;
+		}
+	}
 #endif
 }
