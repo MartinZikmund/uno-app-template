@@ -24,7 +24,7 @@ public partial class App : Application
 	protected Window? MainWindow { get; private set; }
 	protected IHost? Host { get; private set; }
 
-	protected override void OnLaunched(LaunchActivatedEventArgs args)
+	protected override async void OnLaunched(LaunchActivatedEventArgs args)
 	{
 		var builder = this.CreateBuilder(args)
 			.Configure(host => host
@@ -62,6 +62,12 @@ public partial class App : Application
 		Host = builder.Build();
 		IoC.SetProvider(Host.Services);
 
+		// Run app lifecycle updates
+		var appPreferences = Host.Services.GetRequiredService<IAppPreferences>();
+		var appUpdater = Host.Services.GetRequiredService<IAppUpdater>();
+		await appUpdater.EnsureAppUpToDateAsync();
+		appPreferences.LaunchCount++;
+
 		// Create WindowShell as root content
 		if (MainWindow.Content is not WindowShell)
 		{
@@ -78,6 +84,7 @@ public partial class App : Application
 		services.AddSingleton<IPreferences, Preferences>();
 		services.AddSingleton<IAppPreferences, AppPreferences>();
 		services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
+		services.AddSingleton<IAppUpdater, AppUpdater>();
 
 		// Per-window scoped services
 		services.AddScoped<IThemeManager, ThemeManager>();
