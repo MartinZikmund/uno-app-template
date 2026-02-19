@@ -1,6 +1,7 @@
 using AppTemplate.Core.Infrastructure;
 using AppTemplate.Core.Services;
 using AppTemplate.Core.ViewModels;
+using AppTemplate.Services.Dialogs;
 using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
@@ -79,7 +80,12 @@ public partial class App : Application
 
 		// Per-window scoped services
 		services.AddScoped<IThemeManager, ThemeManager>();
-		services.AddScoped<IWindowShellProvider, WindowShellProvider>();
+		services.AddScoped<WindowShellProvider>();
+		services.AddScoped<IWindowShellProvider>(sp => sp.GetRequiredService<WindowShellProvider>());
+		services.AddScoped<IXamlRootProvider>(sp => sp.GetRequiredService<WindowShellProvider>());
+		services.AddScoped<IDialogCoordinator, DialogCoordinator>();
+		services.AddScoped<IDialogService, DialogService>();
+		services.AddScoped<IConfirmationDialogService, ConfirmationDialogService>();
 		services.AddScoped<INavigationService>(sp =>
 		{
 			var service = new NavigationService(sp.GetRequiredService<IWindowShellProvider>());
