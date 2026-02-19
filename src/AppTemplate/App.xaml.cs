@@ -3,6 +3,7 @@ using AppTemplate.Core.Services;
 using AppTemplate.Core.ViewModels;
 using AppTemplate.Services.Dialogs;
 using AppTemplate.Services.Navigation;
+using AppTemplate.Services.Rating;
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
 using AppTemplate.ViewModels;
@@ -85,6 +86,7 @@ public partial class App : Application
 		services.AddSingleton<IAppPreferences, AppPreferences>();
 		services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
 		services.AddSingleton<IAppUpdater, AppUpdater>();
+		services.AddScoped<IAppRatingService, AppRatingService>();
 
 		// Per-window scoped services
 		services.AddScoped<IThemeManager, ThemeManager>();

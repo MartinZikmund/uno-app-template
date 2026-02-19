@@ -165,4 +165,10 @@
   <data name="Home" xml:space="preserve">
     <value>Dom&#367;</value>
   </data>
+  <data name="RateAppTitle" xml:space="preserve">
+    <value>L&#237;b&#237; se v&#225;m aplikace?</value>
+  </data>
+  <data name="RateAppMessage" xml:space="preserve">
+    <value>Pokud r&#225;di pou&#382;&#237;v&#225;te tuto aplikaci, nev&#225;hejte ji ohodnotit. Va&#353;e zp&#283;tn&#225; vazba n&#225;m pom&#225;h&#225;!</value>
+  </data>
 </root>

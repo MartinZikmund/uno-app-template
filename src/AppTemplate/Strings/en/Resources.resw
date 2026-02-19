@@ -165,4 +165,10 @@
   <data name="Home" xml:space="preserve">
     <value>Home</value>
   </data>
+  <data name="RateAppTitle" xml:space="preserve">
+    <value>Enjoying the app?</value>
+  </data>
+  <data name="RateAppMessage" xml:space="preserve">
+    <value>If you enjoy using this app, would you mind taking a moment to rate it? Your feedback helps us improve!</value>
+  </data>
 </root>
