@@ -3,6 +3,7 @@ using AppTemplate.Core.Services;
 using AppTemplate.Core.ViewModels;
 using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Settings;
+using AppTemplate.Services.Theming;
 using AppTemplate.ViewModels;
 using Uno.Resizetizer;
 
@@ -77,6 +78,7 @@ public partial class App : Application
 		services.AddSingleton<IAppPreferences, AppPreferences>();
 
 		// Per-window scoped services
+		services.AddScoped<IThemeManager, ThemeManager>();
 		services.AddScoped<IWindowShellProvider, WindowShellProvider>();
 		services.AddScoped<INavigationService>(sp =>
 		{

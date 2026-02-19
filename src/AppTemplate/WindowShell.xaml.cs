@@ -3,6 +3,8 @@ using AppTemplate.Core.Services;
 using AppTemplate.Core.ViewModels;
 using AppTemplate.Infrastructure;
 using AppTemplate.Services.Navigation;
+using AppTemplate.Services.Settings;
+using AppTemplate.Services.Theming;
 using AppTemplate.ViewModels;
 using Microsoft.UI.Windowing;
 using Windows.Foundation.Metadata;
@@ -24,11 +26,13 @@ public sealed partial class WindowShell : Page, IWindowShell
 		var windowShellProvider = (WindowShellProvider)ServiceProvider.GetRequiredService<IWindowShellProvider>();
 		windowShellProvider.SetShell(this, associatedWindow);
 
-		var navigationService = (NavigationService)ServiceProvider.GetRequiredService<INavigationService>();
+		var navigationService = ServiceProvider.GetRequiredService<INavigationService>();
 		navigationService.Initialize();
 
-		// Register views for navigation
-		navigationService.RegisterView(typeof(Views.MainView), typeof(MainViewModel));
+		// Restore saved theme
+		var settings = ServiceProvider.GetRequiredService<IAppPreferences>();
+		var themeManager = ServiceProvider.GetRequiredService<IThemeManager>();
+		themeManager.SetTheme(settings.Theme);
 
 		_associatedWindow = associatedWindow;
 		_associatedWindow.Closed += OnWindowClosed;
