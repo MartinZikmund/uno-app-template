@@ -7,8 +7,6 @@
 
         <ApplicationTitle>App Template</ApplicationTitle>
         <ApplicationId>dev.mzikmund.apptemplate</ApplicationId>
-        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-        <ApplicationVersion>1</ApplicationVersion>
         <ApplicationPublisher>Martin Zikmund</ApplicationPublisher>
         <Description>AppTemplate powered by Uno Platform.</Description>
 
