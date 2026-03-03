@@ -28,4 +28,8 @@
       <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(IsIOS)' == 'true'">
+        <BundleResource Include="Platforms\iOS\Resources\**" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+
 </Project>
