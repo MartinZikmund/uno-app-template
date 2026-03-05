@@ -7,8 +7,6 @@
 
         <ApplicationTitle>App Template</ApplicationTitle>
         <ApplicationId>dev.mzikmund.apptemplate</ApplicationId>
-        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-        <ApplicationVersion>1</ApplicationVersion>
         <ApplicationPublisher>Martin Zikmund</ApplicationPublisher>
         <Description>AppTemplate powered by Uno Platform.</Description>
 
@@ -24,7 +22,14 @@
         </UnoFeatures>
     </PropertyGroup>
     <ItemGroup>
+      <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
+    </ItemGroup>
+    <ItemGroup>
       <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(IsIOS)' == 'true'">
+        <BundleResource Include="Platforms\iOS\Resources\**" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
 
 </Project>

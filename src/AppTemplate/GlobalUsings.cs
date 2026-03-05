@@ -1,6 +1,8 @@
 global using System.Collections.Immutable;
 global using AppTemplate.Models;
 global using AppTemplate.Core.Services;
+global using AppTemplate.Services;
+global using AppTemplate.Services.Navigation;
 global using CommunityToolkit.Mvvm.ComponentModel;
 global using CommunityToolkit.Mvvm.Input;
 global using Microsoft.Extensions.DependencyInjection;

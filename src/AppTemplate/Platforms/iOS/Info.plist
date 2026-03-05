@@ -34,6 +34,16 @@
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 
+		<key>CFBundleLocalizations</key>
+		<array>
+			<string>en</string>
+			<string>cs</string>
+		</array>
+		<key>CFBundleDisplayName</key>
+		<string>App Template</string>
+		<key>CFBundleName</key>
+		<string>App Template</string>
+
 		<!--
 		Adjust this to your application's encryption usage.
 		<key>ITSAppUsesNonExemptEncryption</key>

@@ -1,4 +1,7 @@
 <Project ToolsVersion="15.0">
   <ItemGroup>
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageVersion Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.250205" />
+    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.6.133" />
   </ItemGroup>
 </Project>
