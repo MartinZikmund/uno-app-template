@@ -1,50 +1,23 @@
-name: "🚀 Enhancement Request"
-description: "Suggest an enhancement to Uno Platform ✨"
-labels: [kind/enhancement, triage/untriaged, difficulty/tbd]
+name: Enhancement
+description: Suggest an improvement to existing functionality
+labels: [enhancement]
 body:
   - type: textarea
-    id: enhancement-description
+    id: description
     attributes:
-      label: "What would you like to be added? 💡"
-      description: "Describe in detail what is the feature or functionality you are missing 📝"
+      label: What would you like improved?
+      description: Describe the enhancement you have in mind.
     validations:
       required: true
 
   - type: textarea
-    id: enhancement-use-case
+    id: use-case
     attributes:
-      label: "Why is this needed? 🤔"
-      description: "Describe the use case of this enhancement 📚"
-
-  - type: checkboxes
-    id: enhancement-renderer
-    attributes:
-      label: "Renderer 🎨"
-      description: "Select the renderer you are using. Your application is using Skia if you find `SkiaRenderer` in your `.csproj` project file."
-      options:
-        - label: "Skia"
-        - label: "Native"
-
-  - type: dropdown
-    id: enhancement-platforms
-    attributes:
-      label: "For which platforms 📱💻🖥️"
-      multiple: true
-      description: "Select the platforms for which your enhancement is relevant 🌍"
-      options:
-        - "All platforms 🌍"
-        - "WebAssembly"
-        - "Android"
-        - "iOS"
-        - "Desktop (Windows)"
-        - "Desktop (macOS)"
-        - "Desktop (X11)"
-        - "Desktop (Linux Framebuffer)"
-        - "Windows App SDK"
-        - "Build tasks"
+      label: Why / use case
+      description: Why would this improvement be useful?
 
   - type: textarea
-    id: enhancement-additional-info
+    id: additional-context
     attributes:
-      label: "Anything else we need to know? 💬"
-      description: "Notes for contributors, further explanations, or any other information you want to share 💭"
+      label: Additional context
+      description: Any other information or screenshots.

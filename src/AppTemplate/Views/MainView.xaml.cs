@@ -1,0 +1,15 @@
+using AppTemplate.Core.Navigation;
+using AppTemplate.ViewModels;
+
+namespace AppTemplate.Views;
+
+[NavigationInfo(NavigationSection.Main)]
+public partial class MainViewBase : ViewBase<MainViewModel> { }
+
+public sealed partial class MainView : MainViewBase
+{
+	public MainView()
+	{
+		this.InitializeComponent();
+	}
+}
