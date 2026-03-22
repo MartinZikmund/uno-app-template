@@ -20,9 +20,9 @@ public sealed class DialogCoordinator : IDialogCoordinator
 			return;
 		}
 
+		_isShowingDialog = true;
 		while (_dialogQueue.Count > 0)
 		{
-			_isShowingDialog = true;
 			var queued = _dialogQueue.Dequeue();
 			try
 			{

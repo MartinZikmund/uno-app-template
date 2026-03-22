@@ -15,28 +15,35 @@ public sealed class ShareService : IShareService
 
 	public Task ShareAsync(string title, string uri)
 	{
-		try
-		{
-			_pendingTitle = title;
-			_pendingUri = uri;
+		_pendingTitle = title;
+		_pendingUri = uri;
 
 #if !HAS_UNO
-			var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_windowShellProvider.Window);
-			var interop = DataTransferManager.As<IDataTransferManagerInterop>();
-			var result = interop.GetForWindow(hwnd, _dtmIid);
-			var dtm = WinRT.MarshalInterface<DataTransferManager>.FromAbi(result);
-			dtm.DataRequested += OnDataRequested;
+		var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_windowShellProvider.Window);
+		var interop = DataTransferManager.As<IDataTransferManagerInterop>();
+		var result = interop.GetForWindow(hwnd, _dtmIid);
+		var dtm = WinRT.MarshalInterface<DataTransferManager>.FromAbi(result);
+		dtm.DataRequested += OnDataRequested;
+		try
+		{
 			interop.ShowShareUIForWindow(hwnd);
-#else
-			var dtm = DataTransferManager.GetForCurrentView();
-			dtm.DataRequested += OnDataRequested;
-			DataTransferManager.ShowShareUI();
-#endif
 		}
 		catch (COMException)
 		{
-			// Non-critical: no share targets available
+			dtm.DataRequested -= OnDataRequested;
 		}
+#else
+		var dtm = DataTransferManager.GetForCurrentView();
+		dtm.DataRequested += OnDataRequested;
+		try
+		{
+			DataTransferManager.ShowShareUI();
+		}
+		catch (COMException)
+		{
+			dtm.DataRequested -= OnDataRequested;
+		}
+#endif
 
 		return Task.CompletedTask;
 	}
