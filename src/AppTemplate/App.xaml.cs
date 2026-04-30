@@ -85,7 +85,7 @@ public partial class App : Application
 		services.AddSingleton<IPreferences, Preferences>();
 		services.AddSingleton<IAppPreferences, AppPreferences>();
 		services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
-		services.AddSingleton<IAppUpdater, AppUpdater>();
+		services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();
 		services.AddScoped<IAppRatingService, AppRatingService>();
 
 		// Per-window scoped services
