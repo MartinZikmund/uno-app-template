@@ -35,4 +35,7 @@
     <ItemGroup>
         <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Platforms\Android\Assets\" />
+    </ItemGroup>
 </Project>
