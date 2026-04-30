@@ -3,7 +3,10 @@
     "allowPrerelease": false
   },
   "msbuild-sdks": {
-    "Uno.Sdk": "6.6.0-dev.216"
+    "Uno.Sdk": "6.6.0-dev.216",
+    "MSTest.Sdk": "4.2.1"
+  },
+  "test": {
+    "runner": "Microsoft.Testing.Platform"
   }
 }
-

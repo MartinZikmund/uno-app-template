@@ -1,42 +1,37 @@
 <Project Sdk="Uno.Sdk">
     <PropertyGroup>
         <TargetFrameworks>
-			net10.0-android;
-			net10.0-ios;
-			net10.0-maccatalyst;
-			net10.0-windows10.0.26100;
-			net10.0-desktop;
-			net10.0-browserwasm;
-		</TargetFrameworks>
+            net10.0-android;
+            net10.0-ios;
+            net10.0-maccatalyst;
+            net10.0-windows10.0.26100;
+            net10.0-desktop;
+            net10.0-browserwasm;
+        </TargetFrameworks>
 
         <OutputType>Exe</OutputType>
         <UnoSingleProject>true</UnoSingleProject>
 
+        <!-- Application metadata -->
         <ApplicationTitle>App Template</ApplicationTitle>
         <ApplicationId>dev.mzikmund.apptemplate</ApplicationId>
         <ApplicationPublisher>Martin Zikmund</ApplicationPublisher>
         <Description>AppTemplate powered by Uno Platform.</Description>
 
-        <UnoFeatures>
-            Hosting;
-            Logging;
-            Mvvm;
-            Configuration;
-            HttpRefit;
-            Serialization;
-            Localization;
-            SkiaRenderer;
-        </UnoFeatures>
+        <!-- Application icon & splash screen adjustments-->
+        <UnoIconBackgroundFile>Assets/Icons/icon_transparent.svg</UnoIconBackgroundFile>
+        <UnoIconBackgroundFile Condition="'$(IsIOS)' == 'true' or '$(IsAndroid)' == 'true'">Assets/Icons/icon.svg</UnoIconBackgroundFile>
+        <UnoIconForegroundScale>1</UnoIconForegroundScale>
+        <UnoIconForegroundScale Condition="'$(IsAndroid)' == 'true'">0.6</UnoIconForegroundScale>
+        <UnoSplashScreenScale>0.85</UnoSplashScreenScale>
     </PropertyGroup>
     <ItemGroup>
-      <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
+        <PackageReference Include="MZikmund.Toolkit.WinUI" />
+        <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
+        <PackageReference Include="sqlite-net-e" />
+        <PackageReference Include="SourceGear.sqlite3" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
+        <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
     </ItemGroup>
-
-    <ItemGroup Condition="'$(IsIOS)' == 'true'">
-        <BundleResource Include="Platforms\iOS\Resources\**" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
-    </ItemGroup>
-
 </Project>

@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <TargetFrameworks>
+            net10.0;
             net10.0-android;
             net10.0-ios;
             net10.0-maccatalyst;
@@ -16,20 +17,6 @@
         <GenerateLibraryLayout>true</GenerateLibraryLayout>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-
-        <UnoFeatures>
-            Hosting;
-            Mvvm;
-            Configuration;
-            Localization;
-            Serialization;
-            Toolkit;
-            SkiaRenderer;
-        </UnoFeatures>
     </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" />
-  </ItemGroup>
 
 </Project>

@@ -2,12 +2,12 @@
   <Folder Name="/Solution Items/">
     <File Path="../.editorconfig" />
     <File Path="../.gitignore" />
-    <File Path="../.vsconfig" />
     <File Path="../global.json" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
     <File Path="Directory.Packages.props" />
   </Folder>
+  <Project Path="../tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj" Id="c0de6d3e-8f3b-43c5-967a-d5aae7c80674" />
   <Project Path="AppTemplate.Core/AppTemplate.Core.csproj" />
   <Project Path="AppTemplate/AppTemplate.csproj" />
 </Solution>
