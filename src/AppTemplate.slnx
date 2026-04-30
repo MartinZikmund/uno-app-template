@@ -1,13 +1,26 @@
 <Solution>
-  <Folder Name="/Solution Items/">
+  <Folder Name="/App/">
+    <Project Path="../tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj" Id="c0de6d3e-8f3b-43c5-967a-d5aae7c80674" />
+    <Project Path="AppTemplate.Core/AppTemplate.Core.csproj" />
+    <Project Path="AppTemplate/AppTemplate.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/" />
+  <Folder Name="/Solution Items/Agents/">
+    <File Path="../CLAUDE.md" />
+  </Folder>
+  <Folder Name="/Solution Items/Documentation/">
+    <File Path="../LICENSE" />
+    <File Path="../README.md" />
+  </Folder>
+  <Folder Name="/Solution Items/dotfiles/">
     <File Path="../.editorconfig" />
     <File Path="../.gitignore" />
-    <File Path="../.vsconfig" />
+  </Folder>
+  <Folder Name="/Solution Items/Global/">
     <File Path="../global.json" />
+    <File Path="../version.json" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Build.targets" />
     <File Path="Directory.Packages.props" />
   </Folder>
-  <Project Path="AppTemplate.Core/AppTemplate.Core.csproj" />
-  <Project Path="AppTemplate/AppTemplate.csproj" />
 </Solution>

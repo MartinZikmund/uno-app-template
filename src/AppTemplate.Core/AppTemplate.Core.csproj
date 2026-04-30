@@ -1,13 +1,30 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Uno.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFrameworks>
+            net10.0;
+            net10.0-android;
+            net10.0-ios;
+            net10.0-maccatalyst;
+            net10.0-windows10.0.26100;
+            net10.0-desktop;
+            net10.0-browserwasm;
+        </TargetFrameworks>
 
-  <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" />
-  </ItemGroup>
+        <UnoSingleProject>true</UnoSingleProject>
+        <OutputType>Library</OutputType>
+        <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
+        <GenerateLibraryLayout>true</GenerateLibraryLayout>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MZikmund.Toolkit.WinUI" />
+        <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
+        <PackageReference Include="CommunityToolkit.WinUI.Converters" />
+        <PackageReference Include="sqlite-net-e" />
+        <PackageReference Include="SourceGear.sqlite3" />
+    </ItemGroup>
 
 </Project>

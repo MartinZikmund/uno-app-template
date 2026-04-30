@@ -1,9 +1,24 @@
 <Project>
     <PropertyGroup>
+        <Copyright>Martin Zikmund 2026</Copyright>
+		<Author>Martin Zikmund</Author>
+
+        <LangVersion>preview</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-        <LangVersion>preview</LangVersion>
+        <WarningsAsErrors>True</WarningsAsErrors>
+
+        <UnoFeatures>
+            SkiaRenderer;
+            Hosting;
+            Logging;
+            Mvvm;
+            Configuration;
+            HttpRefit;
+            Serialization;
+            Localization;
+        </UnoFeatures>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="All" />

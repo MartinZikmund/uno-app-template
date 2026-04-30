@@ -1,4 +1,5 @@
 <Project>
+    <!-- Ensures Nbgv properly sets the Package.appxmanifest version for Uno Windows projects -->
     <Target Name="SetNbgvVersionForUnoWindows"
             Condition="'$(TargetPlatformIdentifier)' == 'windows'"
             BeforeTargets="UnoGeneratePackageAppxManifest"
