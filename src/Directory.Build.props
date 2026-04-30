@@ -4,6 +4,7 @@
         <Nullable>enable</Nullable>
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
         <LangVersion>preview</LangVersion>
+        <WarningsAsErrors>True</WarningsAsErrors>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="All" />
