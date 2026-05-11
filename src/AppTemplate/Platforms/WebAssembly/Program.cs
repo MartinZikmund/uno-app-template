@@ -1,16 +1,8 @@
 using Uno.UI.Hosting;
 
-namespace AppTemplate;
+var host = UnoPlatformHostBuilder.Create()
+    .App(() => new AppTemplate.App())
+    .UseWebAssembly()
+    .Build();
 
-public class Program
-{
-    public static async Task Main(string[] args)
-    {
-        var host = UnoPlatformHostBuilder.Create()
-            .App(() => new App())
-            .UseWebAssembly()
-            .Build();
-
-        await host.RunAsync();
-    }
-}
+await host.RunAsync();

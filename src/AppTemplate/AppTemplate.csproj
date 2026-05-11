@@ -1,4 +1,4 @@
-<Project Sdk="Uno.Sdk">
+﻿<Project Sdk="Uno.Sdk">
     <PropertyGroup>
         <TargetFrameworks>
             net10.0-android;
@@ -16,7 +16,7 @@
         <ApplicationTitle>App Template</ApplicationTitle>
         <ApplicationId>dev.mzikmund.apptemplate</ApplicationId>
         <ApplicationPublisher>Martin Zikmund</ApplicationPublisher>
-        <Description>AppTemplate powered by Uno Platform.</Description>
+        <Description>AppTemplate by Martin Zikmund</Description>
 
         <!-- Application icon & splash screen adjustments-->
         <UnoIconBackgroundFile>Assets/Icons/icon_transparent.svg</UnoIconBackgroundFile>
@@ -25,6 +25,7 @@
         <UnoIconForegroundScale Condition="'$(IsAndroid)' == 'true'">0.6</UnoIconForegroundScale>
         <UnoSplashScreenScale>0.85</UnoSplashScreenScale>
     </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="MZikmund.Toolkit.WinUI" />
         <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" />
@@ -32,10 +33,14 @@
         <PackageReference Include="sqlite-net-e" />
         <PackageReference Include="SourceGear.sqlite3" />
     </ItemGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
     </ItemGroup>
+
     <ItemGroup>
-      <Folder Include="Platforms\Android\Assets\" />
+      <Page Update="Resources\DataTemplates.xaml">
+        <Generator>MSBuild:Compile</Generator>
+      </Page>
     </ItemGroup>
 </Project>
