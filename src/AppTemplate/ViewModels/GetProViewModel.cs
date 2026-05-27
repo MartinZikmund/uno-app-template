@@ -17,8 +17,7 @@ public partial class GetProViewModel : ViewModelBase
         _storeService = storeService;
         PageTitle = _localizer["GetProTitle"];
 
-        // Glyphs are Segoe Fluent Icons code points. Replace this sample list with the
-        // features your app actually unlocks behind the Pro upgrade.
+        // Glyphs are Segoe Fluent Icons code points.
         Features = new ObservableCollection<ProFeature>
         {
             new("", _localizer["GetProFeatureNoAdsTitle"], _localizer["GetProFeatureNoAdsDescription"]),
@@ -28,7 +27,7 @@ public partial class GetProViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Feature list rendered via a <c>DataTemplate</c> so consuming apps can swap the content.
+    /// Features unlocked by the Pro upgrade, rendered via a <c>DataTemplate</c>.
     /// </summary>
     public ObservableCollection<ProFeature> Features { get; }
 
@@ -50,15 +49,16 @@ public partial class GetProViewModel : ViewModelBase
     public override async void OnNavigatedTo(object? parameter)
     {
         base.OnNavigatedTo(parameter);
-        await LoadPriceAsync();
+        await LoadAsync();
     }
 
-    private async Task LoadPriceAsync()
+    private async Task LoadAsync()
     {
         try
         {
             ClearError();
             IsBusy = true;
+            IsPro = await _storeService.HasProAsync();
             Price = await _storeService.GetPriceAsync();
         }
         catch (Exception)

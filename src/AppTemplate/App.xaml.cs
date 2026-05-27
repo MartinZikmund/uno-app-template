@@ -98,8 +98,8 @@ public partial class App : Application, IApplication
         services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();
         services.AddScoped<IAppRatingService, AppRatingService>();
 #if DEBUG
-        // Placeholder store backend so the GetPro scaffold is usable in development.
-        // Replace with a real IStoreService implementation before shipping.
+        // In-memory store backend for development. Swap in a real, platform-specific
+        // IStoreService for release builds.
         services.AddSingleton<IStoreService, FakeStoreService>();
 #endif
 
