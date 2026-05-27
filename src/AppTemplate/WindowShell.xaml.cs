@@ -161,7 +161,13 @@ public sealed partial class WindowShell : Page, IWindowShell
     #region Navigation
 
     private void NavView_Loaded(object sender, RoutedEventArgs e)
-        => NavigateToSection(NavigationSection.Main);
+    {
+        // Route first-run users through onboarding before showing the main content.
+        var preferences = ServiceProvider.GetRequiredService<IAppPreferences>();
+        NavigateToSection(preferences.HasSeenOnboarding
+            ? NavigationSection.Main
+            : NavigationSection.Onboarding);
+    }
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
@@ -192,6 +198,9 @@ public sealed partial class WindowShell : Page, IWindowShell
                 break;
             case NavigationSection.Settings:
                 nav.Navigate<SettingsViewModel>();
+                break;
+            case NavigationSection.Onboarding:
+                nav.Navigate<OnboardingViewModel>();
                 break;
             default:
                 throw new NotSupportedException($"Navigation section not supported: {section}");

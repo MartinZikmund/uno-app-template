@@ -113,6 +113,7 @@ public partial class App : Application, IApplication
             var service = new NavigationService(sp.GetRequiredService<IFrameProvider>());
             service.RegisterView(typeof(Views.MainView), typeof(MainViewModel));
             service.RegisterView(typeof(Views.SettingsView), typeof(SettingsViewModel));
+            service.RegisterView(typeof(Views.OnboardingView), typeof(OnboardingViewModel));
             return service;
         });
 
@@ -122,6 +123,7 @@ public partial class App : Application, IApplication
         // Transient ViewModels (new instance per navigation)
         services.AddTransient<MainViewModel>();
         services.AddTransient<SettingsViewModel>();
+        services.AddTransient<OnboardingViewModel>();
     }
 
     private static void ConfigureLogging(HostBuilderContext context, ILoggingBuilder logBuilder)
