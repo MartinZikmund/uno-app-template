@@ -31,10 +31,12 @@
       "commandName": "MsixPackage",
       "compatibleTargetFramework": "windows"
     },
-    //"AppTemplate (WinAppSDK Unpackaged)": {
-    //  "commandName": "Project",
-    //  "compatibleTargetFramework": "windows"
-    //},
+    // Unpackaged run for the WinAppSDK head. Works with `dotnet run` when the project
+    // is built unpackaged, i.e. `dotnet run -f net10.0-windows10.0.26100 -p:WindowsPackageType=None`.
+    "App Template (WinAppSDK Unpackaged)": {
+      "commandName": "Project",
+      "compatibleTargetFramework": "windows"
+    },
     "App Template (Desktop)": {
       "commandName": "Project",
       "compatibleTargetFramework": "desktop"

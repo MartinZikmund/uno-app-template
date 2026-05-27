@@ -56,6 +56,18 @@
         <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
     </ItemGroup>
 
+    <!--
+        Enables `dotnet run` for the packaged WinAppSDK (Windows) head.
+        The Microsoft.Windows.SDK.BuildTools.WinApp targets hook into `dotnet run`,
+        build a loose-layout package, register it with Windows, and launch it
+        (matching the experience of the `dotnet new winui` templates).
+        See: https://devblogs.microsoft.com/ifdef-windows/introducing-dotnet-new-templates-for-winui/
+        Referenced only for the Windows target; PrivateAssets="all" keeps it from flowing transitively.
+    -->
+    <ItemGroup Condition="'$(IsWinAppSdk)' == 'true'">
+        <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" PrivateAssets="all" />
+    </ItemGroup>
+
     <ItemGroup>
       <Page Update="Resources\DataTemplates.xaml">
         <Generator>MSBuild:Compile</Generator>
