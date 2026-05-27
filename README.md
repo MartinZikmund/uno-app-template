@@ -1,14 +1,13 @@
-# template
+# App Template
 
 ## Views
 
 ### `IViewBase`
 
-`ViewBase<TViewModel>` is the generic base class for views (pages). It resolves the view
-model from the hosting `WindowShell` service provider and forwards lifecycle events to it.
+`ViewBase<TViewModel>` is the base class for views (pages). It resolves the view model from the
+hosting `WindowShell` service provider and forwards lifecycle events to it.
 
-`IViewBase` is a non-generic interface that exposes the type-erased surface of
-`ViewBase<TViewModel>` — currently the resolved view model as `object?`:
+`IViewBase` is a non-generic interface that exposes the resolved view model as `object?`:
 
 ```csharp
 public interface IViewBase
@@ -17,12 +16,12 @@ public interface IViewBase
 }
 ```
 
-Every `ViewBase<TViewModel>` implements `IViewBase`, so you can reference a view through the
-interface without taking a dependency on the concrete generic type.
+Every `ViewBase<TViewModel>` implements `IViewBase`, so a view can be referenced through the
+interface without depending on its concrete view model type.
 
 Use it when:
 
-- A `DataTemplate` (or other shared/loosely-typed code) needs to call into a view without
-  knowing — or depending on — the specific view model generic argument.
+- A `DataTemplate` (or other loosely-typed code) needs to reach a view's view model without
+  knowing its generic argument.
 - A test needs to inspect a view's resolved view model without knowing its concrete type at
   compile time.
