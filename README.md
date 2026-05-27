@@ -86,13 +86,15 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 [`docs/`](./docs/) holds a page per topic — start at [docs/README.md](./docs/README.md).
 
-## Reactive cleanup with SerialDisposable
+## Swappable cleanup with SerialDisposable
 
-When a ViewModel reacts to selection changes — or any "subscribe to the current item" scenario — you typically need to dispose the previous subscription before setting up a new one. `Uno.Disposables.SerialDisposable` makes this pattern exception-safe and concise.
+When a ViewModel tracks the *current* item — and that item owns a resource that must be released the moment the selection moves on — you need to dispose the previous resource before acquiring a new one. `Uno.Disposables.SerialDisposable` makes that hand-off concise and exception-safe.
+
+A typical case: only the selected item should keep the screen awake. `IDisplayRequestManager.RequestActive()` returns an `IDisposable` that holds the request until it is disposed. As the selection changes, the previous request must be released so just one stays active.
 
 ### How it works
 
-`SerialDisposable` holds a single `IDisposable`. Assigning a new value to its `.Disposable` property automatically disposes the previous one. This removes the need for a manual null check and a separate `Dispose()` call before reassignment.
+`SerialDisposable` holds a single inner `IDisposable`. Assigning a new value to its `.Disposable` property automatically disposes whatever it held before. Assigning `null` disposes the current value and holds nothing. This removes the need for a manual null check and a separate `Dispose()` call before every reassignment.
 
 ### Example
 
@@ -100,16 +102,16 @@ When a ViewModel reacts to selection changes — or any "subscribe to the curren
 using CommunityToolkit.Mvvm.ComponentModel;
 using Uno.Disposables;
 
-namespace AppTemplate.ViewModels;
+namespace AppTemplate.Core.ViewModels;
 
 public partial class ItemListViewModel : ViewModelBase, IDisposable
 {
-    private readonly IItemService _itemService;
-    private readonly SerialDisposable _selectionSubscription = new();
+    private readonly IDisplayRequestManager _displayRequestManager;
+    private readonly SerialDisposable _displayRequestDisposable = new();
 
-    public ItemListViewModel(IItemService itemService)
+    public ItemListViewModel(IDisplayRequestManager displayRequestManager)
     {
-        _itemService = itemService;
+        _displayRequestManager = displayRequestManager;
     }
 
     [ObservableProperty]
@@ -117,24 +119,28 @@ public partial class ItemListViewModel : ViewModelBase, IDisposable
 
     partial void OnSelectedItemChanged(ItemModel? value)
     {
-        // Assigning here automatically disposes the previous subscription.
-        _selectionSubscription.Disposable = value is not null
-            ? _itemService.ObserveDisplayRequest(value.Id)
-                          .Subscribe(OnDisplayRequestReceived)
+        // Assigning here releases the previous item's display request before
+        // acquiring one for the new selection. Assigning null releases it entirely.
+        _displayRequestDisposable.Disposable = value is { KeepScreenOn: true }
+            ? _displayRequestManager.RequestActive()
             : null;
-    }
-
-    private void OnDisplayRequestReceived(DisplayRequest request)
-    {
-        // Handle the incoming display request for the current selection.
     }
 
     public void Dispose()
     {
-        // Disposes the currently held subscription (if any).
-        _selectionSubscription.Dispose();
+        // Releases the currently held display request (if any).
+        _displayRequestDisposable.Dispose();
     }
 }
+```
+
+The same idiom wraps any cleanup that should run on the next swap. Pass a callback to `Disposable.Create(...)` — for example, to unhook an event handler that was attached for the current selection:
+
+```csharp
+_displayRequestDisposable.Disposable = Disposable.Create(() =>
+{
+    value.SomethingChanged -= OnSomethingChanged;
+});
 ```
 
 ### When to prefer `SerialDisposable` over manual dispose-then-reassign
@@ -142,14 +148,14 @@ public partial class ItemListViewModel : ViewModelBase, IDisposable
 | Concern | Manual pattern | `SerialDisposable` |
 |---|---|---|
 | Null-safety | Requires an explicit null check before calling `.Dispose()` | Handles `null` automatically |
-| Exception-safety | A throw between `Dispose()` and reassignment leaks the old subscription | Assignment is atomic — old value is always disposed |
+| Exception-safety | A throw between `Dispose()` and reassignment leaks the old resource | Assignment is atomic — the old value is always disposed |
 | Readability | Two statements for every "swap" | One statement |
 
 ### Teardown
 
-Always dispose the `SerialDisposable` field when the ViewModel is torn down (e.g., implement `IDisposable` and call `_selectionSubscription.Dispose()`). This ensures the final active subscription is cleaned up when the ViewModel is no longer needed.
+Dispose the `SerialDisposable` field when the ViewModel is torn down (implement `IDisposable` and call `_displayRequestDisposable.Dispose()`) so the final active resource is released once the ViewModel is gone.
 
-The `ViewModelBase` lifecycle hooks (`ViewUnloaded`, `OnNavigatedFrom`) are good places to clear the subscription if you want to stop the subscription without fully disposing the ViewModel.
+If you want to release the resource earlier — while keeping the ViewModel alive — clear it from a `ViewModelBase` lifecycle hook such as `ViewUnloaded()` or `OnNavigatedFrom()` by assigning `_displayRequestDisposable.Disposable = null;`.
 
 ## Versioning
 
