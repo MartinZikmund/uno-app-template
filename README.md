@@ -86,6 +86,71 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 [`docs/`](./docs/) holds a page per topic — start at [docs/README.md](./docs/README.md).
 
+## Reactive cleanup with SerialDisposable
+
+When a ViewModel reacts to selection changes — or any "subscribe to the current item" scenario — you typically need to dispose the previous subscription before setting up a new one. `Uno.Disposables.SerialDisposable` makes this pattern exception-safe and concise.
+
+### How it works
+
+`SerialDisposable` holds a single `IDisposable`. Assigning a new value to its `.Disposable` property automatically disposes the previous one. This removes the need for a manual null check and a separate `Dispose()` call before reassignment.
+
+### Example
+
+```csharp
+using CommunityToolkit.Mvvm.ComponentModel;
+using Uno.Disposables;
+
+namespace AppTemplate.ViewModels;
+
+public partial class ItemListViewModel : ViewModelBase, IDisposable
+{
+    private readonly IItemService _itemService;
+    private readonly SerialDisposable _selectionSubscription = new();
+
+    public ItemListViewModel(IItemService itemService)
+    {
+        _itemService = itemService;
+    }
+
+    [ObservableProperty]
+    public partial ItemModel? SelectedItem { get; set; }
+
+    partial void OnSelectedItemChanged(ItemModel? value)
+    {
+        // Assigning here automatically disposes the previous subscription.
+        _selectionSubscription.Disposable = value is not null
+            ? _itemService.ObserveDisplayRequest(value.Id)
+                          .Subscribe(OnDisplayRequestReceived)
+            : null;
+    }
+
+    private void OnDisplayRequestReceived(DisplayRequest request)
+    {
+        // Handle the incoming display request for the current selection.
+    }
+
+    public void Dispose()
+    {
+        // Disposes the currently held subscription (if any).
+        _selectionSubscription.Dispose();
+    }
+}
+```
+
+### When to prefer `SerialDisposable` over manual dispose-then-reassign
+
+| Concern | Manual pattern | `SerialDisposable` |
+|---|---|---|
+| Null-safety | Requires an explicit null check before calling `.Dispose()` | Handles `null` automatically |
+| Exception-safety | A throw between `Dispose()` and reassignment leaks the old subscription | Assignment is atomic — old value is always disposed |
+| Readability | Two statements for every "swap" | One statement |
+
+### Teardown
+
+Always dispose the `SerialDisposable` field when the ViewModel is torn down (e.g., implement `IDisposable` and call `_selectionSubscription.Dispose()`). This ensures the final active subscription is cleaned up when the ViewModel is no longer needed.
+
+The `ViewModelBase` lifecycle hooks (`ViewUnloaded`, `OnNavigatedFrom`) are good places to clear the subscription if you want to stop the subscription without fully disposing the ViewModel.
+
 ## Versioning
 
 This template uses Nerdbank.GitVersioning. `main` produces `0.X.0-dev.{height}` prerelease builds with a Dev-channel identity that installs side-by-side with the Store version. Stable releases come from `release/v{minor}` branches. See [docs/versioning.md](./docs/versioning.md) for the full model and [docs/versioning-migration.md](./docs/versioning-migration.md) to apply it to an existing app.
