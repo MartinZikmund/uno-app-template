@@ -10,7 +10,7 @@ namespace AppTemplate.Droid;
 /// future-dated notifications via <see cref="AlarmManager"/>.
 /// </summary>
 /// <remarks>
-/// Android wipes all <see cref="AlarmManager"/> alarms when the device reboots. Any app that
+/// Android wipes all <see cref="AlarmManager"/> alarms when the device reboots. Any feature that
 /// relies on exact/inexact alarms to post scheduled notifications must therefore listen for
 /// <see cref="Intent.ActionBootCompleted"/> and re-register its pending alarms after boot,
 /// otherwise previously-scheduled notifications will silently never fire.
@@ -40,6 +40,7 @@ public class BootReceiver : BroadcastReceiver
         {
             // Never let an exception escape OnReceive: an unhandled exception here crashes the
             // broadcast and can mark the receiver as misbehaving on some OEM builds.
+            // The alarms will be re-scheduled the next time the app is opened.
             Log.Error(LogTag, $"Failed to re-schedule notifications after boot: {ex}");
         }
     }
@@ -57,44 +58,70 @@ public class BootReceiver : BroadcastReceiver
             return;
         }
 
-        // TODO: Wire this up to the app's scheduled-notification service once it ships.
+        // TODO: Read the notifications that were persisted when they were originally scheduled
+        // (SQLite, preferences, a JSON file - whatever store the app uses) and replace this
+        // empty set. Persistence is what allows the alarms to be rebuilt after a reboot, so the
+        // scheduling code path must save every notification it registers.
         //
-        // The expected flow is:
-        //   1. Resolve the scheduled-notification service (e.g. IScheduledNotificationService)
-        //      from the app's DI container or a shared service locator.
-        //   2. Read the persisted notifications (SQLite / preferences / file) that were saved
-        //      when they were originally scheduled.
-        //   3. For every notification whose trigger time is still in the future, build a
-        //      PendingIntent that targets NotificationAlarmReceiver and register it, e.g.:
-        //
-        //      foreach (var scheduled in persistedNotifications)
-        //      {
-        //          if (scheduled.TriggerTimeUtc <= DateTimeOffset.UtcNow)
-        //          {
-        //              continue;
-        //          }
-        //
-        //          var intent = new Intent(context, typeof(NotificationAlarmReceiver));
-        //          intent.PutExtra(NotificationAlarmReceiver.ExtraNotificationId, scheduled.Id);
-        //          intent.PutExtra(NotificationAlarmReceiver.ExtraTitle, scheduled.Title);
-        //          intent.PutExtra(NotificationAlarmReceiver.ExtraMessage, scheduled.Message);
-        //
-        //          var pendingIntent = PendingIntent.GetBroadcast(
-        //              context,
-        //              scheduled.Id,
-        //              intent,
-        //              PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
-        //
-        //          var triggerAtMillis = scheduled.TriggerTimeUtc.ToUnixTimeMilliseconds();
-        //          alarmManager.SetExactAndAllowWhileIdle(
-        //              AlarmType.RtcWakeup,
-        //              triggerAtMillis,
-        //              pendingIntent);
-        //      }
-        //
-        // Note: on Android 12 (API 31)+ exact alarms require the SCHEDULE_EXACT_ALARM /
-        // USE_EXACT_ALARM permission; fall back to SetAndAllowWhileIdle when it is not granted.
+        // Keep the persistence/read logic in a platform-agnostic service so it stays testable,
+        // and call into it from here - this receiver only owns the AlarmManager plumbing.
+        IReadOnlyList<ScheduledNotification> persistedNotifications = Array.Empty<ScheduledNotification>();
 
-        Log.Info(LogTag, "No scheduled-notification service is wired up yet; nothing to re-schedule.");
+        var now = DateTimeOffset.UtcNow;
+        foreach (var scheduled in persistedNotifications)
+        {
+            // Skip anything that should already have fired - the alarm would fire immediately.
+            if (scheduled.TriggerTimeUtc <= now)
+            {
+                continue;
+            }
+
+            ScheduleAlarm(context, alarmManager, scheduled);
+        }
+    }
+
+    /// <summary>
+    /// Registers a single notification alarm with <see cref="AlarmManager"/>, mirroring the same
+    /// <see cref="PendingIntent"/> and exact-alarm handling used when the notification is first
+    /// scheduled. Re-using identical request codes means a reboot rebuilds the exact same alarms.
+    /// </summary>
+    /// <remarks>
+    /// This is the canonical scheduling code path: the app's notification-scheduling service
+    /// should call into the same logic so that scheduling and boot-rescheduling never diverge.
+    /// </remarks>
+    private static void ScheduleAlarm(Context context, AlarmManager alarmManager, ScheduledNotification scheduled)
+    {
+        var triggerAtMillis = scheduled.TriggerTimeUtc.ToUnixTimeMilliseconds();
+
+        var intent = new Intent(context, typeof(NotificationAlarmReceiver));
+        intent.PutExtra(NotificationAlarmReceiver.ExtraNotificationId, scheduled.Id);
+        intent.PutExtra(NotificationAlarmReceiver.ExtraTitle, scheduled.Title);
+        intent.PutExtra(NotificationAlarmReceiver.ExtraMessage, scheduled.Message);
+
+        // The request code must be stable across process restarts so the rebuilt PendingIntent
+        // matches the original (and so duplicate scheduling updates rather than stacks). An int
+        // primary key works directly; for string/GUID ids derive a deterministic int hash.
+        var pendingIntent = PendingIntent.GetBroadcast(
+            context,
+            scheduled.Id,
+            intent,
+            PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.S &&
+            !alarmManager.CanScheduleExactAlarms())
+        {
+            // Android 12 (API 31)+ withholds exact alarms unless SCHEDULE_EXACT_ALARM /
+            // USE_EXACT_ALARM is granted; fall back to an inexact alarm that still fires in Doze.
+            alarmManager.SetAndAllowWhileIdle(AlarmType.RtcWakeup, triggerAtMillis, pendingIntent);
+        }
+        else if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+        {
+            // Android 6.0 (API 23)+ exact alarm that is allowed to fire while the device is idle.
+            alarmManager.SetExactAndAllowWhileIdle(AlarmType.RtcWakeup, triggerAtMillis, pendingIntent);
+        }
+        else
+        {
+            alarmManager.SetExact(AlarmType.RtcWakeup, triggerAtMillis, pendingIntent);
+        }
     }
 }
