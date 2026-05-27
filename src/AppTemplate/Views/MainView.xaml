@@ -6,6 +6,7 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid Padding="24">
+        <!-- Content -->
         <StackPanel
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
@@ -20,6 +21,27 @@
                 HorizontalAlignment="Center"
                 Style="{ThemeResource TitleLargeTextBlockStyle}"
                 Text="Hello Uno Platform!" />
+
+            <!--
+                Busy state example: IsWorking is set while a user-initiated command
+                runs on an already-loaded view. Drive an inline busy indicator from it
+                and disable the triggering control until the action completes.
+            -->
+            <ProgressRing
+                HorizontalAlignment="Center"
+                IsActive="{Binding IsWorking, Mode=OneWay}" />
         </StackPanel>
+
+        <!--
+            Initial-load example: IsLoading is set while the view fetches the data it
+            needs when it is entered/navigated to. Show a full-page loading indicator
+            until the data is ready.
+        -->
+        <ProgressRing
+            Width="48"
+            Height="48"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            IsActive="{Binding IsLoading, Mode=OneWay}" />
     </Grid>
 </local:MainViewBase>
