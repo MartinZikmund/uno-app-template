@@ -90,41 +90,51 @@ An Uno Platform (WinUI) cross-platform app template targeting .NET 10.
 
 ## Android: scheduled notifications & boot rescheduling
 
-Android wipes every `AlarmManager` alarm when the device reboots. Any app that posts
+Android wipes every `AlarmManager` alarm when the device reboots. Anything that posts
 notifications via `AlarmManager` therefore has to re-register its pending alarms after boot,
 otherwise previously-scheduled notifications silently never fire.
 
-The template ships the receiver pair needed for this pattern under
-`src/AppTemplate/Platforms/Android/`:
+The receiver pair that implements this pattern lives under `src/AppTemplate/Platforms/Android/`:
 
 - **`BootReceiver`** — an exported `[BroadcastReceiver]` listening for
   `Intent.ActionBootCompleted`. On boot it re-reads the persisted scheduled notifications and
-  re-registers a pending alarm for each future-dated entry.
+  re-registers a pending alarm for each future-dated entry. The actual `AlarmManager` scheduling
+  (including the exact-alarm fallback below) lives in its `ScheduleAlarm` helper, which is the
+  single code path scheduling should reuse so it never diverges from boot-rescheduling.
 - **`NotificationAlarmReceiver`** — a non-exported `[BroadcastReceiver]` that is the target of
-  each scheduled `PendingIntent`. When the alarm fires it builds and posts the notification via
-  `NotificationManager`.
+  each scheduled `PendingIntent`. When the alarm fires it creates the `scheduled_notifications`
+  channel (required on Android 8.0+), builds the notification with a tap-to-open content intent,
+  and posts it via `NotificationManagerCompat`. The accompanying `ScheduledNotification` record is
+  a minimal generic payload (`Id`, `Title`, `Message`, `TriggerTimeUtc`) — replace it with, or map
+  it onto, the app's own persisted model.
 
-The manifest already declares the required permission:
+The manifest declares the permissions the pattern needs:
 
 ```xml
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+<uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 ```
 
-### Wiring to a scheduled-notifications service
+`POST_NOTIFICATIONS` is a runtime permission on Android 13 (API 33)+ — request it before
+scheduling. `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM` are required for exact alarms on Android 12
+(API 31)+; without them the receivers fall back to an inexact (but Doze-friendly) alarm.
 
-Both receivers currently contain placeholder logic marked with `TODO` comments. To make them
-functional, provide a scheduled-notifications service (not shipped in this template) and wire it
-up as follows:
+### Wiring up the notification source
 
-1. **Persist scheduled notifications.** When the app schedules a notification, store its id,
-   title, message and trigger time somewhere durable (SQLite via `sqlite-net-e`, preferences, or
-   a file). Persistence is what allows `BootReceiver` to rebuild the alarms after a reboot.
+`BootReceiver.RescheduleNotifications` reads an empty notification set marked with a `TODO`, and
+`NotificationAlarmReceiver` posts a placeholder title/message/icon. To make them functional:
 
-2. **Schedule an alarm.** Build an `Intent` targeting `NotificationAlarmReceiver`, attach the
-   payload through the `ExtraNotificationId` / `ExtraTitle` / `ExtraMessage` extras, wrap it in a
-   `PendingIntent`, and register it with `AlarmManager` (use `SetExactAndAllowWhileIdle` for exact
-   timing). On Android 12 (API 31)+ exact alarms require the `SCHEDULE_EXACT_ALARM` /
-   `USE_EXACT_ALARM` permission — fall back to `SetAndAllowWhileIdle` when it is not granted.
+1. **Persist scheduled notifications.** When a notification is scheduled, store its id, title,
+   message and trigger time somewhere durable (SQLite via `sqlite-net-e`, preferences, or a file).
+   Persistence is what allows `BootReceiver` to rebuild the alarms after a reboot, so the
+   scheduling code must save every notification it registers.
+
+2. **Schedule an alarm.** Reuse `BootReceiver.ScheduleAlarm` (or mirror it). It builds an `Intent`
+   targeting `NotificationAlarmReceiver`, attaches the payload through the `ExtraNotificationId` /
+   `ExtraTitle` / `ExtraMessage` extras, wraps it in a `PendingIntent`, and registers it with
+   `AlarmManager` using the tiered exact-alarm handling:
 
    ```csharp
    var intent = new Intent(context, typeof(NotificationAlarmReceiver));
@@ -132,6 +142,8 @@ up as follows:
    intent.PutExtra(NotificationAlarmReceiver.ExtraTitle, scheduled.Title);
    intent.PutExtra(NotificationAlarmReceiver.ExtraMessage, scheduled.Message);
 
+   // The request code must be stable across process restarts so a reboot rebuilds the same
+   // alarm. An int primary key works directly; for string/GUID ids derive a deterministic hash.
    var pendingIntent = PendingIntent.GetBroadcast(
        context,
        scheduled.Id,
@@ -139,22 +151,33 @@ up as follows:
        PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
    var alarmManager = (AlarmManager)context.GetSystemService(Context.AlarmService)!;
-   alarmManager.SetExactAndAllowWhileIdle(
-       AlarmType.RtcWakeup,
-       scheduled.TriggerTimeUtc.ToUnixTimeMilliseconds(),
-       pendingIntent);
+   var triggerAtMillis = scheduled.TriggerTimeUtc.ToUnixTimeMilliseconds();
+
+   if (Build.VERSION.SdkInt >= BuildVersionCodes.S && !alarmManager.CanScheduleExactAlarms())
+   {
+       alarmManager.SetAndAllowWhileIdle(AlarmType.RtcWakeup, triggerAtMillis, pendingIntent);
+   }
+   else if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+   {
+       alarmManager.SetExactAndAllowWhileIdle(AlarmType.RtcWakeup, triggerAtMillis, pendingIntent);
+   }
+   else
+   {
+       alarmManager.SetExact(AlarmType.RtcWakeup, triggerAtMillis, pendingIntent);
+   }
    ```
 
-3. **Re-schedule on boot.** Implement the `TODO` in `BootReceiver.RescheduleNotifications`: read
-   the persisted notifications, skip any whose trigger time is in the past, and re-register an
-   alarm for the rest using the same code path as step 2.
+3. **Re-schedule on boot.** Replace the empty set in `BootReceiver.RescheduleNotifications` with
+   the persisted notifications; it already skips past-due entries and re-registers the rest via
+   `ScheduleAlarm`.
 
-4. **Post the notification.** `NotificationAlarmReceiver` already creates the
-   `scheduled_notifications` channel (required on Android 8.0+) and posts a placeholder
-   notification. Replace the placeholder title/message/icon with the real persisted payload.
+4. **Post the notification.** Replace the placeholder title/message in `NotificationAlarmReceiver`
+   with the real persisted payload, and swap the placeholder system icon for the app's own
+   notification icon (e.g. `Resource.Mipmap.icon_foreground`, generated by the Uno SDK during the
+   Android build).
 
-Keep the actual scheduling/persistence logic in a platform-agnostic service so it stays testable,
-and call into these Android receivers only for the platform-specific alarm + notification plumbing.
+Keep the scheduling/persistence logic in a platform-agnostic service so it stays testable, and
+call into these Android receivers only for the platform-specific alarm + notification plumbing.
 
 ## Versioning
 
