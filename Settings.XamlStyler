@@ -1,5 +1,5 @@
 {
-  "AttributesTolerance": 1,
+  "AttributesTolerance": 2,
   "KeepFirstAttributeOnSameLine": false,
   "MaxAttributeCharactersPerLine": 0,
   "MaxAttributesPerLine": 1,
@@ -13,24 +13,16 @@
     "x:Class",
     "xmlns, xmlns:x",
     "xmlns:*",
-    "x:Key, x:Name, x:Uid",
-    "x:DataType",
+    "x:Key, Key, x:Name, Name, x:Uid, Uid, Title",
     "Grid.Row, Grid.RowSpan, Grid.Column, Grid.ColumnSpan, Canvas.Left, Canvas.Top, Canvas.Right, Canvas.Bottom",
-    "Width, Height, MinWidth, MinHeight, MaxWidth, MaxHeight",
-    "Margin, Padding",
-    "HorizontalAlignment, VerticalAlignment, HorizontalContentAlignment, VerticalContentAlignment",
-    "Panel.ZIndex, RenderTransformOrigin",
-    "Orientation, Spacing, RowSpacing, ColumnSpacing",
-    "Visibility, Opacity",
-    "Background, Foreground, BorderBrush, BorderThickness, CornerRadius",
-    "FontFamily, FontSize, FontWeight, FontStyle",
-    "Text, Content, Header, Description",
-    "Style, ControlTemplate, Template",
-    "*",
-    "AutomationProperties.*"
+    "Width, Height, MinWidth, MinHeight, MaxWidth, MaxHeight, Margin, Padding, HorizontalAlignment, VerticalAlignment, HorizontalContentAlignment, VerticalContentAlignment, Panel.ZIndex",
+    "*:*, *",
+    "PageSource, PageIndex, Offset, Color, TargetName, Property, Value, StartPoint, EndPoint",
+    "mc:Ignorable, d:IsDataSource, d:LayoutOverrides, d:IsStaticText",
+    "Storyboard.*, From, To, Duration"
   ],
   "FirstLineAttributes": "",
-  "OrderAttributesByName": true,
+  "OrderAttributesByName": false,
   "PutEndingBracketOnNewLine": false,
   "RemoveEndingTagOfEmptyElement": true,
   "SpaceBeforeClosingSlash": true,
@@ -47,5 +39,5 @@
   "IndentSize": 4,
   "UseVisualStudioIndentSize": false,
   "IndentWithTabs": false,
-  "NewLineStyle": 0
+  "NewLineStyle": 1
 }

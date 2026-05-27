@@ -28,32 +28,38 @@ Use it when:
 
 ### Restore dotnet tools
 
+The repository ships a local tool manifest (`.config/dotnet-tools.json`). Restore the tools once after cloning:
+
 ```bash
 dotnet tool restore
 ```
+
+### Build and Run
+
+```bash
+cd src/AppTemplate
+dotnet build -f net10.0-windows10.0.26100
+dotnet run -f net10.0-windows10.0.26100
+```
+
+Swap the target framework (`net10.0-android`, `net10.0-ios`, `net10.0-desktop`, `net10.0-browserwasm`) to build for other platforms.
 
 ## XAML Styler
 
-This repo includes a [`Settings.XamlStyler`](Settings.XamlStyler) config at the root and uses [XAML Styler](https://github.com/Xavalon/XamlStyler) to enforce consistent XAML formatting.
+XAML formatting is kept consistent with [XAML Styler](https://github.com/Xavalon/XamlStyler), pinned as a local dotnet tool. The [`Settings.XamlStyler`](Settings.XamlStyler) file at the repository root is picked up automatically.
 
-### Running XAML Styler
-
-First restore the local dotnet tool:
-
-```bash
-dotnet tool restore
-```
-
-Then format all XAML files under `src/`:
+Format all XAML files under `src/`:
 
 ```bash
 dotnet xstyler --recursive --directory src
 ```
 
-Or to check formatting without making changes (useful in CI):
+Or verify formatting without writing changes (useful in CI):
 
 ```bash
 dotnet xstyler --recursive --directory src --passive
 ```
 
-The `Settings.XamlStyler` file at the repo root is automatically picked up by the tool.
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
