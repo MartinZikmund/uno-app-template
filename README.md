@@ -99,10 +99,17 @@ Segoe Fluent Icons / Segoe MDL2 Assets font:
 <x:String x:Key="ShareIcon">&#xE72D;</x:String>
 ```
 
-Reference the glyph from a `FontIcon` (or any control that takes a glyph) via `StaticResource`:
+Reference the glyph from a `FontIcon` via `StaticResource`:
 
 ```xml
 <FontIcon Glyph="{StaticResource ShareIcon}" />
+```
+
+For controls that expect an `IconElement` (such as `MenuFlyoutItem` or `AppBarButton`), pair the
+constant with a `FontIcon` markup extension so the glyph stays a one-liner:
+
+```xml
+<MenuFlyoutItem Icon="{ui:FontIcon Glyph={StaticResource ShareIcon}}" />
 ```
 
 Centralizing the glyphs keeps icon usage consistent and makes swapping an icon a one-line change.
