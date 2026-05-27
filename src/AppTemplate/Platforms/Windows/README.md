@@ -11,11 +11,9 @@ involved at runtime on this head). See
 
 `dotnet run` support for the packaged WinAppSDK head is provided by the
 [`Microsoft.Windows.SDK.BuildTools.WinApp`](https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools.WinApp)
-package (referenced for the Windows target in `AppTemplate.csproj`). Its MSBuild targets
+package, referenced for the Windows target in `AppTemplate.csproj`. Its MSBuild targets
 hook into the standard `dotnet run` pipeline: they build the project, create a
 loose-layout package, register it with Windows (like a real MSIX install) and launch it.
-This mirrors what the new `dotnet new winui` templates support — see
-[Introducing dotnet new templates for WinUI](https://devblogs.microsoft.com/ifdef-windows/introducing-dotnet-new-templates-for-winui/).
 
 ```powershell
 # From the src/AppTemplate folder
@@ -39,11 +37,13 @@ Optional MSBuild properties exposed by the package (set on the command line with
 
 ### Unpackaged (`dotnet run`)
 
-To run unpackaged, override `WindowsPackageType` so no MSIX identity is created:
+To run unpackaged, override `WindowsPackageType` so no MSIX identity is created and select
+the unpackaged launch profile explicitly (otherwise `dotnet run` picks the first
+Windows-compatible profile):
 
 ```powershell
 # From the src/AppTemplate folder
-dotnet run -f net10.0-windows10.0.26100 -p:WindowsPackageType=None
+dotnet run -f net10.0-windows10.0.26100 -p:WindowsPackageType=None --launch-profile "App Template (WinAppSDK Unpackaged)"
 ```
 
 The matching launch profile is **App Template (WinAppSDK Unpackaged)** in
@@ -64,10 +64,10 @@ dotnet run -f net10.0-desktop
 In Visual Studio / Rider pick one of the Windows launch profiles from the debug target
 dropdown:
 
-- **App Template (WinAppSDK Packaged)** — packaged MSIX run (`commandName: MsixPackage`).
 - **App Template (WinAppSDK Unpackaged)** — unpackaged run (`commandName: Project`).
+- **App Template (WinAppSDK Packaged)** — packaged MSIX run (`commandName: MsixPackage`).
 
-> Note: a Visual Studio issue can hide the unpackaged profile when iOS/Android target
-> frameworks are present. See the
-> [Uno common issues guide](https://platform.uno/docs/articles/common-issues-vs2022.html#unable-to-select-the--myapp-unpackaged-winappsdk--profile)
-> if the profile is not selectable.
+> Note: a [Visual Studio issue](https://aka.platform.uno/wasdk-maui-debug-profile-issue)
+> can hide the unpackaged profile when iOS/Android target frameworks are present. If the
+> profile is not selectable, comment out the packaged profile in
+> `Properties/launchSettings.json` until it is fixed.

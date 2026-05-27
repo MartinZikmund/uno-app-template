@@ -27,14 +27,14 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "App Template (WinAppSDK Packaged)": {
-      "commandName": "MsixPackage",
-      "compatibleTargetFramework": "windows"
-    },
-    // Unpackaged run for the WinAppSDK head. Works with `dotnet run` when the project
-    // is built unpackaged, i.e. `dotnet run -f net10.0-windows10.0.26100 -p:WindowsPackageType=None`.
+    // Unpackaged run for the WinAppSDK head. From the CLI, select it explicitly and build
+    // unpackaged: `dotnet run -f net10.0-windows10.0.26100 -p:WindowsPackageType=None --launch-profile "App Template (WinAppSDK Unpackaged)"`.
     "App Template (WinAppSDK Unpackaged)": {
       "commandName": "Project",
+      "compatibleTargetFramework": "windows"
+    },
+    "App Template (WinAppSDK Packaged)": {
+      "commandName": "MsixPackage",
       "compatibleTargetFramework": "windows"
     },
     "App Template (Desktop)": {
