@@ -86,6 +86,27 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 [`docs/`](./docs/) holds a page per topic — start at [docs/README.md](./docs/README.md).
 
+## Icon glyph constants
+
+Icon glyphs live in a single resource dictionary, `src/AppTemplate/Resources/Icons.xaml`,
+instead of being scattered as raw `&#xExxx;` literals throughout the XAML. The dictionary is
+merged into the app-wide resources in `src/AppTemplate/App.xaml`.
+
+Each entry is an `x:String` keyed by a descriptive name, using glyph codes from the
+Segoe Fluent Icons / Segoe MDL2 Assets font:
+
+```xml
+<x:String x:Key="ShareIcon">&#xE72D;</x:String>
+```
+
+Reference the glyph from a `FontIcon` (or any control that takes a glyph) via `StaticResource`:
+
+```xml
+<FontIcon Glyph="{StaticResource ShareIcon}" />
+```
+
+Centralizing the glyphs keeps icon usage consistent and makes swapping an icon a one-line change.
+Add new icons by introducing another keyed `x:String` in `Icons.xaml`.
 ## Versioning
 
 This template uses Nerdbank.GitVersioning. `main` produces `0.X.0-dev.{height}` prerelease builds with a Dev-channel identity that installs side-by-side with the Store version. Stable releases come from `release/v{minor}` branches. See [docs/versioning.md](./docs/versioning.md) for the full model and [docs/versioning-migration.md](./docs/versioning-migration.md) to apply it to an existing app.
