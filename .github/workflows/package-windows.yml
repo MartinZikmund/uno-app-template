@@ -1,7 +1,14 @@
 name: Build Windows Packages
 
 on:
+  # Manual runs (any branch) for ad-hoc package builds.
   workflow_dispatch:
+  # Stable store releases are driven by release/<version> branches.
+  # Nerdbank.GitVersioning treats these as public releases (no -dev suffix),
+  # so pushing to a release branch produces a store-ready, signed package.
+  push:
+    branches:
+      - release/**
 
 env:
   # App Configuration

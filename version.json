@@ -14,7 +14,7 @@
         }
     },
     "release": {
-        "branchName": "release/stable/{version}",
+        "branchName": "release/{version}",
         "firstUnstableTag": "dev"
     }
 }
