@@ -1,11 +1,13 @@
 using AppTemplate.Core.Infrastructure;
 using AppTemplate.Core.Services;
+using AppTemplate.Core.Services.DeepLink;
 using AppTemplate.Core.ViewModels;
 using AppTemplate.Services.Dialogs;
 using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Rating;
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
+using CommunityToolkit.Mvvm.Messaging;
 using Uno.Resizetizer;
 
 namespace AppTemplate;
@@ -71,6 +73,17 @@ public partial class App : Application, IApplication
         Host = builder.Build();
         IoC.SetProvider(Host.Services);
 
+#if __IOS__
+        // Consume a deep link captured during a cold start (notification tap that launched the app),
+        // before the dependency-injection container existed.
+        if (!string.IsNullOrEmpty(iOS.NotificationDelegate.PendingDeepLink))
+        {
+            var deepLinkService = Host.Services.GetRequiredService<IDeepLinkService>();
+            deepLinkService.SetPendingNavigation(iOS.NotificationDelegate.PendingDeepLink!);
+            iOS.NotificationDelegate.PendingDeepLink = null;
+        }
+#endif
+
         // Run app lifecycle updates
         var appPreferences = Host.Services.GetRequiredService<IAppPreferences>();
         var appUpdater = Host.Services.GetRequiredService<IAppUpdater>();
@@ -92,9 +105,11 @@ public partial class App : Application, IApplication
         // Singleton services
         services.AddSingleton<IApplication>(sp => Current);
         services.AddSingleton<MZikmund.Toolkit.WinUI.Services.IPreferences, Preferences>();
+        services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
         services.AddSingleton<IAppPreferences, AppPreferences>();
         services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
         services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();
+        services.AddSingleton<IDeepLinkService, DeepLinkService>();
         services.AddScoped<IAppRatingService, AppRatingService>();
 
         // Per-window scoped services
