@@ -92,7 +92,7 @@ public sealed partial class WindowShell : Page, IWindowShell
 			ViewModel.Title = ServiceProvider.GetRequiredService<IStringLocalizer>()["ApplicationName"];
 		}
 
-		ViewModel.OnPropertyChanged(nameof(WindowShellViewModel.CanGoBack));
+		ViewModel.NotifyCanGoBackChanged();
 		UpdateNavigationViewSelection();
 	}
 
