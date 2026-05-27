@@ -2,5 +2,5 @@ namespace AppTemplate.Services.Dialogs;
 
 public interface IConfirmationDialogService
 {
-	Task<ConfirmationResult> ShowAsync(string title, string text);
+    Task<ConfirmationResult> ShowAsync(string title, string text);
 }

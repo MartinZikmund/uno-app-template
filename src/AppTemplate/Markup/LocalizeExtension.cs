@@ -6,15 +6,15 @@ namespace AppTemplate.Markup;
 [MarkupExtensionReturnType(ReturnType = typeof(string))]
 public sealed class LocalizeExtension : MarkupExtension
 {
-	public string Key { get; set; } = string.Empty;
+    public string Key { get; set; } = string.Empty;
 
-	protected override object ProvideValue()
-	{
-		if (string.IsNullOrEmpty(Key))
-		{
-			return string.Empty;
-		}
+    protected override object ProvideValue()
+    {
+        if (string.IsNullOrEmpty(Key))
+        {
+            return string.Empty;
+        }
 
-		return Localizer.Instance.GetString(Key);
-	}
+        return Localizer.Instance.GetString(Key);
+    }
 }

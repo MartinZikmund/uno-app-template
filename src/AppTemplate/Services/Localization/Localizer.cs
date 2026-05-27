@@ -4,18 +4,18 @@ namespace AppTemplate.Services.Localization;
 
 public sealed class Localizer
 {
-	private static readonly Lazy<IStringLocalizer> _stringLocalizer =
-		new(() => IoC.GetRequiredService<IStringLocalizer>());
+    private static readonly Lazy<IStringLocalizer> _stringLocalizer =
+        new(() => IoC.GetRequiredService<IStringLocalizer>());
 
-	private Localizer() { }
+    private Localizer() { }
 
-	public static Localizer Instance { get; } = new();
+    public static Localizer Instance { get; } = new();
 
-	public string GetString(string key)
-	{
-		var result = _stringLocalizer.Value.GetString(key);
-		return !result.ResourceNotFound ? result.Value : $"???{key}???";
-	}
+    public string GetString(string key)
+    {
+        var result = _stringLocalizer.Value.GetString(key);
+        return !result.ResourceNotFound ? result.Value : $"???{key}???";
+    }
 
-	public string this[string key] => GetString(key);
+    public string this[string key] => GetString(key);
 }

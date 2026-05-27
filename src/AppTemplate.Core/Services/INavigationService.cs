@@ -4,17 +4,17 @@ namespace AppTemplate.Core.Services;
 
 public interface INavigationService
 {
-	bool CanGoBack { get; }
+    bool CanGoBack { get; }
 
-	NavigationSection? CurrentSection { get; }
+    NavigationSection? CurrentSection { get; }
 
-	void Initialize();
+    void Initialize();
 
-	void Navigate<TViewModel>();
+    void Navigate<TViewModel>();
 
-	void Navigate<TViewModel>(object? parameter);
+    void Navigate<TViewModel>(object? parameter);
 
-	bool GoBack();
+    bool GoBack();
 
-	void ClearBackStack();
+    void ClearBackStack();
 }

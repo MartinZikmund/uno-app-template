@@ -2,9 +2,9 @@ namespace AppTemplate.Services.Theming;
 
 public interface IThemeManager : IDisposable
 {
-	void SetTheme(ElementTheme theme);
+    void SetTheme(ElementTheme theme);
 
-	ElementTheme CurrentTheme { get; }
+    ElementTheme CurrentTheme { get; }
 
-	ApplicationTheme ActualTheme { get; }
+    ApplicationTheme ActualTheme { get; }
 }
