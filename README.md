@@ -86,6 +86,94 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 [`docs/`](./docs/) holds a page per topic — start at [docs/README.md](./docs/README.md).
 
+A cross-platform Uno Platform / WinUI app template targeting .NET 10.
+
+## JSON serialization (AOT / iOS / NativeAOT)
+
+### Why a per-app `JsonSerializerContext`
+
+Reflection-based JSON serialization (`JsonSerializer.Serialize<T>(value)` with no
+extra options) fails at runtime on platforms that disallow runtime code generation,
+most notably **iOS NativeAOT** and trimmed **WASM** builds. The .NET trimmer cannot
+statically determine which types will be serialized, so the required metadata is
+stripped away.
+
+The solution is **source-generated serialization** via
+[`JsonSerializerContext`](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/source-generation).
+You annotate a `partial` class with `[JsonSerializable(typeof(MyModel))]` for every
+type your app serializes, and the compiler generates all required type metadata at
+build time. No runtime reflection is needed.
+
+A `JsonSerializerContext` **cannot be shared as a NuGet package** because it must
+contain the closed set of types known at compile time — types that are specific to
+each app. Every app therefore needs its own context class.
+
+### `JsonSourceGenerationOptions` conventions
+
+Use two distinct option profiles depending on the use case:
+
+| Use case | `WriteIndented` | Notes |
+|---|---|---|
+| **Storage / network** (default) | `false` | Compact; smaller payloads, faster I/O. |
+| **Export / debug files** | `true` | Human-readable; easier to inspect. |
+
+For both profiles use `CamelCase` property naming and
+`WhenWritingNull` to omit null values unless your API contract requires them.
+
+### Pattern: registering types in the context
+
+Declare a `partial` class that inherits `JsonSerializerContext`. Annotate it with
+one `[JsonSerializable]` attribute per serializable type, including collection
+variants (`List<T>`, `T[]`, etc.) that you pass to `JsonSerializer`.
+
+```csharp
+using System.Text.Json.Serialization;
+
+[JsonSourceGenerationOptions(
+    WriteIndented = false,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+[JsonSerializable(typeof(MyModel))]
+[JsonSerializable(typeof(List<MyModel>))]
+[JsonSerializable(typeof(AnotherModel))]
+public partial class MyAppJsonContext : JsonSerializerContext
+{
+}
+```
+
+Then use the generated static `Default` instance directly:
+
+```csharp
+// Serialize
+string json = JsonSerializer.Serialize(model, MyAppJsonContext.Default.MyModel);
+
+// Deserialize
+MyModel? obj = JsonSerializer.Deserialize(json, MyAppJsonContext.Default.MyModel);
+```
+
+Or compose it into `JsonSerializerOptions` for helpers that accept options:
+
+```csharp
+JsonSerializerOptions options = new()
+{
+    TypeInfoResolver = MyAppJsonContext.Default,
+};
+```
+
+### Stub file
+
+A ready-to-copy stub lives at
+`src/AppTemplate.Core/Models/AppTemplateJsonContext.cs`.
+It includes:
+
+- An example `ExampleModel` record showing a minimal serializable type.
+- A `[JsonSourceGenerationOptions]` declaration with the recommended defaults.
+- `[JsonSerializable]` registrations for the model and its `List<T>` variant.
+- Inline comments explaining how to adapt and use it.
+
+Rename the class, swap in your own types, and add a `[JsonSerializable]` entry for
+each type you need. Delete `ExampleModel` once you have real models registered.
+
 ## Versioning
 
 This template uses Nerdbank.GitVersioning. `main` produces `0.X.0-dev.{height}` prerelease builds with a Dev-channel identity that installs side-by-side with the Store version. Stable releases come from `release/v{minor}` branches. See [docs/versioning.md](./docs/versioning.md) for the full model and [docs/versioning-migration.md](./docs/versioning-migration.md) to apply it to an existing app.
