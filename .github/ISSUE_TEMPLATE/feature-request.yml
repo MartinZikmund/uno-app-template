@@ -19,10 +19,10 @@ body:
       required: true
 
   - type: input
-    id: template-version
+    id: app-version
     attributes:
-      label: Template version
-      description: Version of the template you are using.
+      label: App version
+      description: Version of the app you are using.
       placeholder: e.g. 1.2.0
 
   - type: dropdown
@@ -44,7 +44,7 @@ body:
     id: renderer
     attributes:
       label: Renderer
-      description: Which renderer is this relevant to?
+      description: Which renderer is this relevant to? Your app uses Skia if you find `SkiaRenderer` in the `.csproj` project file.
       multiple: true
       options:
         - All renderers

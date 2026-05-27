@@ -25,8 +25,8 @@ body:
   - type: input
     id: app-version
     attributes:
-      label: App / template version
-      description: Version of the app or template where the bug occurs.
+      label: App version
+      description: Version of the app where the bug occurs.
       placeholder: e.g. 1.2.0
 
   - type: dropdown
@@ -50,7 +50,7 @@ body:
     id: renderer
     attributes:
       label: Renderer
-      description: Which renderer are you using?
+      description: Which renderer are you using? Your app uses Skia if you find `SkiaRenderer` in the `.csproj` project file.
       multiple: true
       options:
         - Skia
