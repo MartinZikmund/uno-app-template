@@ -24,7 +24,7 @@ public static class ServiceCollectionExtensions
 
         JsonSerializerOptions jsonOptions = new(JsonSerializerDefaults.Web)
         {
-            TypeInfoResolver = ApiJsonSerializerContext.Default,
+            TypeInfoResolverChain = { ApiJsonSerializerContext.Default },
         };
 
         RefitSettings refitSettings = new()

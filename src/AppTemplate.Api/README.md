@@ -1,7 +1,7 @@
 # AppTemplate API
 
-A small, idiomatic ASP.NET Core minimal API plus a shared contracts library and a
-typed Refit client. Three projects make up this slice of the template:
+An ASP.NET Core minimal API plus a shared contracts library and a typed Refit
+client. Three projects make up the API:
 
 | Project | SDK / TFM | Purpose |
 | --- | --- | --- |
@@ -19,8 +19,9 @@ typed Refit client. Three projects make up this slice of the template:
 | `GET` | `/openapi/v1.json` | OpenAPI document (enabled via `AddOpenApi` / `MapOpenApi`). |
 
 The server uses the shared `ApiJsonSerializerContext` for trimming/AOT-friendly,
-reflection-free JSON. The data lives in a tiny in-memory `ItemStore` seeded at
-startup. Swap it for a real data source in your own app.
+reflection-free JSON. The data lives in an in-memory `ItemStore` seeded at
+startup; swap it for a real data source (database, external service, ...) as the
+API grows.
 
 ## Running the server
 
@@ -30,11 +31,12 @@ dotnet run --project src/AppTemplate.Api/AppTemplate.Api.csproj
 
 The OpenAPI document is then available at `http://localhost:5080/openapi/v1.json`.
 
-## Consuming the client from the Uno app
+## Consuming the client from the app
 
-The client is intentionally **not** wired into the Uno head project. To use it,
-reference `AppTemplate.Api.Client` and register the typed client during host
-configuration (for example in `App.xaml.cs` / the Uno `IHostBuilder` setup):
+`AppTemplate.Api.Client` is a standalone library that is not referenced by the
+Uno head by default. To consume the API, add a reference to
+`AppTemplate.Api.Client` and register the typed client during host configuration
+(for example in `App.xaml.cs` / the `IHostBuilder` setup):
 
 ```csharp
 using AppTemplate.Api.Client;
@@ -54,3 +56,15 @@ public sealed class ItemsService(IAppTemplateApiClient api)
 
 `AddAppTemplateApiClient` returns the `IHttpClientBuilder`, so you can chain
 additional configuration (auth handlers, Polly/resilience, etc.) as needed.
+
+## JSON serialization context
+
+`ApiJsonSerializerContext` lives in `AppTemplate.Api.Contracts` and is shared by
+the server (`ConfigureHttpJsonOptions`) and the client (Refit
+`SystemTextJsonContentSerializer`). Following the convention that each external
+API boundary owns its own source-generated `JsonSerializerContext`, every DTO and
+the collections returned by the endpoints are declared with
+`[JsonSerializable(typeof(...))]`. The context is reflection-free and zero-cost at
+runtime (the only cost is build-time codegen), which keeps serialization AOT- and
+trimming-safe on iOS and other NativeAOT targets. When you add a contract type,
+add a matching `[JsonSerializable]` attribute.
