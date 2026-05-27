@@ -12,4 +12,19 @@ public sealed partial class MainView : MainViewBase
     {
         this.InitializeComponent();
     }
+
+    // Sample usage of AppTemplate.Controls.InAppToastQueueControl:
+    //
+    // 1. Add the control as the last child of a root Grid so it overlays page content:
+    //
+    //    xmlns:controls="using:AppTemplate.Controls"
+    //    <Grid>
+    //        <!-- page content -->
+    //        <controls:InAppToastQueueControl x:Name="Toasts" />
+    //    </Grid>
+    //
+    // 2. Enqueue toasts from code-behind (they queue and show one at a time):
+    //
+    //    Toasts.Enqueue("Achievement unlocked", "Watered your plant 7 days in a row!", "#2E7D32");
+    //    Toasts.Enqueue("Sync completed", "All changes saved to the cloud.");
 }
