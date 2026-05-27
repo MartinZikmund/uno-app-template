@@ -86,6 +86,19 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 [`docs/`](./docs/) holds a page per topic — start at [docs/README.md](./docs/README.md).
 
+A cross-platform [Uno Platform](https://platform.uno/) (WinUI) C# application
+template targeting .NET 10.
+
+## Spec-driven development with Spec Kit
+
+This repository is set up for [Spec Kit](https://github.com/github/spec-kit)
+([speckit.org](https://speckit.org)), GitHub's spec-driven development toolkit.
+The scaffolding under `.specify/` (a project constitution plus spec/plan/tasks
+templates) is committed, so the `/speckit-*` workflow is ready to use.
+
+- Project rules and principles: [`.specify/memory/constitution.md`](.specify/memory/constitution.md)
+- How to use the workflow: [`AGENTS.md`](AGENTS.md)
+
 ## Versioning
 
 This template uses Nerdbank.GitVersioning. `main` produces `0.X.0-dev.{height}` prerelease builds with a Dev-channel identity that installs side-by-side with the Store version. Stable releases come from `release/v{minor}` branches. See [docs/versioning.md](./docs/versioning.md) for the full model and [docs/versioning-migration.md](./docs/versioning-migration.md) to apply it to an existing app.
