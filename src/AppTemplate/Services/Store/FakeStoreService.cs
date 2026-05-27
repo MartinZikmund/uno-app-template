@@ -10,6 +10,12 @@ public sealed class FakeStoreService : IStoreService
     private bool _isPro;
 
     /// <inheritdoc />
+    public Task<string?> GetPriceAsync() => Task.FromResult<string?>("$9.99");
+
+    /// <inheritdoc />
+    public Task<bool> HasProAsync() => Task.FromResult(_isPro);
+
+    /// <inheritdoc />
     public Task<bool> TryPurchaseProAsync()
     {
         _isPro = true;
@@ -18,7 +24,4 @@ public sealed class FakeStoreService : IStoreService
 
     /// <inheritdoc />
     public Task<bool> TryRestorePurchasesAsync() => Task.FromResult(_isPro);
-
-    /// <inheritdoc />
-    public Task<string?> GetPriceAsync() => Task.FromResult<string?>("$9.99");
 }

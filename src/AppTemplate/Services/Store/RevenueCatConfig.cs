@@ -4,32 +4,37 @@ namespace AppTemplate.Services.Store;
 /// Strongly-typed configuration for the RevenueCat-backed store implementation.
 /// </summary>
 /// <remarks>
-/// Bound from the <c>RevenueCat</c> section of <c>appsettings.json</c> via
-/// <see cref="Microsoft.Extensions.Options.IOptions{TOptions}"/>. This is a plain POCO so it
+/// Bound from the <c>RevenueCatConfig</c> section of <c>appsettings.json</c> via
+/// <see cref="Microsoft.Extensions.Options.IOptions{TOptions}"/>. It is a plain record so it
 /// compiles on every target framework (including the desktop build, where the RevenueCat
-/// implementation itself is excluded). The default values are obvious placeholders and MUST be
-/// replaced with the real keys from the RevenueCat dashboard before shipping.
+/// implementation itself is excluded). The default values are obvious placeholders and must be
+/// replaced with the real keys and product identifiers from the RevenueCat dashboard before
+/// shipping.
 /// </remarks>
-public sealed class RevenueCatConfig
+public record RevenueCatConfig
 {
     /// <summary>
-    /// Gets or sets the RevenueCat public SDK API key used on iOS.
+    /// Gets the RevenueCat public SDK API key used on iOS.
     /// </summary>
-    public string IosApiKey { get; set; } = "REPLACE_WITH_IOS_API_KEY";
+    public string IOSApiKey { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the RevenueCat public SDK API key used on Android.
+    /// Gets the RevenueCat public SDK API key used on Android.
     /// </summary>
-    public string AndroidApiKey { get; set; } = "REPLACE_WITH_ANDROID_API_KEY";
+    public string AndroidApiKey { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the identifier of the entitlement that unlocks the "Pro" features.
+    /// Gets the identifier of the entitlement that unlocks the "Pro" features.
     /// </summary>
-    public string EntitlementId { get; set; } = "pro";
+    public string EntitlementId { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the identifier of the RevenueCat offering presented on the paywall.
-    /// When empty, the current (default) offering is used.
+    /// Gets the store product identifier (SKU) of the "Pro" purchase on iOS.
     /// </summary>
-    public string OfferingIdentifier { get; set; } = "default";
+    public string IOSProProductId { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the store product identifier (SKU) of the "Pro" purchase on Android.
+    /// </summary>
+    public string AndroidProProductId { get; init; } = string.Empty;
 }

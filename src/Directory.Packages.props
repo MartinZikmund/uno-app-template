@@ -20,12 +20,7 @@
     <PackageVersion Include="Moq" Version="4.20.72" />
     <PackageVersion Include="FluentAssertions" Version="8.7.1" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <!--
-      RevenueCat in-app purchases (iOS / Android only — see Services/Store/RevenueCatStoreService.cs).
-      No 'Uno.RevenueCat' package is published on any configured feed yet, so the version is left
-      commented. Set the real version on a mobile build agent and uncomment together with the
-      conditional PackageReference in AppTemplate.csproj.
-    -->
-    <!-- <PackageVersion Include="Uno.RevenueCat" Version="REPLACE_WITH_PUBLISHED_VERSION" /> -->
+    <!-- RevenueCat in-app purchases (iOS / Android only — see Services/Store/RevenueCatStoreService.cs). -->
+    <PackageVersion Include="MZikmund.Uno.RevenueCat" Version="0.1.2" />
   </ItemGroup>
 </Project>

@@ -14,12 +14,15 @@ namespace AppTemplate.Services.Store;
 public sealed class WindowsStoreService : IStoreService
 {
     /// <inheritdoc />
+    public Task<string?> GetPriceAsync() => Task.FromResult<string?>(null);
+
+    /// <inheritdoc />
+    public Task<bool> HasProAsync() => Task.FromResult(false);
+
+    /// <inheritdoc />
     public Task<bool> TryPurchaseProAsync() => Task.FromResult(false);
 
     /// <inheritdoc />
     public Task<bool> TryRestorePurchasesAsync() => Task.FromResult(false);
-
-    /// <inheritdoc />
-    public Task<string?> GetPriceAsync() => Task.FromResult<string?>(null);
 }
 #endif

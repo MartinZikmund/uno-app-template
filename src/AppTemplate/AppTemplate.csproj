@@ -65,14 +65,9 @@
         <Generator>MSBuild:Compile</Generator>
       </Page>
     </ItemGroup>
-    <!--
-      RevenueCat package reference for the mobile heads only (iOS / Android). Intentionally
-      commented out: the 'Uno.RevenueCat' package is not yet published. On a mobile build agent,
-      set the version in Directory.Packages.props and uncomment both. The condition keeps it off
-      the desktop / Windows / WASM builds.
-    -->
+    <!-- RevenueCat in-app purchases for the mobile heads only (iOS / Android). -->
     <ItemGroup Condition="'$(IsAndroid)' == 'true' or '$(IsIOS)' == 'true'">
-        <!-- <PackageReference Include="Uno.RevenueCat" /> -->
+        <PackageReference Include="MZikmund.Uno.RevenueCat" />
     </ItemGroup>
 
 </Project>
