@@ -10,6 +10,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Slides -->
@@ -93,8 +94,15 @@
             </FlipViewItem>
         </FlipView>
 
+        <!-- Page indicator -->
+        <PipsPager
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            NumberOfPages="{x:Bind ViewModel.PageCount}"
+            SelectedPageIndex="{x:Bind ViewModel.CurrentPageIndex, Mode=TwoWay}" />
+
         <!-- Actions -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Button
                 HorizontalAlignment="Left"
                 Command="{x:Bind ViewModel.SkipCommand}"

@@ -219,12 +219,28 @@ public sealed partial class WindowShell : Page, IWindowShell
     private void UpdateNavigationViewSelection()
     {
         var section = ServiceProvider.GetRequiredService<INavigationService>().CurrentSection;
+
+        // Onboarding is a full-screen first-run experience: hide the navigation
+        // chrome so the menu and settings can't be used to bypass it.
+        UpdateNavigationChrome(section);
+
         NavView.SelectedItem = section switch
         {
             NavigationSection.Main => MainNavItem,
             NavigationSection.Settings => NavView.SettingsItem,
             _ => NavView.SelectedItem,
         };
+    }
+
+    private void UpdateNavigationChrome(NavigationSection? section)
+    {
+        var isOnboarding = section == NavigationSection.Onboarding;
+        NavView.IsPaneVisible = !isOnboarding;
+        NavView.IsPaneToggleButtonVisible = !isOnboarding;
+        NavView.IsSettingsVisible = !isOnboarding;
+        NavView.PaneDisplayMode = isOnboarding
+            ? NavigationViewPaneDisplayMode.LeftMinimal
+            : NavigationViewPaneDisplayMode.Auto;
     }
 
     #endregion
