@@ -86,75 +86,75 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 [`docs/`](./docs/) holds a page per topic — start at [docs/README.md](./docs/README.md).
 
-A cross-platform [Uno Platform](https://platform.uno/) (WinUI) application template targeting .NET 10.
+A cross-platform [Uno Platform](https://platform.uno/) (WinUI) application targeting .NET 10.
 
-## Localization reconciliation (tracking — issue #31)
+## Localization
 
-This section tracks the planned cleanup of the duplicated `Localizer` abstraction across
-the template, the `MZikmund.Toolkit.WinUI` toolkit, and apps generated from older copies of
-this template. It is a **tracking item**: the migration depends on a toolkit feature that has
-**not shipped yet**.
-
-### Current state (verified)
-
-The toolkit package referenced by the template — `MZikmund.Toolkit.WinUI`
-(`0.1.13-dev.43`, pinned in [`src/Directory.Packages.props`](src/Directory.Packages.props)) —
-does **not** expose an `ILocalizer` interface or a static `Localizer.Current`. The public
-surface it ships is limited to `IPreferences`/`Preferences`, `IDialogCoordinator`/`DialogCoordinator`,
-`IXamlRootProvider`, `PackageVersionExtensions`, and `GlobalStaticResources`. Until the toolkit
-ships its own localization abstraction, the template keeps a small local one.
-
-Localized strings in the template come from Uno's `.UseLocalization()` host extension
-(configured in [`src/AppTemplate/App.xaml.cs`](src/AppTemplate/App.xaml.cs)), which registers a
+Localized strings come from Uno's `.UseLocalization()` host extension (configured in
+[`src/AppTemplate/App.xaml.cs`](src/AppTemplate/App.xaml.cs)), which registers a
 `Microsoft.Extensions.Localization.IStringLocalizer` backed by the `.resw` files under
-[`src/AppTemplate/Strings/`](src/AppTemplate/Strings/). There are two ways the app consumes it:
+[`src/AppTemplate/Strings/`](src/AppTemplate/Strings/).
+
+There are two ways the app resolves that `IStringLocalizer`:
+
+- **Dependency injection**, wherever constructor injection is available (ViewModels,
+  `WindowShell`). These get an `IStringLocalizer` directly from the container.
+- **The static [`Localizer`](src/AppTemplate/Services/Localization/Localizer.cs) accessor**,
+  for the contexts that *cannot* use constructor injection — XAML markup extensions, value
+  converters, and services that build dialogs ad hoc. `Localizer.Instance` lazily resolves the
+  *same* `IStringLocalizer` from the container via the `IoC` service locator
+  ([`src/AppTemplate.Core/Infrastructure/IoC.cs`](src/AppTemplate.Core/Infrastructure/IoC.cs))
+  and returns `???{key}???` for missing keys.
+
+Both paths read from the same `IStringLocalizer`, so there is a single source of localized
+strings regardless of how a given call site reaches it.
 
 | Consumer | File | How it obtains strings |
 | --- | --- | --- |
-| ViewModels (`MainViewModel`, `SettingsViewModel`) | `src/AppTemplate/ViewModels/` | Constructor-injected `IStringLocalizer` (DI) |
+| `MainViewModel`, `SettingsViewModel` | `src/AppTemplate/ViewModels/` | Constructor-injected `IStringLocalizer` (DI) |
 | `WindowShell` | `src/AppTemplate/WindowShell.xaml.cs` | `ServiceProvider.GetRequiredService<IStringLocalizer>()` |
 | `LocalizeExtension` (XAML markup) | `src/AppTemplate/Markup/LocalizeExtension.cs` | `Localizer.Instance.GetString(key)` |
 | `EnumLocalizationConverter` | `src/AppTemplate/Converters/EnumLocalizationConverter.cs` | `Localizer.Instance.GetString(key)` |
 | `ConfirmationDialogService` | `src/AppTemplate/Services/Dialogs/ConfirmationDialogService.cs` | `Localizer.Instance.GetString(key)` |
+| `DialogService` | `src/AppTemplate/Services/Dialogs/DialogService.cs` | `Localizer.Instance.GetString(key)` |
+| `AppRatingService` | `src/AppTemplate/Services/Rating/AppRatingService.cs` | `Localizer.Instance.GetString(key)` |
 
-The local static — [`src/AppTemplate/Services/Localization/Localizer.cs`](src/AppTemplate/Services/Localization/Localizer.cs) —
-exists for the contexts that **cannot** use constructor injection (XAML markup extensions,
-value converters, and any other non-DI call sites). It lazily resolves the same
-`IStringLocalizer` from the container via the `IoC` service locator
-([`src/AppTemplate.Core/Infrastructure/IoC.cs`](src/AppTemplate.Core/Infrastructure/IoC.cs)) and
-returns `???{key}???` for missing keys.
+In XAML, prefer the markup extension:
 
-The three non-DI consumers (`LocalizeExtension`, `EnumLocalizationConverter`,
-`ConfirmationDialogService`) are **internally consistent** — they all route through the same
-`Localizer.Instance`, which resolves the same Uno `IStringLocalizer` that the DI consumers use.
-There is no divergent localization mechanism to reconcile within the template today.
+```xml
+<TextBlock Text="{markup:Localize Key=WelcomeTitle}" />
+```
 
-### Planned migration (once the toolkit ships `ILocalizer` / `Localizer.Current`)
+### Consolidating onto the toolkit `Localizer` (tracking — issue #31)
 
-When `MZikmund.Toolkit.WinUI` ships an `ILocalizer` abstraction plus a static
-`Localizer.Current` accessor, the template should drop its local copy and consume the toolkit
-version directly:
+The static `Localizer` is a small local helper. The shared `MZikmund.Toolkit.WinUI` package
+(`0.1.13-dev.43`, pinned in [`src/Directory.Packages.props`](src/Directory.Packages.props)) is
+expected to grow an `ILocalizer` abstraction plus a static `Localizer.Current` accessor that
+covers exactly this scenario. That toolkit feature has **not shipped yet** — the package
+currently exposes only `IPreferences`/`Preferences`, `IDialogCoordinator`/`DialogCoordinator`,
+`IXamlRootProvider`, `IAppRatingService`/`AppRatingService`, `PackageVersionExtensions`,
+`ObservableCollectionExtensions`, `StableHash`, `ResourceAccessor`, `WindowExtensions`, and
+`GlobalStaticResources` — so the local helper stays in place for now.
+
+Once the toolkit ships `ILocalizer` / `Localizer.Current`, drop the local copy and consume the
+toolkit version directly:
 
 - [ ] Bump `MZikmund.Toolkit.WinUI` in `src/Directory.Packages.props` to the version that
       introduces `ILocalizer` / `Localizer.Current`.
-- [ ] Delete the local `src/AppTemplate/Services/Localization/Localizer.cs`.
-- [ ] Repoint `LocalizeExtension` (`src/AppTemplate/Markup/LocalizeExtension.cs`) to the toolkit
-      `Localizer.Current`.
-- [ ] Repoint `EnumLocalizationConverter` (`src/AppTemplate/Converters/EnumLocalizationConverter.cs`)
-      to the toolkit `Localizer.Current`.
-- [ ] Repoint `ConfirmationDialogService`
-      (`src/AppTemplate/Services/Dialogs/ConfirmationDialogService.cs`) to the toolkit
-      `Localizer.Current`.
-- [ ] Confirm the DI consumers (ViewModels, `WindowShell`) either keep injecting
-      `IStringLocalizer` or switch to the toolkit `ILocalizer`, consistently.
+- [ ] Delete the local [`src/AppTemplate/Services/Localization/Localizer.cs`](src/AppTemplate/Services/Localization/Localizer.cs).
+- [ ] Repoint every static consumer to the toolkit `Localizer.Current`:
+      [`LocalizeExtension`](src/AppTemplate/Markup/LocalizeExtension.cs),
+      [`EnumLocalizationConverter`](src/AppTemplate/Converters/EnumLocalizationConverter.cs),
+      [`ConfirmationDialogService`](src/AppTemplate/Services/Dialogs/ConfirmationDialogService.cs),
+      [`DialogService`](src/AppTemplate/Services/Dialogs/DialogService.cs), and
+      [`AppRatingService`](src/AppTemplate/Services/Rating/AppRatingService.cs).
+- [ ] Decide whether the DI consumers (ViewModels, `WindowShell`) keep injecting
+      `IStringLocalizer` or switch to the toolkit `ILocalizer`, and apply it consistently.
 - [ ] Replace the `using AppTemplate.Services.Localization;` imports with the toolkit namespace
-      across all touched files.
-- [ ] Migrate apps generated from older copies of this template the same way: remove their
-      local `Localizer.cs` and repoint their markup extension, converter, and dialog service to
-      the toolkit `Localizer.Current`.
+      across the touched files.
 
-Until those preconditions are met, the local `Localizer` stays in place and this section serves
-as the migration checklist.
+Until those preconditions are met, the local `Localizer` stays and this checklist tracks the
+follow-up.
 
 ## Versioning
 
