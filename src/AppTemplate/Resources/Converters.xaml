@@ -5,26 +5,11 @@
     xmlns:toolkitConverters="using:CommunityToolkit.WinUI.Converters">
 
     <!--
-        Converter registration convention
-        ==================================
-        Every converter used anywhere in the app is instantiated exactly once here
-        as a static application-level resource.
-
-        Naming scheme: x:Key = converter class name (e.g. BoolToVisibilityConverter).
-        Variant instances that differ by property values use a descriptive prefix
-        (e.g. InvertedBoolToVisibilityConverter).
-
-        To use a converter in XAML, reference it by its stable key:
-            Converter="{StaticResource BoolToVisibilityConverter}"
-
-        Template-shipped custom converters (AppTemplate.Converters):
-            NullToVisibilityConverter  – shows/hides based on null check
-            EnumLocalizationConverter  – localizes enum values via Resources
-
-        CommunityToolkit.WinUI.Converters (pre-registered below):
-            BoolToVisibilityConverter, InvertedBoolToVisibilityConverter
-            BoolNegationConverter
-            StringVisibilityConverter, InvertedStringVisibilityConverter
+        Every converter is instantiated exactly once here as an application-level
+        resource. The x:Key is the converter class name; variant instances that
+        differ only by property values use a descriptive prefix
+        (e.g. InvertedBoolToVisibilityConverter). Reference them by key, e.g.
+        Converter="{StaticResource BoolToVisibilityConverter}".
     -->
 
     <!--  CommunityToolkit converters  -->
@@ -34,15 +19,29 @@
         FalseValue="Visible"
         TrueValue="Collapsed" />
     <toolkitConverters:BoolNegationConverter x:Key="BoolNegationConverter" />
-
-    <!--  AppTemplate custom converters  -->
-    <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
-    <converters:NullToVisibilityConverter x:Key="InvertedNullToVisibilityConverter" Invert="True" />
     <toolkitConverters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
     <toolkitConverters:StringVisibilityConverter
         x:Key="InvertedStringVisibilityConverter"
         EmptyValue="Visible"
         NotEmptyValue="Collapsed" />
+    <toolkitConverters:EmptyObjectToObjectConverter x:Key="NullToVisibilityConverter">
+        <toolkitConverters:EmptyObjectToObjectConverter.EmptyValue>
+            <Visibility>Visible</Visibility>
+        </toolkitConverters:EmptyObjectToObjectConverter.EmptyValue>
+        <toolkitConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+            <Visibility>Collapsed</Visibility>
+        </toolkitConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+    </toolkitConverters:EmptyObjectToObjectConverter>
+    <toolkitConverters:EmptyObjectToObjectConverter x:Key="NonNullToVisibilityConverter">
+        <toolkitConverters:EmptyObjectToObjectConverter.EmptyValue>
+            <Visibility>Collapsed</Visibility>
+        </toolkitConverters:EmptyObjectToObjectConverter.EmptyValue>
+        <toolkitConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+            <Visibility>Visible</Visibility>
+        </toolkitConverters:EmptyObjectToObjectConverter.NotEmptyValue>
+    </toolkitConverters:EmptyObjectToObjectConverter>
+
+    <!--  Custom converters  -->
     <converters:EnumLocalizationConverter x:Key="EnumLocalizationConverter" />
 
 </ResourceDictionary>
