@@ -2,7 +2,9 @@
   <Folder Name="/App/">
     <Project Path="../tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj" Id="c0de6d3e-8f3b-43c5-967a-d5aae7c80674" />
     <Project Path="AppTemplate.Core/AppTemplate.Core.csproj" />
-    <Project Path="AppTemplate/AppTemplate.csproj" />
+    <Project Path="AppTemplate/AppTemplate.csproj">
+      <Deploy Solution="Debug|*" />
+    </Project>
   </Folder>
   <Folder Name="/Solution Items/" />
   <Folder Name="/Solution Items/Agents/">
