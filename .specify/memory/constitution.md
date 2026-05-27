@@ -2,9 +2,8 @@
 SYNC IMPACT REPORT
 ==================
 Version change: TEMPLATE (unfilled) → 1.0.0
-Bump rationale: Initial ratification of the project constitution. Replaces the
-unfilled `constitution-template.md` placeholders with concrete principles tailored
-to this Uno Platform (WinUI) C# application template.
+Bump rationale: Initial ratification of the project constitution, establishing
+concrete principles for this Uno Platform (WinUI) C# application.
 
 Modified principles (template slot → ratified principle):
   - [PRINCIPLE_1_NAME] → I. Modern, Consistent C#
@@ -62,7 +61,7 @@ The presentation layer MUST follow MVVM using CommunityToolkit.Mvvm:
 - Dependencies are provided by constructor injection via DI — no service locator.
 
 **Rationale**: Thin, convention-named ViewModels backed by DI keep views
-declarative and make behavior predictable across the template.
+declarative and make behavior predictable across the codebase.
 
 ### III. Testable Services (Logic Out of the UI)
 
