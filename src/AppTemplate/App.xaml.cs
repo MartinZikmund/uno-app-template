@@ -5,6 +5,7 @@ using AppTemplate.Services.Dialogs;
 using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Rating;
 using AppTemplate.Services.Settings;
+using AppTemplate.Services.Store;
 using AppTemplate.Services.Theming;
 using Uno.Resizetizer;
 
@@ -96,6 +97,11 @@ public partial class App : Application, IApplication
         services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
         services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();
         services.AddScoped<IAppRatingService, AppRatingService>();
+#if DEBUG
+        // Placeholder store backend so the GetPro scaffold is usable in development.
+        // Replace with a real IStoreService implementation before shipping.
+        services.AddSingleton<IStoreService, FakeStoreService>();
+#endif
 
         // Per-window scoped services
         services.AddScoped<IThemeManager, ThemeManager>();
@@ -113,6 +119,7 @@ public partial class App : Application, IApplication
             var service = new NavigationService(sp.GetRequiredService<IFrameProvider>());
             service.RegisterView(typeof(Views.MainView), typeof(MainViewModel));
             service.RegisterView(typeof(Views.SettingsView), typeof(SettingsViewModel));
+            service.RegisterView(typeof(Views.GetProView), typeof(GetProViewModel));
             return service;
         });
 
@@ -122,6 +129,7 @@ public partial class App : Application, IApplication
         // Transient ViewModels (new instance per navigation)
         services.AddTransient<MainViewModel>();
         services.AddTransient<SettingsViewModel>();
+        services.AddTransient<GetProViewModel>();
     }
 
     private static void ConfigureLogging(HostBuilderContext context, ILoggingBuilder logBuilder)

@@ -1,0 +1,153 @@
+<local:GetProViewBase
+    x:Class="AppTemplate.Views.GetProView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AppTemplate.Views"
+    xmlns:markup="using:AppTemplate.Markup"
+    xmlns:models="using:AppTemplate.Models"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <ScrollViewer>
+            <StackPanel
+                x:Name="ContentRoot"
+                MaxWidth="640"
+                Padding="24"
+                HorizontalAlignment="Stretch"
+                Orientation="Vertical"
+                Spacing="16">
+
+                <!-- Header -->
+                <StackPanel Spacing="8">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        FontSize="48"
+                        Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                        Glyph="&#xE735;" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Style="{ThemeResource TitleLargeTextBlockStyle}"
+                        Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{markup:Localize Key=GetProSubtitle}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!-- Feature list (DataTemplate-driven so apps can swap content) -->
+                <ItemsControl ItemsSource="{x:Bind ViewModel.Features}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:ProFeature">
+                            <Grid
+                                Padding="16,12"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                ColumnSpacing="16"
+                                CornerRadius="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon
+                                    Grid.Column="0"
+                                    VerticalAlignment="Center"
+                                    FontSize="20"
+                                    Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                                    Glyph="{x:Bind Glyph}" />
+                                <StackPanel
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Spacing="2">
+                                    <TextBlock
+                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                        Text="{x:Bind Title}" />
+                                    <TextBlock
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{ThemeResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind Description}"
+                                        TextWrapping="Wrap"
+                                        Visibility="{x:Bind Description, Converter={StaticResource StringVisibilityConverter}}" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Already-pro confirmation -->
+                <InfoBar
+                    IsClosable="False"
+                    IsOpen="{x:Bind ViewModel.IsPro, Mode=OneWay}"
+                    Message="{markup:Localize Key=GetProOwnedMessage}"
+                    Severity="Success" />
+
+                <!-- Error state -->
+                <InfoBar
+                    IsClosable="False"
+                    IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
+                    Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                    Severity="Error" />
+
+                <!-- Actions -->
+                <StackPanel Spacing="8">
+                    <Button
+                        HorizontalAlignment="Stretch"
+                        Command="{x:Bind ViewModel.BuyProCommand}"
+                        IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"
+                        Style="{ThemeResource AccentButtonStyle}">
+                        <StackPanel
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <TextBlock Text="{markup:Localize Key=GetProBuyButton}" />
+                            <TextBlock
+                                Text="{x:Bind ViewModel.Price, Mode=OneWay}"
+                                Visibility="{x:Bind ViewModel.Price, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        HorizontalAlignment="Stretch"
+                        Command="{x:Bind ViewModel.RestorePurchasesCommand}"
+                        Content="{markup:Localize Key=GetProRestoreButton}"
+                        IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}" />
+                </StackPanel>
+
+                <!-- Loading state -->
+                <ProgressRing
+                    HorizontalAlignment="Center"
+                    IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                    Visibility="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Responsive padding -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="ContentRoot.Padding" Value="12" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState>
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="768" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="ContentRoot.Padding" Value="24" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+    </Grid>
+</local:GetProViewBase>

@@ -171,4 +171,46 @@
   <data name="RateAppMessage" xml:space="preserve">
     <value>If you enjoy using this app, would you mind taking a moment to rate it? Your feedback helps us improve!</value>
   </data>
+  <data name="GetProTitle" xml:space="preserve">
+    <value>Upgrade to Pro</value>
+  </data>
+  <data name="GetProSubtitle" xml:space="preserve">
+    <value>Unlock the full experience with a one-time purchase.</value>
+  </data>
+  <data name="GetProFeatureNoAdsTitle" xml:space="preserve">
+    <value>Ad-free experience</value>
+  </data>
+  <data name="GetProFeatureNoAdsDescription" xml:space="preserve">
+    <value>Remove all ads and enjoy a distraction-free app.</value>
+  </data>
+  <data name="GetProFeatureThemesTitle" xml:space="preserve">
+    <value>Premium themes</value>
+  </data>
+  <data name="GetProFeatureThemesDescription" xml:space="preserve">
+    <value>Personalize the app with exclusive color themes.</value>
+  </data>
+  <data name="GetProFeatureSyncTitle" xml:space="preserve">
+    <value>Cloud sync</value>
+  </data>
+  <data name="GetProFeatureSyncDescription" xml:space="preserve">
+    <value>Keep your data in sync across all your devices.</value>
+  </data>
+  <data name="GetProBuyButton" xml:space="preserve">
+    <value>Get Pro</value>
+  </data>
+  <data name="GetProRestoreButton" xml:space="preserve">
+    <value>Restore purchases</value>
+  </data>
+  <data name="GetProOwnedMessage" xml:space="preserve">
+    <value>You're all set — thanks for going Pro!</value>
+  </data>
+  <data name="GetProPriceError" xml:space="preserve">
+    <value>We couldn't load the price right now. Please try again later.</value>
+  </data>
+  <data name="GetProPurchaseError" xml:space="preserve">
+    <value>The purchase couldn't be completed. Please try again.</value>
+  </data>
+  <data name="GetProRestoreError" xml:space="preserve">
+    <value>We couldn't find any purchases to restore.</value>
+  </data>
 </root>
