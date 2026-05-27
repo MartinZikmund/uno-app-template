@@ -17,8 +17,7 @@ public static class IoC
     /// </summary>
     /// <remarks>
     /// This is primarily intended for test isolation, allowing a fresh provider to be supplied
-    /// via <see cref="SetProvider"/> for each test. Because <see cref="SetProvider"/> rejects
-    /// <see langword="null"/>, calling <see cref="Reset"/> is the supported way to clear the provider.
+    /// via <see cref="SetProvider"/> for each test.
     /// </remarks>
     public static void Reset() => _serviceProvider = null;
 
