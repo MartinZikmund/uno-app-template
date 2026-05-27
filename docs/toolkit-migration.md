@@ -1,61 +1,60 @@
-# Toolkit migration status (issue #32)
+# Shared toolkit adoption
 
-Tracks adoption of `MZikmund.Toolkit.WinUI` promotions. As each type ships in the toolkit, the
-template deletes its own copy, references the toolkit type, and updates DI registration. The goal:
-~80% of the template's files become NuGet references, leaving only the ~20% that legitimately
-differ per app.
+This app builds on `MZikmund.Toolkit.WinUI`, a shared library of cross-app WinUI/Uno
+infrastructure. Wherever the toolkit ships a type that matches what the app needs, the app
+references the toolkit type instead of carrying a local copy; everything else stays local because it
+is genuinely app-specific or not yet covered by the toolkit.
 
-Referenced toolkit version: **`MZikmund.Toolkit.WinUI` 0.1.13-dev.43** (see
+Referenced toolkit version: **`MZikmund.Toolkit.WinUI` 0.1.19-dev.65** (see
 `src/Directory.Packages.props`).
 
-Status legend: **Done** = swapped to toolkit type · **Pending** = blocked on not-yet-shipped
-toolkit work (template copy intentionally retained).
+Status legend: **Adopted** = the app references the toolkit type · **Local** = an app copy is kept,
+with the reason given.
 
-## §18.1 — duplicates already in toolkit
+## Adopted from the toolkit
 
-| Item | Toolkit type | Status | Notes |
-| --- | --- | --- | --- |
-| `Services/Dialogs/IDialogCoordinator.cs` | `MZikmund.Toolkit.WinUI.Services.IDialogCoordinator` | **Done** | Deleted. Surface identical (`Task<ContentDialogResult> ShowAsync(ContentDialog)`). |
-| `Services/Dialogs/DialogCoordinator.cs` | `MZikmund.Toolkit.WinUI.Services.DialogCoordinator` | **Done** | Deleted. Toolkit version implements `IDialogCoordinator` with a parameterless ctor and additionally validates `XamlRoot` is set. |
-| `Services/Dialogs/QueuedDialog` (private nested) | inside toolkit `DialogCoordinator` | **Done** | Removed with `DialogCoordinator.cs` (was a private nested class). |
-| `Services/Navigation/IXamlRootProvider.cs` | `MZikmund.Toolkit.WinUI.Infrastructure.IXamlRootProvider` | **Done** | Deleted. Surface identical (`XamlRoot XamlRoot { get; }`). `WindowShellProvider` now implements the toolkit interface. |
-| `Services/Settings/IPreferences.cs` | `MZikmund.Toolkit.WinUI.Services.IPreferences` | **Pending** | Toolkit interface is **not** a superset: it has `Get`/`TryGet`/`Set`/`GetComplex`/`TryGetComplex`/`SetComplex` but **lacks** `ContainsKey`/`Remove`/`Clear`, which the template's public `IPreferences` declares. Blocked on toolkit issue "Extend IPreferences with TryGet/ContainsKey/Remove/Clear". |
-| `Services/Settings/Preferences.cs` | `MZikmund.Toolkit.WinUI.Services.Preferences` | **Pending** | Tied to `IPreferences` above. Retained until the toolkit interface gains the missing members. |
+| Former local file | Toolkit type | Notes |
+| --- | --- | --- |
+| `Services/Dialogs/IDialogCoordinator.cs` | `MZikmund.Toolkit.WinUI.Services.IDialogCoordinator` | Identical surface (`Task<ContentDialogResult> ShowAsync(ContentDialog)`). |
+| `Services/Dialogs/DialogCoordinator.cs` | `MZikmund.Toolkit.WinUI.Services.DialogCoordinator` | Implements `IDialogCoordinator` with a parameterless ctor and additionally validates that `XamlRoot` is set. The former local copy queued dialogs via a private nested `QueuedDialog`; the toolkit version covers the same behaviour. |
+| `Services/Navigation/IXamlRootProvider.cs` | `MZikmund.Toolkit.WinUI.Infrastructure.IXamlRootProvider` | Identical surface (`XamlRoot XamlRoot { get; }`). `WindowShellProvider` implements the toolkit interface. |
+| `Services/Settings/IPreferences.cs` | `MZikmund.Toolkit.WinUI.Services.IPreferences` | The toolkit interface is now a superset of the app's usage: `Get`/`Set`/`GetComplex`/`SetComplex`/`ContainsKey`/`Remove`/`Clear` (plus `TryGet`/`TryGetComplex`). Adopted after the toolkit added `ContainsKey`/`Remove`/`Clear` in `0.1.19-dev.65`. |
+| `Services/Settings/Preferences.cs` | `MZikmund.Toolkit.WinUI.Services.Preferences` | `ApplicationData.LocalSettings`-backed implementation; behaviour matches the former local copy. `AppPreferences`/`IAppPreferences` stay local — they map app-specific keys onto `IPreferences`. |
 
-### How the swaps are wired
+### How the references are wired
 
-Because the template still ships its own `IPreferences`/`Preferences` (in
-`AppTemplate.Services.Settings`), importing the whole `MZikmund.Toolkit.WinUI.Services` namespace
-globally would collide with them. To keep the swap clean, `src/AppTemplate/GlobalUsings.cs`:
+`src/AppTemplate/GlobalUsings.cs`:
 
 - imports `MZikmund.Toolkit.WinUI.Infrastructure` globally (only `IXamlRootProvider` lives there), and
-- adds global using **aliases** for the dialog coordinator types:
+- adds global using **aliases** for the consumed `Services` types:
 
   ```csharp
   global using IDialogCoordinator = MZikmund.Toolkit.WinUI.Services.IDialogCoordinator;
   global using DialogCoordinator = MZikmund.Toolkit.WinUI.Services.DialogCoordinator;
+  global using IPreferences = MZikmund.Toolkit.WinUI.Services.IPreferences;
+  global using Preferences = MZikmund.Toolkit.WinUI.Services.Preferences;
   ```
 
-All existing references (`App.xaml.cs` DI registration, `DialogService`, `ConfirmationDialogService`,
-`WindowShellProvider`) compile unchanged against the toolkit types.
+Aliases are used instead of importing the whole `MZikmund.Toolkit.WinUI.Services` namespace because
+that namespace also defines `IAppRatingService`/`AppRatingService`, which would collide with the
+app's own rating types of the same name (see below). DI registration in `App.xaml.cs`, `DialogService`,
+`ConfirmationDialogService`, and `WindowShellProvider` all compile unchanged against the toolkit types.
 
-## §18.2 — promotions awaiting toolkit issues
+## Kept local (by design)
 
-All of the following remain in the template and are **Pending** the corresponding toolkit promotion
-issue. None were forced.
+These remain in the app. Some are app-specific by nature; others are candidates for a future toolkit
+release but are not covered today.
 
-| Item | Toolkit issue | Status |
-| --- | --- | --- |
-| Dialogs: `IDialogService`, `DialogService`, `IConfirmationDialogService`, `ConfirmationDialogService`, `ConfirmationResult` | Promote dialog services | **Pending** |
-| Platform services: `IDisplayRequestManager`/`DisplayRequestManager`, `ILauncherService`/`LauncherService`, `IShareService`/`ShareService` | Promote platform services | **Pending** |
-| Converters: `NullToVisibilityConverter`, `EnumLocalizationConverter` | Promote XAML converters | **Pending** |
-| Markup + Localization: `Markup/LocalizeExtension.cs`, `Services/Localization/Localizer.cs` | Promote LocalizeExtension and Localizer | **Pending** |
-| HTTP: `Services/Http/DebugHttpHandler.cs` | Promote DebugHttpHandler | **Pending** |
-| Theming: `IThemeManager`, `ThemeManager.cs` | Promote IThemeManager + ThemeManager | **Pending** |
-| Rating: `IAppRatingService`, `AppRatingService.cs` (supply store IDs via `IOptions<AppRatingOptions>`) | Promote IAppRatingService + AppRatingService | **Pending** |
-| Shell + window infrastructure: `Infrastructure/IWindowShell.cs`, `Services/Navigation/IWindowShellProvider.cs`, `Services/Navigation/WindowShellProvider.cs` | Promote shell + window infrastructure | **Pending** |
-| Navigation (with `NavigationSection` → string-tags refactor): `INavigationService`, `NavigationService`, `NavigationInfoAttribute`, `NavigationTransition` | Promote navigation infrastructure | **Pending** |
-| Core infrastructure: `IoC`, `IAppUpdater` (interface only), `ViewModelBase`, `WindowShellViewModel` | Promote Core infrastructure | **Pending** |
-| `Views/ViewBase.cs` | Promote ViewBase<TViewModel> | **Pending** |
-
-Catalog reference: ENHANCEMENTS.md §18 (entire section).
+| Item | Reason |
+| --- | --- |
+| Rating: `Services/Rating/IAppRatingService.cs`, `AppRatingService.cs` | Intentionally local. The app's contract (`TryPromptForRatingAsync()`) orchestrates a localized confirmation dialog and store-review launch. The toolkit's same-named `IAppRatingService` is a different abstraction (a launch-count tracker: `IncrementLaunchCount`/`RequestRatingAsync`/`ShouldRequestRating` configured via `AppRatingOptions`), so it is not a drop-in replacement. |
+| Theming: `Services/Theming/IThemeManager.cs`, `ThemeManager.cs` | Not in the toolkit. |
+| Dialogs: `IDialogService`, `DialogService`, `IConfirmationDialogService`, `ConfirmationDialogService`, `ConfirmationResult` | Not in the toolkit. |
+| Platform services: `IDisplayRequestManager`/`DisplayRequestManager`, `ILauncherService`/`LauncherService`, `IShareService`/`ShareService` | Not in the toolkit. |
+| Converters: `NullToVisibilityConverter`, `EnumLocalizationConverter` | Not in the toolkit. |
+| Markup + Localization: `Markup/LocalizeExtension.cs`, `Services/Localization/Localizer.cs` | Not in the toolkit. |
+| HTTP: `Services/Http/DebugHttpHandler.cs` | Not in the toolkit. |
+| Shell + window infrastructure: `Infrastructure/IWindowShell.cs`, `Services/Navigation/IWindowShellProvider.cs`, `Services/Navigation/WindowShellProvider.cs` | Not in the toolkit. `WindowShellProvider` additionally implements the toolkit `IXamlRootProvider`. |
+| Navigation: `INavigationService`, `NavigationService`, `NavigationInfoAttribute`, `NavigationTransition` | Not in the toolkit. |
+| Core infrastructure: `IoC`, `IAppUpdater`, `ViewModelBase`, `WindowShellViewModel` | Not in the toolkit. |
+| `Views/ViewBase.cs` | Not in the toolkit. |
