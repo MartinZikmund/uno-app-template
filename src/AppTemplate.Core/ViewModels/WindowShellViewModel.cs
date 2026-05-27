@@ -22,10 +22,12 @@ public partial class WindowShellViewModel : ObservableObject
 
 	public bool CanGoBack => _navigationService.CanGoBack;
 
+	public void NotifyCanGoBackChanged() => OnPropertyChanged(nameof(CanGoBack));
+
 	[RelayCommand]
 	public void GoBack()
 	{
 		_navigationService.GoBack();
-		OnPropertyChanged(nameof(CanGoBack));
+		NotifyCanGoBackChanged();
 	}
 }

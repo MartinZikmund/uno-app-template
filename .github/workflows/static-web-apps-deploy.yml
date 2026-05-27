@@ -57,6 +57,9 @@ jobs:
         uses: Azure/static-web-apps-deploy@v1
         with:
           skip_app_build: true
+          # Allows CI to pass when no deployment token is configured (e.g. forks or the template repo).
+          # Configure the AZURESTATICWEBAPPSDEPLOYMENTTOKEN secret to enable actual deployment.
+          skip_deploy_on_missing_secrets: true
           azure_static_web_apps_api_token: ${{ secrets.AZURESTATICWEBAPPSDEPLOYMENTTOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for Github integrations (i.e. PR comments)
           action: "upload"
@@ -74,6 +77,7 @@ jobs:
         id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
+          skip_deploy_on_missing_secrets: true
           azure_static_web_apps_api_token: ${{ secrets.AZURESTATICWEBAPPSDEPLOYMENTTOKEN }}
           action: "close"
           app_location: "/${{ env.PROJECT_PATH }}/bin/Release/${{ env.WASM_TARGET_FRAMEWORK }}/publish/wwwroot"

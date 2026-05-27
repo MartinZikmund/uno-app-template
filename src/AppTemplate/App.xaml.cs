@@ -11,7 +11,7 @@ using Uno.Resizetizer;
 
 namespace AppTemplate;
 
-public partial class App : Application
+public partial class App : Application, IApplication
 {
 	public static new App Current => (App)Application.Current;
 
@@ -82,10 +82,11 @@ public partial class App : Application
 	private static void RegisterServices(HostBuilderContext context, IServiceCollection services)
 	{
 		// Singleton services
+		services.AddSingleton<IApplication>(sp => Current);
 		services.AddSingleton<IPreferences, Preferences>();
 		services.AddSingleton<IAppPreferences, AppPreferences>();
 		services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
-		services.AddSingleton<IAppUpdater, AppUpdater>();
+		services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();
 		services.AddScoped<IAppRatingService, AppRatingService>();
 
 		// Per-window scoped services
