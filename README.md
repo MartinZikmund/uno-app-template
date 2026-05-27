@@ -86,7 +86,7 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 [`docs/`](./docs/) holds a page per topic — start at [docs/README.md](./docs/README.md).
 
-A cross-platform [Uno Platform](https://platform.uno/) (WinUI) application template targeting .NET 10.
+A cross-platform [Uno Platform](https://platform.uno/) (WinUI) application targeting .NET 10.
 
 ## Infrastructure abstractions
 
