@@ -86,7 +86,7 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 [`docs/`](./docs/) holds a page per topic — start at [docs/README.md](./docs/README.md).
 
-A cross-platform Uno Platform / WinUI app template targeting .NET 10.
+A cross-platform Uno Platform / WinUI app targeting .NET 10.
 
 ## JSON serialization (AOT / iOS / NativeAOT)
 
@@ -98,81 +98,82 @@ most notably **iOS NativeAOT** and trimmed **WASM** builds. The .NET trimmer can
 statically determine which types will be serialized, so the required metadata is
 stripped away.
 
-The solution is **source-generated serialization** via
+The fix is **source-generated serialization** via
 [`JsonSerializerContext`](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/source-generation).
-You annotate a `partial` class with `[JsonSerializable(typeof(MyModel))]` for every
-type your app serializes, and the compiler generates all required type metadata at
-build time. No runtime reflection is needed.
+A `partial` class is annotated with `[JsonSerializable(typeof(ExampleModel))]` for
+every type the app serializes, and the compiler generates all required type metadata
+at build time. No runtime reflection is needed.
 
-A `JsonSerializerContext` **cannot be shared as a NuGet package** because it must
-contain the closed set of types known at compile time — types that are specific to
-each app. Every app therefore needs its own context class.
+The context lives in the app itself rather than in a shared library or NuGet package,
+because it must declare the closed set of types known at compile time — and those
+types are specific to this app.
 
 ### `JsonSourceGenerationOptions` conventions
 
-Use two distinct option profiles depending on the use case:
+The options on the context depend on what the JSON is for:
 
 | Use case | `WriteIndented` | Notes |
 |---|---|---|
-| **Storage / network** (default) | `false` | Compact; smaller payloads, faster I/O. |
-| **Export / debug files** | `true` | Human-readable; easier to inspect. |
+| **Storage / network** | `false` (the default) | Compact; smaller payloads, faster I/O. |
+| **Export / debug files** | `true` | Human-readable; easier to inspect and diff. |
 
-For both profiles use `CamelCase` property naming and
-`WhenWritingNull` to omit null values unless your API contract requires them.
+Keep the rest at the System.Text.Json defaults unless a model needs something
+specific — apply per-type or per-property attributes (for example
+`[JsonPropertyName]`, `[JsonIgnore]`) on the models themselves rather than forcing a
+global policy onto the whole context.
 
-### Pattern: registering types in the context
+### Registering types in the context
 
-Declare a `partial` class that inherits `JsonSerializerContext`. Annotate it with
-one `[JsonSerializable]` attribute per serializable type, including collection
-variants (`List<T>`, `T[]`, etc.) that you pass to `JsonSerializer`.
+`AppTemplateJsonContext` (in `src/AppTemplate.Core/Models/`) is the source-generated
+context. Add one `[JsonSerializable]` attribute per serializable type, including the
+collection variants (`List<T>`, `T[]`, …) that get passed to `JsonSerializer`:
 
 ```csharp
 using System.Text.Json.Serialization;
 
-[JsonSourceGenerationOptions(
-    WriteIndented = false,
-    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
-[JsonSerializable(typeof(MyModel))]
-[JsonSerializable(typeof(List<MyModel>))]
-[JsonSerializable(typeof(AnotherModel))]
-public partial class MyAppJsonContext : JsonSerializerContext
+namespace AppTemplate.Core.Models;
+
+[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(ExampleModel))]
+[JsonSerializable(typeof(ExampleModel[]))]
+[JsonSerializable(typeof(List<ExampleModel>))]
+public partial class AppTemplateJsonContext : JsonSerializerContext
 {
+    // The source generator provides the Default property.
 }
 ```
 
-Then use the generated static `Default` instance directly:
+### Using the context
+
+Pass the generated metadata property (`Default.<TypeName>`) directly to
+`JsonSerializer` — this is the AOT-safe call shape, with no `JsonSerializerOptions`
+overload that would fall back to reflection:
 
 ```csharp
 // Serialize
-string json = JsonSerializer.Serialize(model, MyAppJsonContext.Default.MyModel);
+string json = JsonSerializer.Serialize(model, AppTemplateJsonContext.Default.ExampleModel);
 
 // Deserialize
-MyModel? obj = JsonSerializer.Deserialize(json, MyAppJsonContext.Default.MyModel);
+ExampleModel? value = JsonSerializer.Deserialize(json, AppTemplateJsonContext.Default.ExampleModel);
 ```
 
-Or compose it into `JsonSerializerOptions` for helpers that accept options:
+When the Uno host's serialization layer is used, register the context's type info in
+`App.xaml.cs` so injected `ISerializer` / `IStorage` helpers stay AOT-safe:
+
+```csharp
+.UseSerialization(services =>
+    services.AddJsonTypeInfo(AppTemplateJsonContext.Default.ExampleModel))
+```
+
+For third-party helpers that only accept `JsonSerializerOptions`, expose the context
+through a resolver:
 
 ```csharp
 JsonSerializerOptions options = new()
 {
-    TypeInfoResolver = MyAppJsonContext.Default,
+    TypeInfoResolver = AppTemplateJsonContext.Default,
 };
 ```
-
-### Stub file
-
-A ready-to-copy stub lives at
-`src/AppTemplate.Core/Models/AppTemplateJsonContext.cs`.
-It includes:
-
-- An example `ExampleModel` record showing a minimal serializable type.
-- A `[JsonSourceGenerationOptions]` declaration with the recommended defaults.
-- `[JsonSerializable]` registrations for the model and its `List<T>` variant.
-- Inline comments explaining how to adapt and use it.
-
-Rename the class, swap in your own types, and add a `[JsonSerializable]` entry for
-each type you need. Delete `ExampleModel` once you have real models registered.
 
 ## Versioning
 

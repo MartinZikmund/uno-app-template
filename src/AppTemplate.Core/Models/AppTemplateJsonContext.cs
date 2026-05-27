@@ -1,65 +1,51 @@
-// EXAMPLE FILE — copy and adapt this to your own app.
+// Source-generated JSON serializer context for AppTemplate.
 //
 // A per-app JsonSerializerContext is required for AOT-safe serialization
-// (iOS NativeAOT, WASM trimmed builds). It provides the compiler with the
-// closed set of types that may be serialized/deserialized, so no runtime
-// reflection is needed.
+// (iOS NativeAOT, trimmed WASM builds). It gives the compiler the closed set of
+// types that may be serialized/deserialized, so no runtime reflection is needed.
 //
-// Steps to adapt:
-//   1. Rename this class (e.g. MyAppJsonContext) and update the namespace.
-//   2. Replace ExampleModel with your own model types.
-//   3. Add one [JsonSerializable] attribute per serializable type (and its
-//      collection variants, e.g. List<T>, T[]) that you use via JsonSerializer.
-//   4. Pass AppTemplateJsonContext.Default as the TypeInfoResolver when you
-//      call JsonSerializer methods:
+// To add a serializable type:
+//   1. Add one [JsonSerializable] attribute per type, plus the collection
+//      variants (List<T>, T[]) that get passed to JsonSerializer.
+//   2. Serialize/deserialize through the generated metadata property — this is
+//      the AOT-safe call shape:
 //
-//        var json = JsonSerializer.Serialize(obj,
-//            AppTemplateJsonContext.Default.ExampleModel);
+//        var json = JsonSerializer.Serialize(
+//            value, AppTemplateJsonContext.Default.ExampleModel);
 //
-//        var obj = JsonSerializer.Deserialize(json,
-//            AppTemplateJsonContext.Default.ExampleModel);
+//        var value = JsonSerializer.Deserialize(
+//            json, AppTemplateJsonContext.Default.ExampleModel);
 //
-//   5. For helpers that accept JsonSerializerOptions, compose via:
+//   3. When using the Uno host's serialization layer, register the type info in
+//      App.xaml.cs:
 //
-//        JsonSerializerOptions options = new()
-//        {
-//            TypeInfoResolver = AppTemplateJsonContext.Default,
-//        };
+//        .UseSerialization(services =>
+//            services.AddJsonTypeInfo(AppTemplateJsonContext.Default.ExampleModel))
 
 using System.Text.Json.Serialization;
 
 namespace AppTemplate.Core.Models;
 
-// ---------------------------------------------------------------------------
-// Example model — replace with your own domain types.
-// ---------------------------------------------------------------------------
-
-/// <summary>Example serializable record. Replace with your own model.</summary>
+/// <summary>Sample serializable record demonstrating the context registration.</summary>
 public partial record ExampleModel
 {
-    /// <summary>An identifier for the example entity.</summary>
+    /// <summary>An identifier for the entity.</summary>
     public int Id { get; init; }
 
-    /// <summary>A display name for the example entity.</summary>
+    /// <summary>A display name for the entity.</summary>
     public string? Name { get; init; }
 }
 
-// ---------------------------------------------------------------------------
-// Source-generated serializer context
-// ---------------------------------------------------------------------------
-
 /// <summary>
-/// AOT-safe JSON serializer context for this app.
-/// Register every model type (and its collection variants) via
-/// <see cref="JsonSerializableAttribute"/> so that no runtime reflection
-/// is required on iOS / NativeAOT / trimmed WASM builds.
+/// AOT-safe JSON serializer context for the app. Register every model type
+/// (and its collection variants) via <see cref="JsonSerializableAttribute"/> so
+/// that no runtime reflection is required on iOS / NativeAOT / trimmed WASM builds.
 /// </summary>
-[JsonSourceGenerationOptions(
-    WriteIndented = false,          // compact for storage / network; use true for export files
-    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+[JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(ExampleModel))]
+[JsonSerializable(typeof(ExampleModel[]))]
 [JsonSerializable(typeof(List<ExampleModel>))]
 public partial class AppTemplateJsonContext : JsonSerializerContext
 {
+    // The source generator provides the Default property.
 }
