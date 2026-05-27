@@ -88,12 +88,18 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 ## One JsonSerializerContext per boundary
 
-Every external API or distinct data-shape boundary in this template owns its own
-[`JsonSerializerContext`](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonserializercontext).
-This is a deliberate convention — not a limitation of the framework.
+The app uses a single `JsonSerializerContext` for its own models (see the
+*JSON serialization (AOT / iOS / NativeAOT)* section for `AppTemplateJsonContext`).
+Every **external** API the app talks to gets its **own** additional
+[`JsonSerializerContext`](https://learn.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonserializercontext),
+living alongside that API's client code. This keeps each set of source-generated
+serialization metadata bounded to a single boundary instead of piling every
+unrelated DTO into one context.
 
-> **Related:** Issue #12 documents the per-app AOT context for the app's own models.
-> The convention here extends that idea to third-party/external data shapes.
+> **See also:** the per-app context (`AppTemplateJsonContext`) covers the app's
+> own models and persisted/export shapes. The convention here extends the same
+> source-generation idea to third-party API contracts, which evolve on someone
+> else's schedule and use their own JSON naming conventions.
 
 ### Why one context per boundary?
 
@@ -101,113 +107,123 @@ Source-generated serialization contexts are **zero-cost at runtime** — the
 serialization metadata is emitted by the compiler, not reflected at startup.
 The cost is paid at **build time** (code generation).
 
-The risk is the opposite of reflection: a single monolithic context that lists
-every type in the codebase couples unrelated shapes together, increases
-incremental-build churn, and makes it harder to understand which types cross
-a given boundary.
+A single monolithic context that lists every DTO across the codebase couples
+unrelated shapes together: an external API's request/response models often need
+a different `PropertyNamingPolicy` (snake_case, camelCase) or
+`DefaultIgnoreCondition` than the app's own models, and folding them into one
+context forces a single global policy onto all of them.
 
-Keeping contexts small and scoped to one logical boundary means:
+Keeping contexts scoped to one boundary means:
 
-- Startup stays fast — no reflection, and no giant registration table to scan.
-- Each context is independently evolvable; renaming a field in the weather API
-  response type cannot accidentally break storage serialization.
+- Each context carries its own `[JsonSourceGenerationOptions]` — the naming
+  policy and ignore conditions that match *that* API's wire format.
+- Each context is independently evolvable; the third-party API changing a field
+  cannot affect how the app's own models serialize.
 - AOT / NativeAOT / iOS builds stay compliant: the closed set of types required
   by each context is always explicitly declared.
 
 ### Logical boundaries
 
-| Context | Owns |
-|---------|------|
-| `AppStorageJsonContext` | Models persisted to local app storage |
-| `WeatherApiJsonContext` | Request/response DTOs for the Weather API |
-| `<ServiceName>JsonContext` | DTOs for any other external service |
+| Context | Lives in | Owns |
+|---------|----------|------|
+| `AppTemplateJsonContext` | the app / `AppTemplate.Core` | The app's own models and persisted/export shapes |
+| `<Service>JsonSerializerContext` | that service's client project | Request/response DTOs for one external API |
 
-A good rule of thumb: **one context per Refit interface (or equivalent HTTP
-client abstraction)**, plus one context for your own storage models.
+Rule of thumb: **one context per external API client (Refit interface set or
+equivalent HTTP abstraction)**, plus the app's own `AppTemplateJsonContext`.
+A dedicated API client is usually its own project (for example
+`AppTemplate.<Service>.Api`), and its context sits next to that client's models.
 
 ### Declaration pattern
 
-```csharp
-using System.Text.Json.Serialization;
-
-// Storage context — app's own persisted models
-[JsonSourceGenerationOptions(WriteIndented = true)]
-[JsonSerializable(typeof(AppConfig))]
-[JsonSerializable(typeof(UserSettings))]
-internal sealed partial class AppStorageJsonContext : JsonSerializerContext
-{
-}
-```
+An external-API context declares every DTO it serializes, then sets the options
+that match the API's wire format. Put `[JsonSourceGenerationOptions]` after the
+`[JsonSerializable]` list and make the context `public` — it is consumed from the
+client project that owns it:
 
 ```csharp
 using System.Text.Json.Serialization;
 
-// External API context — DTOs owned by the Weather API boundary
-[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+namespace AppTemplate.Weather.Api.Models;
+
+// External API context — DTOs owned by the Weather API client
 [JsonSerializable(typeof(WeatherForecast))]
 [JsonSerializable(typeof(WeatherForecast[]))]
 [JsonSerializable(typeof(GeoLocation))]
-internal sealed partial class WeatherApiJsonContext : JsonSerializerContext
+[JsonSourceGenerationOptions(
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+public partial class WeatherJsonSerializerContext : JsonSerializerContext
 {
 }
 ```
 
-Each context lives next to the code that uses it — for example:
+The app's own models stay in `AppTemplateJsonContext` (declared as shown in the
+*JSON serialization* section) — do not add external API DTOs to it.
+
+A typical layout keeps each external client and its context in a dedicated
+project:
 
 ```
-src/AppTemplate/
-├── Models/
-│   ├── AppConfig.cs
-│   ├── UserSettings.cs
-│   └── AppStorageJsonContext.cs   ← storage boundary
-├── Services/
-│   └── Weather/
-│       ├── WeatherForecast.cs
-│       ├── GeoLocation.cs
-│       └── WeatherApiJsonContext.cs  ← Weather API boundary
+src/
+├── AppTemplate.Core/
+│   └── Models/
+│       └── AppTemplateJsonContext.cs        ← the app's own models
+└── AppTemplate.Weather.Api/                 ← one external API = one client project
+    ├── Models/
+    │   ├── WeatherForecast.cs
+    │   ├── GeoLocation.cs
+    │   └── WeatherJsonSerializerContext.cs  ← Weather API boundary
+    └── Extensions/
+        └── ServiceCollectionExtensions.cs   ← Refit registration
 ```
 
-### Registering with `HttpClient` / Refit
+### Registering with Refit
 
-Pass the context instance to `JsonSerializerOptions` when configuring your
-HTTP client:
+Wire the context into the Refit client's `RefitSettings`. Either hand the
+context's generated `Options` to `SystemTextJsonContentSerializer`, or add the
+context to a `TypeInfoResolverChain`:
 
 ```csharp
-services.AddHttpClient<IWeatherApi, WeatherApiClient>(client =>
+var refitSettings = new RefitSettings
 {
-    client.BaseAddress = new Uri("https://api.example.com/");
-})
-.AddTypedClient((http, _) =>
-    RestService.For<IWeatherApi>(http, new RefitSettings
-    {
-        ContentSerializer = new SystemTextJsonContentSerializer(
-            new JsonSerializerOptions
-            {
-                TypeInfoResolver = WeatherApiJsonContext.Default
-            })
-    }));
+    ContentSerializer = new SystemTextJsonContentSerializer(
+        new JsonSerializerOptions
+        {
+            TypeInfoResolverChain = { WeatherJsonSerializerContext.Default }
+        })
+};
+
+services.AddRefitClient<IWeatherApi>(refitSettings)
+    .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://api.example.com/"));
 ```
+
+When the context's `[JsonSourceGenerationOptions]` already carry the right
+naming policy, you can pass `WeatherJsonSerializerContext.Default.Options`
+straight to `SystemTextJsonContentSerializer` instead of building a separate
+`JsonSerializerOptions`.
 
 For direct `JsonSerializer` calls use the typed overloads:
 
 ```csharp
 // Serialize
-string json = JsonSerializer.Serialize(forecast, WeatherApiJsonContext.Default.WeatherForecast);
+string json = JsonSerializer.Serialize(forecast, WeatherJsonSerializerContext.Default.WeatherForecast);
 
 // Deserialize
-WeatherForecast? result = JsonSerializer.Deserialize(json, WeatherApiJsonContext.Default.WeatherForecast);
+WeatherForecast? result = JsonSerializer.Deserialize(json, WeatherJsonSerializerContext.Default.WeatherForecast);
 ```
 
 ### Checklist when adding a new external API
 
-- [ ] Create `<ServiceName>JsonContext.cs` next to the service/Refit interface.
+- [ ] Add a `<Service>JsonSerializerContext` next to that client's models
+      (in the client's own project where there is one).
 - [ ] Add `[JsonSerializable(typeof(...))]` for every DTO **and** every
-      collection variant used directly (e.g. `typeof(MyDto[])`,
-      `typeof(List<MyDto>)`).
-- [ ] Pass `<ServiceName>JsonContext.Default` as the `TypeInfoResolver` for
-      that client — do **not** add the types to an existing context.
-- [ ] Do **not** add API DTOs to `AppStorageJsonContext`; keep the two
-      concerns separate.
+      collection variant used directly (for example `typeof(MyDto[])`,
+      `typeof(List<MyDto>)`, paged-response wrappers).
+- [ ] Set `[JsonSourceGenerationOptions]` to match the API's wire format
+      (`PropertyNamingPolicy`, `DefaultIgnoreCondition`).
+- [ ] Wire `<Service>JsonSerializerContext.Default` into the client's
+      `RefitSettings` — do **not** add the DTOs to `AppTemplateJsonContext`.
 
 ## Versioning
 
