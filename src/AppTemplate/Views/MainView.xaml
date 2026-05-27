@@ -29,7 +29,7 @@
             -->
             <ProgressRing
                 HorizontalAlignment="Center"
-                IsActive="{Binding IsWorking, Mode=OneWay}" />
+                IsActive="{x:Bind ViewModel.IsWorking, Mode=OneWay}" />
         </StackPanel>
 
         <!--
@@ -42,6 +42,6 @@
             Height="48"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
-            IsActive="{Binding IsLoading, Mode=OneWay}" />
+            IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
     </Grid>
 </local:MainViewBase>
