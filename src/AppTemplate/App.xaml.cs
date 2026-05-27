@@ -41,6 +41,13 @@ public partial class App : Application, IApplication
                 .UseEnvironment(Environments.Development)
 #endif
                 .UseLogging(ConfigureLogging, enableUnoLogging: true)
+                // Binds configuration-driven settings into the strongly-typed AppConfig record
+                // (AppTemplate.Core.Configuration.AppConfig). EmbeddedSource<App>() loads the
+                // embedded appsettings.json (plus environment overrides such as
+                // appsettings.development.json), and Section<AppConfig>() maps its "AppConfig"
+                // section. The bound AppConfig is then injectable via IOptions<AppConfig>.
+                // Release-time constants that do not vary per environment live in
+                // AppTemplate.Core.Infrastructure.ApplicationReleaseInfo instead.
                 .UseConfiguration(configure: configBuilder =>
                     configBuilder
                         .EmbeddedSource<App>()
