@@ -15,6 +15,41 @@ body:
     attributes:
       label: Use case / motivation
       description: Why is this feature needed? What problem does it solve?
+    validations:
+      required: true
+
+  - type: input
+    id: template-version
+    attributes:
+      label: Template version
+      description: Version of the template you are using.
+      placeholder: e.g. 1.2.0
+
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Relevant platform(s)
+      description: Which platform(s) should this feature target?
+      multiple: true
+      options:
+        - All platforms
+        - WebAssembly
+        - Android
+        - iOS
+        - macOS
+        - Windows
+        - Linux
+
+  - type: dropdown
+    id: renderer
+    attributes:
+      label: Renderer
+      description: Which renderer is this relevant to?
+      multiple: true
+      options:
+        - All renderers
+        - Skia
+        - Native
 
   - type: textarea
     id: additional-context

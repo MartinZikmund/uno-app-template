@@ -25,8 +25,8 @@ body:
   - type: input
     id: app-version
     attributes:
-      label: App version
-      description: Version of the app where the bug occurs.
+      label: App / template version
+      description: Version of the app or template where the bug occurs.
       placeholder: e.g. 1.2.0
 
   - type: dropdown
@@ -43,6 +43,18 @@ body:
         - macOS
         - Windows
         - Linux
+    validations:
+      required: true
+
+  - type: dropdown
+    id: renderer
+    attributes:
+      label: Renderer
+      description: Which renderer are you using?
+      multiple: true
+      options:
+        - Skia
+        - Native
     validations:
       required: true
 
