@@ -73,4 +73,18 @@ public partial class SettingsViewModel : ViewModelBase
     {
         _preferences.Clear();
     }
+
+    // Sample usage of ColorPickerDialog (see AppTemplate.Dialogs.ColorPickerDialog).
+    // Inject IDialogService into the constructor, then show the dialog from a command:
+    //
+    //     [RelayCommand]
+    //     private async Task PickColor()
+    //     {
+    //         var dialog = new ColorPickerDialog(Colors.SteelBlue);
+    //         if (await _dialogService.ShowAsync(dialog) == ContentDialogResult.Primary)
+    //         {
+    //             var chosenColor = dialog.SelectedColor;
+    //             // Apply the chosen color...
+    //         }
+    //     }
 }

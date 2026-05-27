@@ -5,15 +5,18 @@
     xmlns:local="using:AppTemplate.Dialogs"
     xmlns:markup="using:AppTemplate.Markup"
     Title="{markup:Localize Key=ColorPickerTitle}"
+    DefaultButton="Primary"
     PrimaryButtonText="{markup:Localize Key=Select}"
     CloseButtonText="{markup:Localize Key=Cancel}"
-    DefaultButton="Primary">
+    Style="{ThemeResource DefaultContentDialogStyle}">
 
     <!-- Content -->
     <ColorPicker
         x:Name="ColorPickerControl"
         ColorSpectrumShape="Box"
         IsAlphaEnabled="True"
+        IsAlphaSliderVisible="True"
+        IsAlphaTextInputVisible="True"
         IsColorChannelTextInputVisible="True"
         IsColorPreviewVisible="True"
         IsHexInputVisible="True" />

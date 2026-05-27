@@ -12,16 +12,4 @@ public sealed partial class SettingsView : SettingsViewBase
     {
         this.InitializeComponent();
     }
-
-    // Sample usage of ColorPickerDialog via IDialogService (see AppTemplate.Dialogs.ColorPickerDialog):
-    //
-    //     var dialog = new ColorPickerDialog(Colors.SteelBlue);
-    //     var result = await _dialogService.ShowAsync(dialog);
-    //     if (result == ContentDialogResult.Primary)
-    //     {
-    //         var chosenColor = dialog.SelectedColor;
-    //         // Apply the chosen color...
-    //     }
-    //
-    // _dialogService is an IDialogService resolved via constructor injection.
 }
