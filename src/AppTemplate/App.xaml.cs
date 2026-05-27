@@ -94,6 +94,7 @@ public partial class App : Application, IApplication
         services.AddScoped<WindowShellProvider>();
         services.AddScoped<IWindowShellProvider>(sp => sp.GetRequiredService<WindowShellProvider>());
         services.AddScoped<IXamlRootProvider>(sp => sp.GetRequiredService<WindowShellProvider>());
+        services.AddScoped<IFrameProvider, FrameProvider>();
         services.AddScoped<IDialogCoordinator, DialogCoordinator>();
         services.AddScoped<IDialogService, DialogService>();
         services.AddScoped<IConfirmationDialogService, ConfirmationDialogService>();
@@ -101,7 +102,7 @@ public partial class App : Application, IApplication
         services.AddScoped<IShareService, ShareService>();
         services.AddScoped<INavigationService>(sp =>
         {
-            var service = new NavigationService(sp.GetRequiredService<IWindowShellProvider>());
+            var service = new NavigationService(sp.GetRequiredService<IFrameProvider>());
             service.RegisterView(typeof(Views.MainView), typeof(MainViewModel));
             service.RegisterView(typeof(Views.SettingsView), typeof(SettingsViewModel));
             return service;
