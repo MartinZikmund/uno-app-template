@@ -4,12 +4,38 @@
     xmlns:converters="using:AppTemplate.Converters"
     xmlns:toolkitConverters="using:CommunityToolkit.WinUI.Converters">
 
+    <!--
+        Converter registration convention
+        ==================================
+        Every converter used anywhere in the app is instantiated exactly once here
+        as a static application-level resource.
+
+        Naming scheme: x:Key = converter class name (e.g. BoolToVisibilityConverter).
+        Variant instances that differ by property values use a descriptive prefix
+        (e.g. InvertedBoolToVisibilityConverter).
+
+        To use a converter in XAML, reference it by its stable key:
+            Converter="{StaticResource BoolToVisibilityConverter}"
+
+        Template-shipped custom converters (AppTemplate.Converters):
+            NullToVisibilityConverter  – shows/hides based on null check
+            EnumLocalizationConverter  – localizes enum values via Resources
+
+        CommunityToolkit.WinUI.Converters (pre-registered below):
+            BoolToVisibilityConverter, InvertedBoolToVisibilityConverter
+            BoolNegationConverter
+            StringVisibilityConverter, InvertedStringVisibilityConverter
+    -->
+
+    <!--  CommunityToolkit converters  -->
     <toolkitConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <toolkitConverters:BoolToVisibilityConverter
         x:Key="InvertedBoolToVisibilityConverter"
         FalseValue="Visible"
         TrueValue="Collapsed" />
     <toolkitConverters:BoolNegationConverter x:Key="BoolNegationConverter" />
+
+    <!--  AppTemplate custom converters  -->
     <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
     <converters:NullToVisibilityConverter x:Key="InvertedNullToVisibilityConverter" Invert="True" />
     <toolkitConverters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
