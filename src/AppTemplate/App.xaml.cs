@@ -5,6 +5,7 @@ using AppTemplate.Services.Dialogs;
 using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Rating;
 using AppTemplate.Services.Settings;
+using AppTemplate.Services.Store;
 using AppTemplate.Services.Theming;
 using Uno.Resizetizer;
 
@@ -45,6 +46,7 @@ public partial class App : Application, IApplication
                     configBuilder
                         .EmbeddedSource<App>()
                         .Section<AppConfig>()
+                        .Section<RevenueCatConfig>()
                 )
                 .UseLocalization()
                 .UseDefaultServiceProvider((context, options) =>
@@ -96,6 +98,24 @@ public partial class App : Application, IApplication
         services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
         services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();
         services.AddScoped<IAppRatingService, AppRatingService>();
+
+        // Store / in-app purchases.
+        // DEBUG always uses the in-memory fake so the paywall can be exercised without a live
+        // store. In RELEASE, mobile heads use RevenueCat, Windows uses its Store placeholder, and
+        // any remaining head (desktop / WASM) falls back to the fake so DI still validates.
+#if DEBUG
+        services.AddSingleton<IStoreService, FakeStoreService>();
+#elif __IOS__ || __ANDROID__
+        // Requires the Uno.RevenueCat package (see Directory.Packages.props). Until it is
+        // referenced, register the billing abstraction it provides and uncomment the line below
+        // on the mobile build agent:
+        // services.AddRevenueCatBilling();
+        services.AddSingleton<IStoreService, RevenueCatStoreService>();
+#elif WINDOWS
+        services.AddSingleton<IStoreService, WindowsStoreService>();
+#else
+        services.AddSingleton<IStoreService, FakeStoreService>();
+#endif
 
         // Per-window scoped services
         services.AddScoped<IThemeManager, ThemeManager>();
