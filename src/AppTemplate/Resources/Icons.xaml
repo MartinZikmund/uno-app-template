@@ -1,14 +1,19 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
         Centralized glyph constants for FontIcon usage.
 
-        Keep icon glyph literals in one place instead of scattering raw &#xExxx;
-        codes throughout the XAML. Glyph codes below are from the Segoe Fluent
-        Icons / Segoe MDL2 Assets font.
+        Keep glyph literals in one place rather than repeating raw &#xExxx; codes
+        across the views. Glyph codes are from the Segoe Fluent Icons / Segoe MDL2
+        Assets font.
 
-        Usage:
+        Usage with a FontIcon:
         <FontIcon Glyph="{StaticResource ShareIcon}" />
+
+        Usage with a FontIcon markup extension (for IconElement properties):
+        <MenuFlyoutItem Icon="{ui:FontIcon Glyph={StaticResource ShareIcon}}" />
     -->
 
     <x:String x:Key="ShareIcon">&#xE72D;</x:String>
