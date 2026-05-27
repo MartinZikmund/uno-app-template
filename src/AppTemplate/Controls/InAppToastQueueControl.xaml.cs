@@ -7,13 +7,13 @@ using Windows.UI;
 namespace AppTemplate.Controls;
 
 /// <summary>
-/// A generic in-app toast/notification control that shows queued messages one at a time
+/// An in-app toast/notification control that shows queued messages one at a time
 /// with slide-in/out animations, an auto-hide timer and hover-to-pause behavior.
 /// </summary>
 /// <remarks>
-/// Place a single instance in a high z-order layer of your page (e.g. as the last child of the
+/// Place a single instance in a high z-order layer of a page (e.g. as the last child of the
 /// root <c>Grid</c> so it overlays the page content) and call <see cref="Enqueue(string, string, string?)"/>
-/// whenever you want to surface feedback such as "achievement unlocked" or "sync completed".
+/// whenever you want to surface feedback such as a completed action or a sync result.
 /// <example>
 /// XAML:
 /// <code>
@@ -24,7 +24,7 @@ namespace AppTemplate.Controls;
 /// </code>
 /// Code-behind:
 /// <code>
-/// Toasts.Enqueue("Achievement unlocked", "You watered your plant 7 days in a row!", "#2E7D32");
+/// Toasts.Enqueue("Saved", "Your changes were saved.", "#2E7D32");
 /// Toasts.Enqueue("Sync completed", "All changes saved to the cloud.");
 /// </code>
 /// </example>
@@ -50,7 +50,7 @@ public sealed partial class InAppToastQueueControl : UserControl
     /// </summary>
     /// <param name="title">The bold title line.</param>
     /// <param name="message">The secondary message line.</param>
-    /// <param name="badgeColorHex">Optional badge background color as a hex string (e.g. <c>#RRGGBB</c> or <c>#AARRGGBB</c>). Falls back to the accent badge when null/invalid.</param>
+    /// <param name="badgeColorHex">Optional badge background color as a hex string (e.g. <c>#RRGGBB</c> or <c>#AARRGGBB</c>). When null/empty the accent badge is used; an invalid value falls back to a neutral badge.</param>
     public void Enqueue(string title, string message, string? badgeColorHex = null)
         => Enqueue(new ToastInfo(title, message, badgeColorHex));
 
@@ -84,8 +84,7 @@ public sealed partial class InAppToastQueueControl : UserControl
         MessageText.Text = toast.Message;
         MessageText.Visibility = string.IsNullOrEmpty(toast.Message) ? Visibility.Collapsed : Visibility.Visible;
 
-        BadgeBorder.Background = new SolidColorBrush(
-            TryParseHexColor(toast.BadgeColorHex, out var color) ? color : DefaultBadgeColor);
+        ApplyBadgeColor(toast.BadgeColorHex);
 
         RootGrid.Visibility = Visibility.Visible;
         AnimateIn();
@@ -207,6 +206,26 @@ public sealed partial class InAppToastQueueControl : UserControl
             _isPaused = false;
             RestartAutoHideTimer();
         }
+    }
+
+    /// <summary>
+    /// Applies the badge background: the accent brush when no color is supplied, the parsed
+    /// color when valid, and a neutral fallback when the supplied value cannot be parsed.
+    /// </summary>
+    private void ApplyBadgeColor(string? badgeColorHex)
+    {
+        if (string.IsNullOrWhiteSpace(badgeColorHex))
+        {
+            if (Application.Current.Resources["AccentFillColorDefaultBrush"] is Brush accentBrush)
+            {
+                BadgeBorder.Background = accentBrush;
+            }
+
+            return;
+        }
+
+        var color = TryParseHexColor(badgeColorHex, out var parsed) ? parsed : DefaultBadgeColor;
+        BadgeBorder.Background = new SolidColorBrush(color);
     }
 
     /// <summary>

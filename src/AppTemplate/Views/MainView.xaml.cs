@@ -25,6 +25,6 @@ public sealed partial class MainView : MainViewBase
     //
     // 2. Enqueue toasts from code-behind (they queue and show one at a time):
     //
-    //    Toasts.Enqueue("Achievement unlocked", "Watered your plant 7 days in a row!", "#2E7D32");
+    //    Toasts.Enqueue("Saved", "Your changes were saved.", "#2E7D32");
     //    Toasts.Enqueue("Sync completed", "All changes saved to the cloud.");
 }
