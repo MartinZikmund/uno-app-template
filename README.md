@@ -86,6 +86,76 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 [`docs/`](./docs/) holds a page per topic — start at [docs/README.md](./docs/README.md).
 
+An Uno Platform (WinUI) cross-platform app template targeting .NET 10.
+
+## Android: scheduled notifications & boot rescheduling
+
+Android wipes every `AlarmManager` alarm when the device reboots. Any app that posts
+notifications via `AlarmManager` therefore has to re-register its pending alarms after boot,
+otherwise previously-scheduled notifications silently never fire.
+
+The template ships the receiver pair needed for this pattern under
+`src/AppTemplate/Platforms/Android/`:
+
+- **`BootReceiver`** — an exported `[BroadcastReceiver]` listening for
+  `Intent.ActionBootCompleted`. On boot it re-reads the persisted scheduled notifications and
+  re-registers a pending alarm for each future-dated entry.
+- **`NotificationAlarmReceiver`** — a non-exported `[BroadcastReceiver]` that is the target of
+  each scheduled `PendingIntent`. When the alarm fires it builds and posts the notification via
+  `NotificationManager`.
+
+The manifest already declares the required permission:
+
+```xml
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+```
+
+### Wiring to a scheduled-notifications service
+
+Both receivers currently contain placeholder logic marked with `TODO` comments. To make them
+functional, provide a scheduled-notifications service (not shipped in this template) and wire it
+up as follows:
+
+1. **Persist scheduled notifications.** When the app schedules a notification, store its id,
+   title, message and trigger time somewhere durable (SQLite via `sqlite-net-e`, preferences, or
+   a file). Persistence is what allows `BootReceiver` to rebuild the alarms after a reboot.
+
+2. **Schedule an alarm.** Build an `Intent` targeting `NotificationAlarmReceiver`, attach the
+   payload through the `ExtraNotificationId` / `ExtraTitle` / `ExtraMessage` extras, wrap it in a
+   `PendingIntent`, and register it with `AlarmManager` (use `SetExactAndAllowWhileIdle` for exact
+   timing). On Android 12 (API 31)+ exact alarms require the `SCHEDULE_EXACT_ALARM` /
+   `USE_EXACT_ALARM` permission — fall back to `SetAndAllowWhileIdle` when it is not granted.
+
+   ```csharp
+   var intent = new Intent(context, typeof(NotificationAlarmReceiver));
+   intent.PutExtra(NotificationAlarmReceiver.ExtraNotificationId, scheduled.Id);
+   intent.PutExtra(NotificationAlarmReceiver.ExtraTitle, scheduled.Title);
+   intent.PutExtra(NotificationAlarmReceiver.ExtraMessage, scheduled.Message);
+
+   var pendingIntent = PendingIntent.GetBroadcast(
+       context,
+       scheduled.Id,
+       intent,
+       PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
+
+   var alarmManager = (AlarmManager)context.GetSystemService(Context.AlarmService)!;
+   alarmManager.SetExactAndAllowWhileIdle(
+       AlarmType.RtcWakeup,
+       scheduled.TriggerTimeUtc.ToUnixTimeMilliseconds(),
+       pendingIntent);
+   ```
+
+3. **Re-schedule on boot.** Implement the `TODO` in `BootReceiver.RescheduleNotifications`: read
+   the persisted notifications, skip any whose trigger time is in the past, and re-register an
+   alarm for the rest using the same code path as step 2.
+
+4. **Post the notification.** `NotificationAlarmReceiver` already creates the
+   `scheduled_notifications` channel (required on Android 8.0+) and posts a placeholder
+   notification. Replace the placeholder title/message/icon with the real persisted payload.
+
+Keep the actual scheduling/persistence logic in a platform-agnostic service so it stays testable,
+and call into these Android receivers only for the platform-specific alarm + notification plumbing.
+
 ## Versioning
 
 This template uses Nerdbank.GitVersioning. `main` produces `0.X.0-dev.{height}` prerelease builds with a Dev-channel identity that installs side-by-side with the Store version. Stable releases come from `release/v{minor}` branches. See [docs/versioning.md](./docs/versioning.md) for the full model and [docs/versioning-migration.md](./docs/versioning-migration.md) to apply it to an existing app.
