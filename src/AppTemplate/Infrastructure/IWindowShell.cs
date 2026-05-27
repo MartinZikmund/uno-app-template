@@ -5,15 +5,15 @@ namespace AppTemplate.Infrastructure;
 
 public interface IWindowShell
 {
-	WindowShellViewModel ViewModel { get; }
+    WindowShellViewModel ViewModel { get; }
 
-	XamlRoot? XamlRoot { get; }
+    XamlRoot? XamlRoot { get; }
 
-	IServiceProvider ServiceProvider { get; }
+    IServiceProvider ServiceProvider { get; }
 
-	DispatcherQueue DispatcherQueue { get; }
+    DispatcherQueue DispatcherQueue { get; }
 
-	Frame RootFrame { get; }
+    Frame RootFrame { get; }
 
-	void SetTitleBar(UIElement? titleBar);
+    void SetTitleBar(UIElement? titleBar);
 }

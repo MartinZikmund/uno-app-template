@@ -2,7 +2,7 @@ namespace AppTemplate.Services.Dialogs;
 
 public interface IDialogService
 {
-	Task<ContentDialogResult> ShowAsync(string title, string content);
+    Task<ContentDialogResult> ShowAsync(string title, string content);
 
-	Task<ContentDialogResult> ShowAsync(ContentDialog contentDialog);
+    Task<ContentDialogResult> ShowAsync(ContentDialog contentDialog);
 }

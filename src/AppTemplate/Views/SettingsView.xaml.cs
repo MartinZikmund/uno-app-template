@@ -8,8 +8,8 @@ public partial class SettingsViewBase : ViewBase<SettingsViewModel> { }
 
 public sealed partial class SettingsView : SettingsViewBase
 {
-	public SettingsView()
-	{
-		this.InitializeComponent();
-	}
+    public SettingsView()
+    {
+        this.InitializeComponent();
+    }
 }

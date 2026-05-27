@@ -2,7 +2,7 @@ namespace AppTemplate.Services;
 
 public interface IDisplayRequestManager
 {
-	IDisposable RequestActive();
+    IDisposable RequestActive();
 
-	void Clear();
+    void Clear();
 }

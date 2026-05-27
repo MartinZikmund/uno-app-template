@@ -2,21 +2,21 @@ namespace AppTemplate.Core.ViewModels;
 
 public abstract partial class ViewModelBase : ObservableObject
 {
-	[ObservableProperty]
-	public partial bool IsLoading { get; set; }
+    [ObservableProperty]
+    public partial bool IsLoading { get; set; }
 
-	[ObservableProperty]
-	public partial string? PageTitle { get; set; }
+    [ObservableProperty]
+    public partial string? PageTitle { get; set; }
 
-	public virtual void ViewCreated() { }
+    public virtual void ViewCreated() { }
 
-	public virtual void ViewLoading() { }
+    public virtual void ViewLoading() { }
 
-	public virtual void ViewLoaded() { }
+    public virtual void ViewLoaded() { }
 
-	public virtual void ViewUnloaded() { }
+    public virtual void ViewUnloaded() { }
 
-	public virtual void OnNavigatedTo(object? parameter) { }
+    public virtual void OnNavigatedTo(object? parameter) { }
 
-	public virtual void OnNavigatedFrom() { }
+    public virtual void OnNavigatedFrom() { }
 }

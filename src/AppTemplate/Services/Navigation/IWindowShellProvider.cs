@@ -6,13 +6,13 @@ namespace AppTemplate.Services.Navigation;
 
 public interface IWindowShellProvider
 {
-	Window Window { get; }
+    Window Window { get; }
 
-	IWindowShell Shell { get; }
+    IWindowShell Shell { get; }
 
-	WindowShellViewModel ViewModel { get; }
+    WindowShellViewModel ViewModel { get; }
 
-	DispatcherQueue DispatcherQueue { get; }
+    DispatcherQueue DispatcherQueue { get; }
 
-	Frame RootFrame { get; }
+    Frame RootFrame { get; }
 }

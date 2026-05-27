@@ -8,8 +8,8 @@ public partial class MainViewBase : ViewBase<MainViewModel> { }
 
 public sealed partial class MainView : MainViewBase
 {
-	public MainView()
-	{
-		this.InitializeComponent();
-	}
+    public MainView()
+    {
+        this.InitializeComponent();
+    }
 }
