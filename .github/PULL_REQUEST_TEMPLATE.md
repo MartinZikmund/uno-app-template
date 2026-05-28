@@ -1,8 +1,10 @@
 ## Summary
 
-<!-- Brief description of the changes -->
+<!-- What does this PR change, and why? -->
 
 ## Related issue
+
+<!-- Link an issue when this PR addresses one. Use "Closes #NNN" so the issue auto-closes on merge. -->
 
 Closes #
 
@@ -10,16 +12,19 @@ Closes #
 
 - [ ] Bug fix
 - [ ] New feature
-- [ ] Enhancement
+- [ ] Improvement to existing functionality
 - [ ] Breaking change
-- [ ] Other (describe below)
+- [ ] Chore / refactor / docs
+
+## Screenshots or recordings
+
+<!-- For UI changes, please attach before/after screenshots or a short clip. -->
 
 ## Checklist
 
-- [ ] I have tested these changes
-- [ ] I have updated documentation if needed
-- [ ] No breaking changes, or breaking changes are documented above
-
-## Screenshots
-
-<!-- If applicable, add screenshots for UI changes -->
+- [ ] Built and tested on at least one target platform
+- [ ] Ran `dotnet format` and there are no remaining changes
+- [ ] Added or updated tests where it made sense
+- [ ] Updated localization strings if new UI text was added
+- [ ] Updated documentation if behavior changed
+- [ ] No unrelated changes are included
