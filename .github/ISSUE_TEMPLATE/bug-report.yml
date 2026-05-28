@@ -1,65 +1,66 @@
-name: Bug Report
-description: Report a bug
+name: Bug report
+description: Something in the app isn't working the way it should
 labels: [bug]
 body:
-  - type: textarea
-    id: description
+  - type: markdown
     attributes:
-      label: Description
-      description: What happened and what did you expect instead?
+      value: |
+        Thanks for taking the time to report this! Please fill in as much as you can — even a quick description with a screenshot is a big help.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem in your own words. What did you expect to happen, and what happened instead?
+      placeholder: |
+        I tried to ... and the app ... instead of ...
     validations:
       required: true
 
   - type: textarea
-    id: steps-to-reproduce
+    id: steps
     attributes:
       label: Steps to reproduce
-      description: Minimal steps to reproduce the bug.
+      description: If you can, list the steps that lead to the problem.
       placeholder: |
-        1. Go to ...
-        2. Click on ...
-        3. See error
+        1. Open the app
+        2. Tap on ...
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where are you using the app?
+      description: Select every place you've seen this happen.
+      multiple: true
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Android (phone or tablet)
+        - iOS (iPhone or iPad)
+        - Web browser
     validations:
       required: true
 
   - type: input
+    id: os-version
+    attributes:
+      label: Operating system version (optional)
+      description: If you know it, the version of Windows / macOS / Android / iOS / etc. where this happens.
+      placeholder: e.g. Windows 11, iOS 18, Android 14
+
+  - type: input
     id: app-version
     attributes:
-      label: App version
-      description: Version of the app where the bug occurs.
+      label: App version (optional)
+      description: You can usually find this on the Settings or About screen.
       placeholder: e.g. 1.2.0
-
-  - type: dropdown
-    id: platforms
-    attributes:
-      label: Platform(s)
-      description: Which platform(s) are affected?
-      multiple: true
-      options:
-        - All platforms
-        - WebAssembly
-        - Android
-        - iOS
-        - macOS
-        - Windows
-        - Linux
-    validations:
-      required: true
-
-  - type: dropdown
-    id: renderer
-    attributes:
-      label: Renderer
-      description: Which renderer are you using? Your app uses Skia if you find `SkiaRenderer` in the `.csproj` project file.
-      multiple: true
-      options:
-        - Skia
-        - Native
-    validations:
-      required: true
 
   - type: textarea
     id: additional-context
     attributes:
-      label: Additional context
-      description: Logs, screenshots, or any other relevant information.
+      label: Screenshots, recordings, or anything else
+      description: Drag images or videos into this box, or paste any other details that might help.

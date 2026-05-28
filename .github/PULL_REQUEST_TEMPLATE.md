@@ -1,8 +1,10 @@
 ## Summary
 
-<!-- Brief description of the changes -->
+<!-- What does this PR change, and why? -->
 
 ## Related issue
+
+<!-- Link an issue when this PR addresses one. Use "Closes #NNN" so the issue auto-closes on merge. -->
 
 Closes #
 
@@ -10,20 +12,19 @@ Closes #
 
 - [ ] Bug fix
 - [ ] New feature
-- [ ] Enhancement
+- [ ] Improvement to existing functionality
 - [ ] Breaking change
-- [ ] Chore / refactor
+- [ ] Chore / refactor / docs
+
+## Screenshots or recordings
+
+<!-- For UI changes, please attach before/after screenshots or a short clip. -->
 
 ## Checklist
 
-- [ ] Linked to a GitHub issue above
-- [ ] Built and tested on at least one target (Desktop `-f net10.0-desktop` and/or WASM)
-- [ ] Ran `dotnet format` and there are no formatting warnings
-- [ ] Added or updated tests where applicable
+- [ ] Built and tested on at least one target platform
+- [ ] Ran `dotnet format` with no formatting warnings
+- [ ] Added or updated tests where it made sense
 - [ ] Updated localization strings if new UI text was added
-- [ ] Updated documentation / comments if behaviour changed
+- [ ] Updated documentation if behaviour changed
 - [ ] No unrelated changes are included
-
-## Screenshots / recordings
-
-<!-- For UI changes, add before/after screenshots or a short screen recording -->
