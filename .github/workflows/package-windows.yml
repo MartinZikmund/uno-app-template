@@ -1,12 +1,13 @@
 name: Build Windows Packages
 
 on:
-  # main is a public-release branch in version.json, so Nerdbank.GitVersioning
-  # stamps pushes to main with a stable version (no -beta suffix). Each push to
-  # main therefore builds a store-ready, signed package and uploads it.
+  # Push to main: Dev-channel package (self-signed, sideload-safe artifact).
+  # Push to release/v*: Prod-channel package (Store-signed .msixupload artifact for manual Partner Center submission).
+  # See docs/versioning.md for the full model.
   push:
-    branches: [ "main" ]
-  # Manual runs for ad-hoc package builds from any branch.
+    branches:
+      - "main"
+      - "release/v**"
   workflow_dispatch:
 
 env:
@@ -25,6 +26,7 @@ concurrency:
 jobs:
 
   create_package:
+    if: github.event.repository.private == false || github.event_name == 'workflow_dispatch'
 
     strategy:
       matrix:
@@ -33,6 +35,9 @@ jobs:
 
     runs-on: windows-latest  # For a list of available runner types, refer to
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+
+    outputs:
+      channel: ${{ steps.channel.outputs.value }}
 
     env:
       STEP_TIMEOUT_MINUTES: 60
@@ -43,6 +48,16 @@ jobs:
       ContinuousIntegrationBuild: true
 
     steps:
+    - name: Compute app channel
+      id: channel
+      shell: pwsh
+      run: |
+        if ($env:GITHUB_REF -like 'refs/heads/release/v*') {
+          "value=Prod" >> $env:GITHUB_OUTPUT
+        } else {
+          "value=Dev" >> $env:GITHUB_OUTPUT
+        }
+
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -69,20 +84,26 @@ jobs:
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
     - name: Restore the application
-      run: msbuild $env:SOLUTION_FILE /t:Restore /p:Configuration=$env:Configuration /p:TargetFramework=$env:WINDOWS_TARGET_FRAMEWORK /p:PublishReadyToRun=true
+      run: msbuild $env:SOLUTION_FILE /t:Restore /p:Configuration=$env:Configuration /p:TargetFramework=$env:WINDOWS_TARGET_FRAMEWORK /p:PublishReadyToRun=true /p:AppChannel=${{ steps.channel.outputs.value }}
       env:
         Configuration: ${{ matrix.configuration }}
 
     # Decode the base 64 encoded pfx and save the Signing_Certificate
     - name: Decode the pfx
+      shell: pwsh
       run: |
-        $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.BASE64_ENCODED_WINDOWS_PFX }}")
+        if ('${{ steps.channel.outputs.value }}' -eq 'Prod') {
+          $pfxBase64 = '${{ secrets.BASE64_ENCODED_WINDOWS_PFX }}'
+        } else {
+          $pfxBase64 = '${{ secrets.BASE64_ENCODED_WINDOWS_PFX_DEV }}'
+        }
+        $pfx_cert_byte = [System.Convert]::FromBase64String($pfxBase64)
         $certificatePath = "GitHubActionsWorkflow.pfx"
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
     # Create the app package by building and packaging the project
     - name: Create the app package
-      run: msbuild $env:SOLUTION_FILE /p:TargetFramework=$env:WINDOWS_TARGET_FRAMEWORK /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
+      run: msbuild $env:SOLUTION_FILE /p:TargetFramework=$env:WINDOWS_TARGET_FRAMEWORK /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true /p:AppChannel=${{ steps.channel.outputs.value }}
       env:
         Appx_Bundle: Never
         Appx_Package_Build_Mode: CI
@@ -102,6 +123,7 @@ jobs:
         path: ${{ env.PROJECT_PATH }}\\Packages
 
   merge:
+    if: needs.create_package.result == 'success'
     runs-on: windows-latest
     needs: create_package
     steps:
