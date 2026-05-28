@@ -23,8 +23,8 @@ Closes #
 ## Checklist
 
 - [ ] Built and tested on at least one target platform
-- [ ] Ran `dotnet format` with no formatting warnings
+- [ ] Ran `dotnet format` and there are no remaining changes
 - [ ] Added or updated tests where it made sense
 - [ ] Updated localization strings if new UI text was added
-- [ ] Updated documentation if behaviour changed
+- [ ] Updated documentation if behavior changed
 - [ ] No unrelated changes are included
