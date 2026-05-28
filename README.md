@@ -38,26 +38,31 @@ dotnet tool restore
 
 ```bash
 cd src/AppTemplate
+# Windows (requires Windows + WinAppSDK / Windows SDK)
 dotnet build -f net10.0-windows10.0.26100
 dotnet run -f net10.0-windows10.0.26100
+
+# Cross-platform desktop (macOS, Linux, Windows)
+dotnet build -f net10.0-desktop
+dotnet run -f net10.0-desktop
 ```
 
-Swap the target framework (`net10.0-android`, `net10.0-ios`, `net10.0-desktop`, `net10.0-browserwasm`) to build for other platforms.
+Swap the target framework (`net10.0-android`, `net10.0-ios`, `net10.0-browserwasm`) to build for other platforms.
 
 ## XAML Styler
 
 XAML formatting is kept consistent with [XAML Styler](https://github.com/Xavalon/XamlStyler), pinned as a local dotnet tool. The [`Settings.XamlStyler`](Settings.XamlStyler) file at the repository root is picked up automatically.
 
-Format all XAML files under `src/`:
+From the repository root, format all XAML files under `src/`:
 
 ```bash
-dotnet xstyler --recursive --directory src
+dotnet xstyler --recursive --directory ./src
 ```
 
 Or verify formatting without writing changes (useful in CI):
 
 ```bash
-dotnet xstyler --recursive --directory src --passive
+dotnet xstyler --recursive --directory ./src --passive
 ```
 
 ## License
