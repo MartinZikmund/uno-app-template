@@ -4,7 +4,7 @@ using Microsoft.UI.Xaml.Navigation;
 
 namespace AppTemplate.Views;
 
-public abstract partial class ViewBase<TViewModel> : Page
+public abstract partial class ViewBase<TViewModel> : Page, IViewBase
     where TViewModel : ViewModelBase
 {
     private object? _pendingParameter;
@@ -18,6 +18,8 @@ public abstract partial class ViewBase<TViewModel> : Page
     }
 
     public TViewModel? ViewModel { get; private set; }
+
+    object? IViewBase.ViewModel => ViewModel;
 
     [MemberNotNull(nameof(ViewModel))]
     private void EnsureViewModel()
