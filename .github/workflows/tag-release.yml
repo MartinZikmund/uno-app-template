@@ -40,10 +40,13 @@ jobs:
         id: gate
         env:
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           for wf in "Build Windows Packages" "Build Android Packages" "Build iOS Packages"; do
-            ok=$(gh run list --workflow "$wf" --commit "$HEAD_SHA" --json conclusion --jq '.[0].conclusion // "none"')
+            # Filter by branch as well as commit: a workflow_dispatch run of the same
+            # workflow on another branch sharing this SHA must not satisfy the gate.
+            ok=$(gh run list --workflow "$wf" --commit "$HEAD_SHA" --branch "$HEAD_BRANCH" --json conclusion --jq '.[0].conclusion // "none"')
             if [[ "$ok" != "success" ]]; then
               echo "Workflow '$wf' on $HEAD_SHA is '$ok' — not all three are green yet; skipping tag."
               echo "skip=true" >> "$GITHUB_OUTPUT"

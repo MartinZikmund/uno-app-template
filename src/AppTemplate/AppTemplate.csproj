@@ -29,13 +29,15 @@
 
     <PropertyGroup>
         <!-- Application icon & splash screen adjustments-->
-        <!-- Default (Prod) icons -->
+        <!-- Background is shared across channels. The app-icon resource name is derived
+             from the background file (Uno maps UnoIcon.Include = UnoIconBackgroundFile),
+             so the background must stay constant or Android's @mipmap/icon breaks. -->
         <UnoIconBackgroundFile>Assets/Icons/icon_transparent.svg</UnoIconBackgroundFile>
         <UnoIconBackgroundFile Condition="'$(IsIOS)' == 'true' or '$(IsAndroid)' == 'true'">Assets/Icons/icon.svg</UnoIconBackgroundFile>
 
-        <!-- Dev channel overrides (last-write-wins on the same property) -->
-        <UnoIconBackgroundFile Condition="'$(AppChannel)' == 'Dev'">Assets/Icons/icon_transparent_dev.svg</UnoIconBackgroundFile>
-        <UnoIconBackgroundFile Condition="'$(AppChannel)' == 'Dev' and ('$(IsIOS)' == 'true' or '$(IsAndroid)' == 'true')">Assets/Icons/icon_dev.svg</UnoIconBackgroundFile>
+        <!-- Dev channel: override only the foreground (the logo). This keeps the
+             generated icon resource name stable while giving Dev a distinct look. -->
+        <UnoIconForegroundFile Condition="'$(AppChannel)' == 'Dev'">Assets/Icons/icon_foreground_dev.svg</UnoIconForegroundFile>
 
         <UnoIconForegroundScale>1</UnoIconForegroundScale>
         <UnoIconForegroundScale Condition="'$(IsAndroid)' == 'true'">0.6</UnoIconForegroundScale>
