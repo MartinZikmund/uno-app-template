@@ -72,7 +72,7 @@
             <Frame x:Name="InnerFrame" />
         </NavigationView>
 
-        <!-- Dev-channel indicator overlay. See AppEnvironment + DevChannelBadge. -->
+        <!--  Dev-channel indicator overlay. See AppEnvironment + DevChannelBadge.  -->
         <controls:DevChannelBadge Grid.RowSpan="2" />
     </Grid>
 </Page>
