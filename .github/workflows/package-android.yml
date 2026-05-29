@@ -1,6 +1,13 @@
 name: Build Android Packages
 
 on:
+  # Push to main: Dev-channel AAB (Dev applicationId, sideload-safe; no Play upload).
+  # Push to release/v*: Prod-channel AAB uploaded to Google Play Production track.
+  # See docs/versioning.md for the full model.
+  push:
+    branches:
+      - "main"
+      - "release/v**"
   workflow_dispatch:
 
 env:
@@ -11,7 +18,6 @@ env:
   PROJECT_PATH: src/AppTemplate
   PROJECT_FILE: src/AppTemplate/AppTemplate.csproj
   ANDROID_TARGET_FRAMEWORK: net10.0-android
-  GOOGLE_PLAY_TRACK_STATUS: draft  # Options: completed, draft, halted, inProgress
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -19,6 +25,7 @@ concurrency:
 
 jobs:
   build_android:
+    if: github.event.repository.private == false || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     env:
@@ -30,6 +37,20 @@ jobs:
       ContinuousIntegrationBuild: true
 
     steps:
+      - name: Compute app channel
+        id: channel
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/heads/release/v* ]]; then
+            echo "value=Prod" >> "$GITHUB_OUTPUT"
+            echo "package_name=dev.mzikmund.apptemplate" >> "$GITHUB_OUTPUT"
+            echo "play_track=production" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=Dev" >> "$GITHUB_OUTPUT"
+            echo "package_name=dev.mzikmund.apptemplate.dev" >> "$GITHUB_OUTPUT"
+            echo "play_track=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -67,6 +88,7 @@ jobs:
       - name: Publish AAB (signed with Upload Key)
         run: |
           dotnet publish "${{ env.PROJECT_FILE }}" -c Release -f ${{ env.ANDROID_TARGET_FRAMEWORK }} \
+            -p:AppChannel=${{ steps.channel.outputs.value }} \
             -p:AndroidKeyStore=true \
             -p:AndroidSigningKeyStore="$GITHUB_WORKSPACE/android-upload.keystore" \
             -p:AndroidSigningKeyAlias='${{ secrets.ANDROID_KEY_ALIAS }}' \
@@ -82,13 +104,14 @@ jobs:
             ${{ env.PROJECT_PATH }}/bin/Release/${{ env.ANDROID_TARGET_FRAMEWORK }}/publish/*.aab
 
       - name: Upload to Google Play Console
+        if: steps.channel.outputs.value == 'Prod'
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: dev.mzikmund.apptemplate
+          packageName: ${{ steps.channel.outputs.package_name }}
           releaseFiles: ${{ env.PROJECT_PATH }}/bin/Release/${{ env.ANDROID_TARGET_FRAMEWORK }}/publish/*-Signed.aab
-          track: internal
-          status: ${{ env.GOOGLE_PLAY_TRACK_STATUS }}
+          track: ${{ steps.channel.outputs.play_track }}
+          status: completed
 
       # Clean up keystore
       - name: Remove keystore

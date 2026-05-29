@@ -1,5 +1,9 @@
 name: Validate Manifest Version
 
+# Guards that Package.appxmanifest's Identity Version stays "0.0.0.0" so
+# Nerdbank.GitVersioning can stamp the real version at build time. The version
+# itself is governed by version.json + branch (see docs/versioning.md).
+
 on:
   push:
     branches: [ "main" ]

@@ -77,6 +77,10 @@ unformatted XAML, the check fails, uploads a `xaml-style-patch` artifact, and co
 - **Forks:** download the `xaml-style-patch` artifact and apply it locally (`git apply xaml-style.patch`),
   or just re-run the formatter command above and commit the result.
 
+## Versioning
+
+This template uses Nerdbank.GitVersioning. `main` produces `0.X.0-dev.{height}` prerelease builds with a Dev-channel identity that installs side-by-side with the Store version. Stable releases come from `release/v{minor}` branches. See [docs/versioning.md](./docs/versioning.md) for the full model and [docs/versioning-migration.md](./docs/versioning-migration.md) to apply it to an existing app.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -5,8 +5,7 @@
         "semVer": 2.0
     },
     "publicReleaseRefSpec": [
-        "^refs/heads/main$",
-        "^refs/heads/release/\\d+(?:\\.\\d+)?$"
+        "^refs/heads/release/v\\d+\\.\\d+$"
     ],
     "cloudBuild": {
         "buildNumber": {
@@ -14,7 +13,7 @@
         }
     },
     "release": {
-        "branchName": "release/stable/{version}",
+        "branchName": "release/v{version}",
         "firstUnstableTag": "dev"
     }
 }
