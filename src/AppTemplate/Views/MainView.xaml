@@ -1,4 +1,4 @@
-<local:MainViewBase
+﻿<local:MainViewBase
     x:Class="AppTemplate.Views.MainView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -16,8 +16,8 @@
                 Foreground="{ThemeResource AccentFillColorDefaultBrush}"
                 Glyph="&#xE80F;" />
             <TextBlock
-                AutomationProperties.AutomationId="HelloTextBlock"
                 HorizontalAlignment="Center"
+                AutomationProperties.AutomationId="HelloTextBlock"
                 Style="{ThemeResource TitleLargeTextBlockStyle}"
                 Text="Hello Uno Platform!" />
         </StackPanel>
