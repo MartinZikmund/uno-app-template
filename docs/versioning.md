@@ -36,6 +36,7 @@ What changes per channel:
 | `package-ios.yml` | push: main + release/v* + workflow_dispatch | Dev Bundle ID on main, Prod on release/v* | release/v* → TestFlight via `apple-actions/upload-testflight-build` (manual "Submit for Review") |
 | `tag-release.yml` | workflow_run after the three packaging workflows on release/v* | n/a | Pushes annotated tag `v{version}` |
 | `prepare-release.yml` | workflow_dispatch | n/a | Cuts release/v{current}, opens PR for main bump |
+| `static-web-apps-deploy.yml` | push: release/v*, PR: main | Prod on release/v*, Dev on PR previews | release/v* → production Static Web App; PRs → Azure SWA preview env (public repos only) |
 
 All packaging workflows are gated by `github.event.repository.private == false || github.event_name == 'workflow_dispatch'` so private forks don't burn paid Actions minutes on every push.
 

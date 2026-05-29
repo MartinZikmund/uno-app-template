@@ -1,9 +1,12 @@
 name: Azure Static Web Apps CI/CD
 
+# Push to release/v*: Prod-channel WASM deployed to the production Static Web App.
+# PR to main: Dev-channel WASM deployed to an Azure SWA preview environment (public repos only).
+# See docs/versioning.md for the full model.
 on:
   push:
     branches:
-      - main
+      - "release/v**"
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
@@ -25,10 +28,24 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    # Release pushes always deploy (Prod). PR previews (Dev) only on public repos, so
+    # private forks don't burn paid Actions minutes on a throwaway preview every push.
+    if: >
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.repository.private == false)
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
+      - name: Compute app channel
+        id: channel
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/heads/release/v* ]]; then
+            echo "value=Prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=Dev" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -47,11 +64,12 @@ jobs:
         uses: actions/setup-dotnet@v4.2.0
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      - run: |
+      - name: Publish WASM
+        run: |
           cd ${{ env.PROJECT_PATH }}
           dotnet workload restore
           dotnet workload install wasm-tools
-          dotnet publish -c Release -f ${{ env.WASM_TARGET_FRAMEWORK }}
+          dotnet publish -c Release -f ${{ env.WASM_TARGET_FRAMEWORK }} -p:AppChannel=${{ steps.channel.outputs.value }}
       - name: Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -69,7 +87,7 @@ jobs:
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.repository.private == false
     runs-on: ubuntu-latest
     name: Close Pull Request Job
     steps:
