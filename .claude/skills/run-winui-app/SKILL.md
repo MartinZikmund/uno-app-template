@@ -92,31 +92,104 @@ run` auto-select the compatible `MsixPackage` profile and launch the packaged Wi
 
 ### 4. Automate the running app with `winapp ui`
 
-Target the app with `-a "App Template"`. That value is the **window title**, which is
-`App Template` for both channels (the manifest DisplayName `App Template Dev` is *not* the window
-title). If unsure, discover it first:
+Every `ui` command targets the app with `-a "App Template"`. That value is the **window title**,
+which is `App Template` for both channels (the manifest DisplayName `App Template Dev` is *not* the
+window title). If unsure, discover it first:
 
 ```powershell
-winapp ui list-windows                 # all windows; find yours by process "AppTemplate"
-winapp ui list-windows -a "App Template"
-winapp ui status      -a "App Template"   # confirm connection (process, PID, HWND)
+winapp ui list-windows                    # all windows; find yours by process "AppTemplate"
+winapp ui status -a "App Template"         # confirm connection (process, PID, HWND)
 ```
 
-Then inspect and interact (elements are addressed by a **semantic slug** shown in `inspect`, or by
-visible text):
+#### The core loop: inspect → act → verify
+
+You drive the app through the UI Automation tree, not pixels. Don't guess element names — the
+reliable rhythm is:
+
+1. **Inspect** to discover what's on screen and get a selector for the target element.
+2. **Act** on that selector (invoke / click / set-value / …).
+3. **Verify** the result (get-value, a fresh inspect, wait-for, or a screenshot) before the next
+   step — the tree changes after navigation, popups, and toggles.
 
 ```powershell
-winapp ui inspect    -a "App Template"                     # element tree w/ slugs, types, bounds
-winapp ui screenshot -a "App Template" --output shot.png   # PNG of the live window
-winapp ui search     "Settings" -a "App Template"          # find elements by text
-winapp ui invoke     "Settings" -a "App Template"          # activate by slug OR visible text
-winapp ui click      "<slug>"   -a "App Template"          # mouse click (for non-invokable items)
-winapp ui set-value  "<slug>" "Hello" -a "App Template"    # type into a TextBox/ComboBox/Slider
-winapp ui get-value  "<slug>" -a "App Template"
-winapp ui wait-for   "<slug>" -a "App Template" -timeout 10000
+winapp ui inspect -a "App Template"          # full tree: slugs, types, names, bounds
+winapp ui inspect -a "App Template" -i       # interactive elements only (buttons, inputs, list items)
+winapp ui search  "Settings" -a "App Template"  # find elements whose name matches text
 ```
 
-To confirm a screenshot visually, read the PNG file back with the Read tool.
+#### Selectors: prefer the slug
+
+`inspect`/`search` print each element as a **semantic slug** — the first token, e.g.
+`cmb-theme-cd0a`, `itm-dark-e7bf`, `SettingsItem`. You can target an element two ways:
+
+- **By slug (preferred):** precise and unambiguous. Copy it verbatim from `inspect`.
+- **By visible text:** convenient (`invoke "Settings"`), but text often matches *several* nodes —
+  e.g. a list item *and* its inner text label — and the command then refuses and lists the
+  candidates. When that happens, re-issue it with the exact slug.
+
+Slugs carry a short hash derived from the element's UIA RuntimeId, so **a slug can go stale after
+the UI changes** (you'll see "RuntimeId hash doesn't match — re-run inspect"). Re-inspect after
+any navigation or popup and use the fresh slug.
+
+#### Acting on elements
+
+```powershell
+# invoke = the smart "activate it". Tries Invoke → Toggle → SelectionItem → ExpandCollapse
+# patterns in order, so it presses buttons, flips toggles/checkboxes, expands combos/expanders,
+# and selects list/combo items. This is your default for "press this".
+winapp ui invoke "SettingsItem" -a "App Template"
+
+# click = a real mouse click at the element's coordinates. Use when there is no UIA pattern
+# (column headers, custom-drawn items) or you specifically need a mouse gesture.
+winapp ui click "<slug>" -a "App Template"            # add --double or --right as needed
+
+# set-value = type text via the UIA ValuePattern. Works ONLY on *editable* controls
+# (TextBox, editable ComboBox, Slider). Selection-only controls reject it — see the combo
+# example below.
+winapp ui set-value "txt-name-a3" "Hello world" -a "App Template"
+
+winapp ui focus           "<slug>" -a "App Template"   # move keyboard focus (e.g. before typing)
+winapp ui scroll-into-view "<slug>" -a "App Template"  # bring an off-screen element into view
+```
+
+#### Reading state to verify
+
+```powershell
+winapp ui get-value    "<slug>" -a "App Template"               # current text/value
+winapp ui get-property "<slug>" -a "App Template"               # all UIA props (or --property X)
+winapp ui get-focused  -a "App Template"                        # what currently has focus
+winapp ui screenshot   -a "App Template" --output .screenshots\app.png   # then read the PNG back
+```
+
+Always write screenshots into the repo-root **`.screenshots/`** folder (it's git-ignored) — create
+it first if missing (`New-Item -ItemType Directory -Force .screenshots`) and give each capture a
+descriptive name. After capturing, read the PNG back with the Read tool to actually look at it.
+
+#### Synchronizing with async UI
+
+After an action that triggers loading, navigation, or a dialog, **wait for the result instead of
+sleeping a fixed amount** — it's faster and far less flaky:
+
+```powershell
+winapp ui wait-for "<slug>" -a "App Template" -timeout 10000    # until it appears / reaches a value
+```
+
+#### Worked example — change the theme (a selection-only ComboBox)
+
+This shows the whole loop, including the common gotcha that `set-value` does **not** work on a
+non-editable ComboBox — you expand it and pick the item instead:
+
+```powershell
+winapp ui invoke "SettingsItem" -a "App Template"          # 1. navigate to Settings
+winapp ui inspect -a "App Template" -i                     # 2. discover the "Theme" combo's slug
+winapp ui invoke "cmb-theme-cd0a" -a "App Template"        # 3. expand it (ExpandCollapsePattern)
+winapp ui search "Dark" -a "App Template"                  # 4. find the item; note "Dark" is ambiguous
+winapp ui invoke "itm-dark-e7bf" -a "App Template"         # 5. select it by its exact slug
+winapp ui get-value "cmb-theme-cd0a" -a "App Template"     # 6. verify -> "Dark"
+```
+
+> The slugs above (`cmb-theme-cd0a`, `itm-dark-e7bf`) are illustrative — always read the current
+> ones from your own `inspect`/`search` output, since the hash suffix is regenerated.
 
 ### 5. Clean up
 
