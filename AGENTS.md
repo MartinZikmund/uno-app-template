@@ -22,9 +22,10 @@ $out = "D:\Personal\uno-app-template\src\AppTemplate\bin\Debug\net10.0-windows10
 winapp run $out --exe AppTemplate.exe --detach --json
 
 # 3. Automate the live window (-a is the window TITLE, "App Template")
-winapp ui screenshot -a "App Template" --output shot.png
-winapp ui inspect    -a "App Template"
-winapp ui invoke     "Settings" -a "App Template"
+#    Workflow: inspect (find a slug) -> act (invoke/click/set-value) -> verify (get-value/wait-for).
+winapp ui inspect    -a "App Template"                                    # discover element slugs
+winapp ui invoke     "SettingsItem" -a "App Template"                     # press by slug or text
+winapp ui screenshot -a "App Template" --output .screenshots\app.png      # -> repo-root .screenshots/ (git-ignored)
 
 # 4. Clean up
 Get-Process AppTemplate -ErrorAction SilentlyContinue | Stop-Process -Force

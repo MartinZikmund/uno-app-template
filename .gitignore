@@ -499,3 +499,6 @@ solution-config.props
 # Publish Profiles
 !**/Properties/PublishProfiles/*.pubxml
 .claude/scheduled_tasks.lock
+
+# winapp ui screenshots (local app-automation captures)
+.screenshots/
