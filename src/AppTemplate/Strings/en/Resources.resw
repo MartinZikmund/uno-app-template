@@ -171,4 +171,7 @@
   <data name="RateAppMessage" xml:space="preserve">
     <value>If you enjoy using this app, would you mind taking a moment to rate it? Your feedback helps us improve!</value>
   </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Search&#8230;</value>
+  </data>
 </root>

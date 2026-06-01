@@ -171,4 +171,7 @@
   <data name="RateAppMessage" xml:space="preserve">
     <value>Pokud r&#225;di pou&#382;&#237;v&#225;te tuto aplikaci, nev&#225;hejte ji ohodnotit. Va&#353;e zp&#283;tn&#225; vazba n&#225;m pom&#225;h&#225;!</value>
   </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Hledat&#8230;</value>
+  </data>
 </root>

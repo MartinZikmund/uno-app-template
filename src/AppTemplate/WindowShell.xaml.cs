@@ -7,6 +7,9 @@ using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
 using Microsoft.UI.Windowing;
 using Windows.Foundation.Metadata;
+#if !HAS_UNO
+using Microsoft.UI.Xaml.Controls;
+#endif
 
 namespace AppTemplate;
 
@@ -51,8 +54,6 @@ public sealed partial class WindowShell : Page, IWindowShell
     public WindowShellViewModel ViewModel { get; }
 
     public Frame RootFrame => InnerFrame;
-
-    public bool HasCustomTitleBar { get; private set; }
 
     private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
@@ -133,10 +134,16 @@ public sealed partial class WindowShell : Page, IWindowShell
 
     public void SetTitleBar(UIElement? titleBar)
     {
-        if (!_isWindowClosed)
+        if (_isWindowClosed)
         {
-            _associatedWindow.SetTitleBar(titleBar ?? TitleBarGrid);
+            return;
         }
+
+#if !HAS_UNO
+        _associatedWindow.SetTitleBar(titleBar ?? AppTitleBar);
+#else
+        _associatedWindow.SetTitleBar(titleBar);
+#endif
     }
 
     private void CustomizeWindow()
@@ -146,8 +153,7 @@ public sealed partial class WindowShell : Page, IWindowShell
         {
             _associatedWindow.ExtendsContentIntoTitleBar = true;
             _associatedWindow.AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
-            _associatedWindow.SetTitleBar(TitleBarGrid);
-            HasCustomTitleBar = true;
+            _associatedWindow.SetTitleBar(AppTitleBar);
         }
 #endif
 
@@ -206,6 +212,20 @@ public sealed partial class WindowShell : Page, IWindowShell
             UpdateNavigationViewSelection();
         }
     }
+
+#if !HAS_UNO
+    private void AppTitleBar_BackRequested(TitleBar sender, object args)
+    {
+        var nav = ServiceProvider.GetRequiredService<INavigationService>();
+        if (nav.GoBack())
+        {
+            UpdateNavigationViewSelection();
+        }
+    }
+
+    private void AppTitleBar_PaneToggleRequested(TitleBar sender, object args)
+        => NavView.IsPaneOpen = !NavView.IsPaneOpen;
+#endif
 
     private void UpdateNavigationViewSelection()
     {
