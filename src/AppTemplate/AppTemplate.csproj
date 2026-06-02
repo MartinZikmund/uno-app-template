@@ -56,6 +56,10 @@
         <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(IsWinAppSdk)' == 'true'">
+        <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" PrivateAssets="all" />
+    </ItemGroup>
+
     <ItemGroup>
       <Page Update="Resources\DataTemplates.xaml">
         <Generator>MSBuild:Compile</Generator>
