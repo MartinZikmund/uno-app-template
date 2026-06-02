@@ -25,7 +25,7 @@
             <Visibility>Collapsed</Visibility>
         </toolkitConverters:EmptyObjectToObjectConverter.NotEmptyValue>
     </toolkitConverters:EmptyObjectToObjectConverter>
-    <toolkitConverters:EmptyObjectToObjectConverter x:Key="NonNullToVisibilityConverter">
+    <toolkitConverters:EmptyObjectToObjectConverter x:Key="InvertedNullToVisibilityConverter">
         <toolkitConverters:EmptyObjectToObjectConverter.EmptyValue>
             <Visibility>Collapsed</Visibility>
         </toolkitConverters:EmptyObjectToObjectConverter.EmptyValue>
