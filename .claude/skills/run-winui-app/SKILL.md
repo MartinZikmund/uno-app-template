@@ -171,7 +171,7 @@ After an action that triggers loading, navigation, or a dialog, **wait for the r
 sleeping a fixed amount** — it's faster and far less flaky:
 
 ```powershell
-winapp ui wait-for "<slug>" -a "App Template" -timeout 10000    # until it appears / reaches a value
+winapp ui wait-for "<slug>" -a "App Template" --timeout 10000    # until it appears / reaches a value
 ```
 
 #### Worked example — change the theme (a selection-only ComboBox)
