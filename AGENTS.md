@@ -2,6 +2,27 @@
 
 Guidance for AI coding agents working in this repository.
 
+## Conventions
+
+Detailed, auto-loaded conventions live in **`.claude/rules/`** — read them before writing code:
+`code-style.md` (language, naming, `WarningsAsErrors`, Central Package Management),
+`architecture.md` (Core/head split, MVVM, DI, navigation, localization, "how to add a page"),
+`testing.md` (MSTest/MTP, run command, fakes + FluentAssertions), and `git.md` (commits, branches, versioning).
+
+## Skills & external resources
+
+Lean on installed skills and skill collections instead of reinventing — reach for them proactively:
+
+- **Windows / WinUI** — use the [`win-dev-skills`](https://github.com/microsoft/win-dev-skills) (`winui:*`) skills *extensively*. Uno's API mirrors the WinUI API, so WinUI guidance applies almost verbatim to this app.
+- **UI & design** — **`/winui-design` is the primary resource** for any layout, styling, theming, or Fluent-design work.
+- **.NET** — use the [dotnet skills](https://github.com/dotnet/skills/) (`dotnet-*`, `dotnet-test:*`, `dotnet-msbuild:*`, `dotnet-upgrade:*`, …) for building, testing, performance, diagnostics, and migrations.
+- **Browser automation** — when you need to load a page, screenshot, or verify web/WASM output, drive a browser with the **Playwright MCP** or the **Chrome integration** (either or both).
+- **MCP docs & runtime** — use the **Microsoft Learn MCP** (`microsoft_docs_search`/`_fetch`) for authoritative .NET/Windows API docs, and the **Uno docs MCP** (`uno_platform_search`/`_fetch`) for Uno specifics — but **not** for design/UX recommendations (use `/winui-design` for those). To drive and inspect the running app at runtime, pick by target: the **Uno-app MCP** (`uno_app_select_solution` → `uno_discover_tools`/`uno_execute_tool`) for **Uno targets** (Desktop/WASM/mobile) only — it does **not** drive the WinUI/WinAppSDK head; for the **WinUI (Windows) target**, use the **`/winui-ui-testing`** skill (and `/run-winui-app` to build/launch it).
+
+## Tech choices to avoid
+
+This app is plain WinUI/XAML + CommunityToolkit.Mvvm by design. **Do not introduce Uno.Extensions Navigation, C# Markup, or MVUX.** More generally, prefer a WinUI / CommunityToolkit alternative over **Uno.Extensions**, **Uno Toolkit**, or **Uno Themes** whenever one exists. (The hosting/configuration/localization/serialization features already wired in `UnoFeatures` are fine to keep — this is about not adding *new* dependencies on those stacks.)
+
 ## Running & automating the WinUI (Windows) app
 
 The app is an Uno single-project app; the WinUI (WinAppSDK) head can be built, launched **fully
