@@ -27,14 +27,15 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    // Unpackaged run for the WinAppSDK head. From the CLI, select it explicitly and build
-    // unpackaged: `dotnet run -f net10.0-windows10.0.26100 -p:WindowsPackageType=None --launch-profile "App Template (WinAppSDK Unpackaged)"`.
-    "App Template (WinAppSDK Unpackaged)": {
-      "commandName": "Project",
-      "compatibleTargetFramework": "windows"
-    },
+    // Packaged is listed first so `dotnet run -f net10.0-windows10.0.26100` defaults to it.
     "App Template (WinAppSDK Packaged)": {
       "commandName": "MsixPackage",
+      "compatibleTargetFramework": "windows"
+    },
+    // Unpackaged run for the WinAppSDK head. Explicit opt-in: select it and build unpackaged with
+    // `dotnet run -f net10.0-windows10.0.26100 -p:WindowsPackageType=None --launch-profile "App Template (WinAppSDK Unpackaged)"`.
+    "App Template (WinAppSDK Unpackaged)": {
+      "commandName": "Project",
       "compatibleTargetFramework": "windows"
     },
     "App Template (Desktop)": {
