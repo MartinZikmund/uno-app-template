@@ -66,7 +66,7 @@ package, launches it, and **returns immediately** with the AUMID and PID, so you
 to automate or screenshot it:
 
 ```powershell
-$out = "D:\Personal\uno-app-template\src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"
+$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"   # from the repo root; swap the TFM if it bumped
 winapp run $out --exe AppTemplate.exe --detach --json
 # -> { "AUMID": "dev.mzikmund.apptemplate.dev_...!App", "ProcessId": 470772 }
 ```

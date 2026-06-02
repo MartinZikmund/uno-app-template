@@ -39,7 +39,7 @@ reference (PowerShell; the WinUI TFM is the `*-windows*` entry in
 dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100 -c Debug
 
 # 2. Launch packaged + detached (returns AUMID + PID; stays non-blocking so you can automate)
-$out = "D:\Personal\uno-app-template\src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"
+$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"   # run from the repo root
 winapp run $out --exe AppTemplate.exe --detach --json
 
 # 3. Automate the live window (-a is the window TITLE, "App Template")
@@ -80,8 +80,8 @@ dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100
 dotnet test tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj
 ```
 
-Logic worth testing lives in **`AppTemplate.Core`** (view models, services, navigation) and is
-covered by **`AppTemplate.Core.Tests`** — keep testable code there so it stays head-independent.
+Logic worth testing lives in **`AppTemplate.Core`** (view models, services, navigation) and belongs
+under **`AppTemplate.Core.Tests`** — keep testable code there so it stays head-independent.
 
 ## Working style
 
