@@ -1,3 +1,5 @@
+using MZikmund.Toolkit.WinUI.Services;
+
 namespace AppTemplate.Services.Settings;
 
 public sealed class AppPreferences : IAppPreferences

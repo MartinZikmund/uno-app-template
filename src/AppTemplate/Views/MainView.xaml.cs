@@ -1,11 +1,11 @@
 using AppTemplate.Core.Navigation;
-using AppTemplate.ViewModels;
+using AppTemplate.Core.ViewModels;
 
 namespace AppTemplate.Views;
 
-[NavigationInfo(NavigationSection.Main)]
 public partial class MainViewBase : ViewBase<MainViewModel> { }
 
+[NavigationInfo(NavigationSection.Main)]
 public sealed partial class MainView : MainViewBase
 {
     public MainView()
