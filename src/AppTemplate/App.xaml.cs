@@ -6,7 +6,6 @@ using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Rating;
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
-using AppTemplate.ViewModels;
 using Uno.Resizetizer;
 
 namespace AppTemplate;
@@ -16,6 +15,15 @@ public partial class App : Application, IApplication
     public static new App Current => (App)Application.Current;
 
     public IServiceProvider Services => Host!.Services;
+
+    public string AppVersion
+    {
+        get
+        {
+            var version = Windows.ApplicationModel.Package.Current.Id.Version;
+            return $"{version.Major}.{version.Minor}.{version.Build}";
+        }
+    }
 
     public App()
     {
@@ -83,7 +91,7 @@ public partial class App : Application, IApplication
     {
         // Singleton services
         services.AddSingleton<IApplication>(sp => Current);
-        services.AddSingleton<IPreferences, Preferences>();
+        services.AddSingleton<MZikmund.Toolkit.WinUI.Services.IPreferences, Preferences>();
         services.AddSingleton<IAppPreferences, AppPreferences>();
         services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
         services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();

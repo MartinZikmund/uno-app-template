@@ -1,6 +1,4 @@
-using AppTemplate.Core.ViewModels;
-
-namespace AppTemplate.ViewModels;
+namespace AppTemplate.Core.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {

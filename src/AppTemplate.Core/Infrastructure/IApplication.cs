@@ -6,5 +6,7 @@ public interface IApplication
 
     ResourceDictionary Resources { get; }
 
+    string AppVersion { get; }
+
     void Exit();
 }

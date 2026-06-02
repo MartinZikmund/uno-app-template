@@ -1,24 +1,31 @@
-using AppTemplate.Core.ViewModels;
+using AppTemplate.Core.Infrastructure;
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
+using MZikmund.Toolkit.WinUI.Services;
 
-namespace AppTemplate.ViewModels;
+namespace AppTemplate.Core.ViewModels;
 
 public partial class SettingsViewModel : ViewModelBase
 {
     private readonly IStringLocalizer _localizer;
     private readonly IAppPreferences _appPreferences;
     private readonly IThemeManager _themeManager;
+    private readonly IPreferences _preferences;
+    private readonly IApplication _application;
     private bool _isInitializing;
 
     public SettingsViewModel(
         IStringLocalizer localizer,
         IAppPreferences appPreferences,
-        IThemeManager themeManager)
+        IThemeManager themeManager,
+        IPreferences preferences,
+        IApplication application)
     {
         _localizer = localizer;
         _appPreferences = appPreferences;
         _themeManager = themeManager;
+        _preferences = preferences;
+        _application = application;
         PageTitle = _localizer["Settings"];
     }
 
@@ -52,25 +59,18 @@ public partial class SettingsViewModel : ViewModelBase
         _appPreferences.Theme = value;
     }
 
-    public string AppVersion
-    {
-        get
-        {
-            var version = Windows.ApplicationModel.Package.Current.Id.Version;
-            return $"{version.Major}.{version.Minor}.{version.Build}";
-        }
-    }
+    public string AppVersion => _application.AppVersion;
 
     public bool IsDebug =>
 #if DEBUG
         true;
 #else
-		false;
+        false;
 #endif
 
     [RelayCommand]
     private void ClearPreferences()
     {
-        Windows.Storage.ApplicationData.Current.LocalSettings.Values.Clear();
+        _preferences.Clear();
     }
 }

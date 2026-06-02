@@ -1,4 +1,5 @@
 using System.Text.Json;
+using MZikmund.Toolkit.WinUI.Services;
 using Windows.Storage;
 
 namespace AppTemplate.Services.Settings;
@@ -7,55 +8,63 @@ public sealed class Preferences : IPreferences
 {
     private readonly ApplicationDataContainer _container = ApplicationData.Current.LocalSettings;
 
-    public T Get<T>(string key, T defaultValue)
+    public T Get<T>(string key, T defaultValue) =>
+        TryGet<T>(key, out var value) ? value : defaultValue;
+
+    public bool TryGet<T>(string key, out T value)
     {
-        if (_container.Values.TryGetValue(key, out var value))
+        if (_container.Values.TryGetValue(key, out var stored))
         {
-            if (value is T typed)
+            if (stored is T typed)
             {
-                return typed;
+                value = typed;
+                return true;
             }
 
-            // Handle numeric type conversions (ApplicationData stores as object)
+            // ApplicationData stores numeric values as object — coerce on read.
             try
             {
-                return (T)Convert.ChangeType(value, typeof(T));
+                value = (T)Convert.ChangeType(stored, typeof(T));
+                return true;
             }
             catch
             {
-                return defaultValue;
+                // Fall through to the not-found result.
             }
         }
 
-        return defaultValue;
+        value = default!;
+        return false;
     }
 
-    public void Set<T>(string key, T value)
-    {
-        _container.Values[key] = value;
-    }
+    public void Set<T>(string key, T? value) => _container.Values[key] = value;
 
-    public T GetComplex<T>(string key, T defaultValue)
+    public T GetComplex<T>(string key, T defaultValue) =>
+        TryGetComplex<T>(key, out var value) ? value : defaultValue;
+
+    public bool TryGetComplex<T>(string key, out T value)
     {
-        if (_container.Values.TryGetValue(key, out var value) && value is string json)
+        if (_container.Values.TryGetValue(key, out var stored) && stored is string json)
         {
             try
             {
-                return JsonSerializer.Deserialize<T>(json) ?? defaultValue;
+                if (JsonSerializer.Deserialize<T>(json) is { } result)
+                {
+                    value = result;
+                    return true;
+                }
             }
             catch
             {
-                return defaultValue;
+                // Fall through to the not-found result.
             }
         }
 
-        return defaultValue;
+        value = default!;
+        return false;
     }
 
-    public void SetComplex<T>(string key, T value)
-    {
-        _container.Values[key] = JsonSerializer.Serialize(value);
-    }
+    public void SetComplex<T>(string key, T? value) => _container.Values[key] = JsonSerializer.Serialize(value);
 
     public bool ContainsKey(string key) => _container.Values.ContainsKey(key);
 
