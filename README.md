@@ -129,11 +129,11 @@ context. Add one `[JsonSerializable]` attribute per serializable type, including
 collection variants (`List<T>`, `T[]`, …) that get passed to `JsonSerializer`:
 
 ```csharp
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace AppTemplate.Core.Models;
 
-[JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(ExampleModel))]
 [JsonSerializable(typeof(ExampleModel[]))]
 [JsonSerializable(typeof(List<ExampleModel>))]
@@ -150,19 +150,13 @@ Pass the generated metadata property (`Default.<TypeName>`) directly to
 overload that would fall back to reflection:
 
 ```csharp
+using System.Text.Json;
+
 // Serialize
 string json = JsonSerializer.Serialize(model, AppTemplateJsonContext.Default.ExampleModel);
 
 // Deserialize
 ExampleModel? value = JsonSerializer.Deserialize(json, AppTemplateJsonContext.Default.ExampleModel);
-```
-
-When the Uno host's serialization layer is used, register the context's type info in
-`App.xaml.cs` so injected `ISerializer` / `IStorage` helpers stay AOT-safe:
-
-```csharp
-.UseSerialization(services =>
-    services.AddJsonTypeInfo(AppTemplateJsonContext.Default.ExampleModel))
 ```
 
 For third-party helpers that only accept `JsonSerializerOptions`, expose the context

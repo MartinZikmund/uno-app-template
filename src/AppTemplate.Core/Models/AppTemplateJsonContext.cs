@@ -10,18 +10,15 @@
 //   2. Serialize/deserialize through the generated metadata property — this is
 //      the AOT-safe call shape:
 //
+//        using System.Text.Json;
+//
 //        var json = JsonSerializer.Serialize(
 //            value, AppTemplateJsonContext.Default.ExampleModel);
 //
 //        var value = JsonSerializer.Deserialize(
 //            json, AppTemplateJsonContext.Default.ExampleModel);
-//
-//   3. When using the Uno host's serialization layer, register the type info in
-//      App.xaml.cs:
-//
-//        .UseSerialization(services =>
-//            services.AddJsonTypeInfo(AppTemplateJsonContext.Default.ExampleModel))
 
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace AppTemplate.Core.Models;
@@ -41,7 +38,6 @@ public partial record ExampleModel
 /// (and its collection variants) via <see cref="JsonSerializableAttribute"/> so
 /// that no runtime reflection is required on iOS / NativeAOT / trimmed WASM builds.
 /// </summary>
-[JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(ExampleModel))]
 [JsonSerializable(typeof(ExampleModel[]))]
 [JsonSerializable(typeof(List<ExampleModel>))]
