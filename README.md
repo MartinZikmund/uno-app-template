@@ -105,15 +105,18 @@ Reference the glyph from a `FontIcon` via `StaticResource`:
 <FontIcon Glyph="{StaticResource ShareIcon}" />
 ```
 
-For controls that expect an `IconElement` (such as `MenuFlyoutItem` or `AppBarButton`), pair the
-constant with a `FontIcon` markup extension so the glyph stays a one-liner:
+For controls that expect an `IconElement` property (such as `NavigationViewItem.Icon` or
+`SettingsCard.HeaderIcon`), set it as a property element:
 
 ```xml
-<MenuFlyoutItem Icon="{ui:FontIcon Glyph={StaticResource ShareIcon}}" />
+<NavigationViewItem.Icon>
+    <FontIcon Glyph="{StaticResource ShareIcon}" />
+</NavigationViewItem.Icon>
 ```
 
 Centralizing the glyphs keeps icon usage consistent and makes swapping an icon a one-line change.
 Add new icons by introducing another keyed `x:String` in `Icons.xaml`.
+
 ## Versioning
 
 This template uses Nerdbank.GitVersioning. `main` produces `0.X.0-dev.{height}` prerelease builds with a Dev-channel identity that installs side-by-side with the Store version. Stable releases come from `release/v{minor}` branches. See [docs/versioning.md](./docs/versioning.md) for the full model and [docs/versioning-migration.md](./docs/versioning-migration.md) to apply it to an existing app.
