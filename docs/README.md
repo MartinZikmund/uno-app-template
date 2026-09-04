@@ -9,6 +9,7 @@ One page per topic. Keep it that way — see [`.claude/rules/docs.md`](../.claud
 
 ## Architecture
 
+- [application-abstraction.md](./application-abstraction.md) — `IApplication`, the abstraction over `Microsoft.UI.Xaml.Application` that Core depends on.
 - [views.md](./views.md) — `ViewBase<TViewModel>`, `IViewBase`, and how views resolve their view models.
 
 ## Release
