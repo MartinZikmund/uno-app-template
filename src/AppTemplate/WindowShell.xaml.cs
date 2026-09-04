@@ -7,9 +7,6 @@ using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
 using Microsoft.UI.Windowing;
 using Windows.Foundation.Metadata;
-#if !HAS_UNO
-using Microsoft.UI.Xaml.Controls;
-#endif
 
 namespace AppTemplate;
 
