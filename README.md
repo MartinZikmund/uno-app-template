@@ -1,81 +1,90 @@
 # App Template
 
-## Views
+A production-shaped starting point for a cross-platform [Uno Platform](https://platform.uno/) app.
+Five platform heads from a single project, plain WinUI/XAML with CommunityToolkit.Mvvm, and the
+plumbing you would otherwise rebuild every time: navigation, dependency injection, theming,
+localization, dialogs, versioning, and release pipelines.
 
-### `IViewBase`
+Copy it, rename it, delete what you don't need.
 
-`ViewBase<TViewModel>` is the base class for views (pages). It resolves the view model from the
-hosting `WindowShell` service provider and forwards lifecycle events to it.
+## What's in the box
 
-`IViewBase` is a non-generic interface that exposes the resolved view model as `object?`:
+| | |
+|---|---|
+| **Five heads, one project** | Android, iOS, Windows (WinAppSDK), Desktop (Skia), and WebAssembly from `src/AppTemplate`. See [docs/building.md](./docs/building.md). |
+| **MVVM without a framework** | CommunityToolkit.Mvvm only — no Uno.Extensions Navigation, C# Markup, or MVUX. View models live in `AppTemplate.Core` so they unit-test without a UI head. See [docs/views.md](./docs/views.md). |
+| **Type-driven navigation** | `INavigationService.Navigate<TViewModel>()`, with views registered explicitly rather than by reflection. |
+| **DI with the guardrails on** | Scope validation enabled, so a captive dependency fails at startup instead of in production. Per-window scopes for window-bound services. |
+| **Services already wired** | Theming, preferences, dialogs and confirmations, app rating, share, launcher, display-request, and app-update checks. |
+| **Localization from the start** | `{markup:Localize Key=...}` in XAML, `IStringLocalizer` in code, English and Czech resources included. |
+| **Side-by-side Dev builds** | Nerdbank.GitVersioning with Dev and Prod channels that install alongside each other, distinct icons included. See [docs/versioning.md](./docs/versioning.md). |
+| **CI that packages** | Build and smoke-test workflows plus Windows, Android, iOS packaging and WebAssembly deployment. XAML formatting is enforced on every PR — see [docs/xaml-styler.md](./docs/xaml-styler.md). |
+| **Written for coding agents** | [`AGENTS.md`](./AGENTS.md) and [`.claude/rules/`](./.claude/rules/) carry the conventions an agent needs before it writes a line. |
 
-```csharp
-public interface IViewBase
-{
-    object? ViewModel { get; }
-}
-```
+## Using this template
 
-Every `ViewBase<TViewModel>` implements `IViewBase`, so a view can be referenced through the
-interface without depending on its concrete view model type.
+There is no rename script — the steps below are the whole job, and doing them by hand once is
+clearer than debugging a script that half-worked.
 
-Use it when:
+1. **Start your repo.** Use this repository as a GitHub template, or clone it and point `origin`
+   at your own remote.
 
-- A `DataTemplate` (or other loosely-typed code) needs to reach a view's view model without
-  knowing its generic argument.
-- A test needs to inspect a view's resolved view model without knowing its concrete type at
-  compile time.
+2. **Rename `AppTemplate` to your app.** It appears in roughly 59 C# namespace declarations plus:
 
-### Restore dotnet tools
+   ```text
+   src/AppTemplate/                          folder + AppTemplate.csproj
+   src/AppTemplate.Core/                     folder + AppTemplate.Core.csproj
+   tests/AppTemplate.Core.Tests/             folder + .csproj
+   src/AppTemplate.slnx
+   src/.run/AppTemplate.run.xml
+   src/.vscode/launch.json, tasks.json
+   src/AppTemplate/Properties/launchSettings.json
+   src/AppTemplate/Platforms/WebAssembly/LinkerConfig.xml
+   ```
 
-The repository ships a local tool manifest (`.config/dotnet-tools.json`). Restore the tools once after cloning:
+   A find-and-replace of `AppTemplate` → `YourApp` across the repo, then renaming the folders and
+   project files, covers all of it.
+
+3. **Claim your identity.** In `src/AppTemplate/AppTemplate.csproj`, set `ApplicationPublisher`,
+   and set `ApplicationTitle` and `ApplicationId` for **both** the `Prod` and `Dev` channel
+   property groups — they must differ, that's what lets Dev install side by side. Then update the
+   display names in `src/AppTemplate/Platforms/Android/Resources/values*/Strings.xml`.
+
+4. **Replace the artwork.** Drop your own SVGs into `src/AppTemplate/Assets/Icons` and
+   `src/AppTemplate/Assets/Splash`. Keep `icon_transparent.svg` and `icon.svg` as the background
+   filenames unless you also update the `UnoIcon*` properties — the generated Android
+   `@mipmap/icon` resource name is derived from them.
+
+5. **Reset the version.** `version.json` starts at `0.1`. Set it to whatever your first release
+   should be; git height supplies the rest.
+
+6. **Translate or trim.** Keep both `src/AppTemplate/Strings/en` and `.../cs`, or delete the `cs`
+   folder and its Android `values-cs` counterpart if you only ship one language.
+
+7. **Delete what you don't need.** Sample views, the Czech resources, the rating service — none of
+   it is load-bearing. Removing a service means deleting its files and its registration in
+   `App.RegisterServices`.
+
+### If you're a coding agent
+
+Read [`AGENTS.md`](./AGENTS.md) first — it points at [`.claude/rules/`](./.claude/rules/), which
+carries the conventions this repo actually enforces: code style, the Core/head split, testing, git,
+and documentation. Adding a feature means adding a page under [`docs/`](./docs/), never appending
+prose to this file.
+
+## Quickstart
 
 ```bash
-dotnet tool restore
+dotnet tool restore                                                   # XAML Styler, once per clone
+dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-desktop    # fastest head, no workloads
 ```
 
-### Build and Run
+Other heads, per-platform prerequisites, and how to run the packaged Windows app live in
+[docs/building.md](./docs/building.md).
 
-```bash
-cd src/AppTemplate
-# Windows (requires Windows + WinAppSDK / Windows SDK)
-dotnet build -f net10.0-windows10.0.26100
-dotnet run -f net10.0-windows10.0.26100
+## Docs
 
-# Cross-platform desktop (macOS, Linux, Windows)
-dotnet build -f net10.0-desktop
-dotnet run -f net10.0-desktop
-```
-
-Swap the target framework (`net10.0-android`, `net10.0-ios`, `net10.0-browserwasm`) to build for other platforms.
-
-## XAML Styler
-
-XAML formatting is kept consistent with [XAML Styler](https://github.com/Xavalon/XamlStyler), pinned as a local dotnet tool. The [`Settings.XamlStyler`](Settings.XamlStyler) file at the repository root holds the rules (aligned with the Uno Platform and Windows Community Toolkit conventions).
-
-From the repository root, format all XAML files under `src/`:
-
-```bash
-dotnet xstyler -c Settings.XamlStyler -r -d ./src
-```
-
-Or verify formatting without writing changes (useful in CI):
-
-```bash
-dotnet xstyler -c Settings.XamlStyler -r -d ./src --passive
-```
-
-### Enforcement
-
-Formatting is enforced on every pull request by the **XAML Style Check** workflow
-([`.github/workflows/xaml-style-check.yml`](.github/workflows/xaml-style-check.yml)). If a PR contains
-unformatted XAML, the check fails, uploads a `xaml-style-patch` artifact, and comments with how to fix it:
-
-- **Branches in this repo:** comment `/apply-xaml-style` on the PR and a bot
-  ([`.github/workflows/xaml-style-apply.yml`](.github/workflows/xaml-style-apply.yml)) formats the XAML and
-  pushes `chore: Apply XAML styler` to the PR branch.
-- **Forks:** download the `xaml-style-patch` artifact and apply it locally (`git apply xaml-style.patch`),
-  or just re-run the formatter command above and commit the result.
+[`docs/`](./docs/) holds a page per topic — start at [docs/README.md](./docs/README.md).
 
 ## Versioning
 
