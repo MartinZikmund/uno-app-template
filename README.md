@@ -128,7 +128,7 @@ In XAML, prefer the markup extension:
 ### Consolidating onto the toolkit `Localizer` (tracking — issue #31)
 
 The static `Localizer` is a small local helper. The shared `MZikmund.Toolkit.WinUI` package
-(`0.1.13-dev.43`, pinned in [`src/Directory.Packages.props`](src/Directory.Packages.props)) is
+(`0.1.21-dev.69`, pinned in [`src/Directory.Packages.props`](src/Directory.Packages.props)) is
 expected to grow an `ILocalizer` abstraction plus a static `Localizer.Current` accessor that
 covers exactly this scenario. That toolkit feature has **not shipped yet** — the package
 currently exposes only `IPreferences`/`Preferences`, `IDialogCoordinator`/`DialogCoordinator`,
