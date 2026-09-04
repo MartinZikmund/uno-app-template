@@ -21,6 +21,7 @@ public class RevenueCatStoreService : IStoreService
     private readonly IRevenueCatBilling _billing;
     private readonly IDialogService _dialogService;
     private readonly RevenueCatConfig _options;
+    private readonly Lock _initializationLock = new();
     private bool? _hasPro;
     private bool _isInitialized;
 
@@ -31,6 +32,7 @@ public class RevenueCatStoreService : IStoreService
     {
         _billing = billing ?? throw new ArgumentNullException(nameof(billing));
         _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+        ArgumentNullException.ThrowIfNull(options);
         _options = options.Value ?? throw new ArgumentNullException(nameof(options));
     }
 
@@ -148,9 +150,12 @@ public class RevenueCatStoreService : IStoreService
             var proEntitlement = customerInfo?.Entitlements
                 .FirstOrDefault(e => e.Identifier == _options.EntitlementId);
 
-            if (proEntitlement?.IsActive == true)
+            // Reflect the restored state even when no active entitlement was found, so a stale
+            // "true" from an earlier call doesn't linger.
+            _hasPro = proEntitlement?.IsActive ?? false;
+
+            if (_hasPro == true)
             {
-                _hasPro = true;
                 return true;
             }
 
@@ -180,13 +185,23 @@ public class RevenueCatStoreService : IStoreService
             return;
         }
 
+        // Double-checked locking: GetPriceAsync/TryPurchaseProAsync/TryRestorePurchasesAsync can
+        // race on the first call, and _billing.Initialize must only run once.
+        lock (_initializationLock)
+        {
+            if (_isInitialized)
+            {
+                return;
+            }
+
 #if __IOS__
-        var apiKey = _options.IOSApiKey;
+            var apiKey = _options.IOSApiKey;
 #else
-        var apiKey = _options.AndroidApiKey;
+            var apiKey = _options.AndroidApiKey;
 #endif
-        _billing.Initialize(apiKey);
-        _isInitialized = true;
+            _billing.Initialize(apiKey);
+            _isInitialized = true;
+        }
     }
 
     private async Task ShowErrorAsync(string message) =>
