@@ -46,10 +46,13 @@ public partial class GetProViewModel : ViewModelBase
     [ObservableProperty]
     public partial string? ErrorMessage { get; set; }
 
-    public override async void OnNavigatedTo(object? parameter)
+    public override void OnNavigatedTo(object? parameter)
     {
         base.OnNavigatedTo(parameter);
-        await LoadAsync();
+
+        // LoadAsync handles its own errors, so fire-and-forget from this synchronous override
+        // instead of making it async void.
+        _ = LoadAsync();
     }
 
     private async Task LoadAsync()
@@ -60,6 +63,10 @@ public partial class GetProViewModel : ViewModelBase
             IsBusy = true;
             IsPro = await _storeService.HasProAsync();
             Price = await _storeService.GetPriceAsync();
+            if (Price is null)
+            {
+                SetError(_localizer["GetProPriceError"]);
+            }
         }
         catch (Exception)
         {
