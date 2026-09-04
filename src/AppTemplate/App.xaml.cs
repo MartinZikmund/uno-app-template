@@ -101,6 +101,11 @@ public partial class App : Application, IApplication
         // In-memory store backend for development. Swap in a real, platform-specific
         // IStoreService for release builds.
         services.AddSingleton<IStoreService, FakeStoreService>();
+#else
+        // No platform-specific store integration yet; register a no-op fallback so
+        // GetProViewModel still resolves (ValidateOnBuild requires every service to be
+        // resolvable, even for pages that aren't navigated to).
+        services.AddSingleton<IStoreService, UnsupportedStoreService>();
 #endif
 
         // Per-window scoped services
