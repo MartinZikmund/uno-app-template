@@ -17,7 +17,7 @@ namespace AppTemplate.Controls;
 /// <example>
 /// XAML:
 /// <code>
-/// &lt;Grid&gt;
+/// &lt;Grid xmlns:controls="using:AppTemplate.Controls"&gt;
 ///     &lt;!-- page content --&gt;
 ///     &lt;controls:InAppToastQueueControl x:Name="Toasts" /&gt;
 /// &lt;/Grid&gt;
@@ -38,10 +38,21 @@ public sealed partial class InAppToastQueueControl : UserControl
     private DispatcherTimer? _autoHideTimer;
     private bool _isShowing;
     private bool _isPaused;
+    private bool _isHiding;
 
     public InAppToastQueueControl()
     {
         InitializeComponent();
+    }
+
+    private void InAppToastQueueControl_Unloaded(object sender, RoutedEventArgs e)
+    {
+        _autoHideTimer?.Stop();
+        _autoHideTimer = null;
+        _pending.Clear();
+        _isShowing = false;
+        _isPaused = false;
+        _isHiding = false;
     }
 
     /// <summary>
@@ -108,8 +119,17 @@ public sealed partial class InAppToastQueueControl : UserControl
 
     private void Hide()
     {
+        if (_isHiding)
+        {
+            return;
+        }
+
+        _isHiding = true;
+
         AnimateOut(() =>
         {
+            _isHiding = false;
+
             if (_pending.Count > 0)
             {
                 ShowNext();
@@ -216,10 +236,9 @@ public sealed partial class InAppToastQueueControl : UserControl
     {
         if (string.IsNullOrWhiteSpace(badgeColorHex))
         {
-            if (Application.Current.Resources["AccentFillColorDefaultBrush"] is Brush accentBrush)
-            {
-                BadgeBorder.Background = accentBrush;
-            }
+            BadgeBorder.Background = Application.Current.Resources["AccentFillColorDefaultBrush"] is Brush accentBrush
+                ? accentBrush
+                : new SolidColorBrush(DefaultBadgeColor);
 
             return;
         }

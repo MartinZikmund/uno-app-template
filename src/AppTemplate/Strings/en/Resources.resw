@@ -171,4 +171,7 @@
   <data name="RateAppMessage" xml:space="preserve">
     <value>If you enjoy using this app, would you mind taking a moment to rate it? Your feedback helps us improve!</value>
   </data>
+  <data name="ToastCloseButtonName" xml:space="preserve">
+    <value>Dismiss notification</value>
+  </data>
 </root>
