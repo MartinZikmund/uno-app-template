@@ -5,7 +5,9 @@ using AppTemplate.Services.Dialogs;
 using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Rating;
 using AppTemplate.Services.Settings;
+using AppTemplate.Services.Store;
 using AppTemplate.Services.Theming;
+using AppTemplate.ViewModels;
 using Uno.Resizetizer;
 
 namespace AppTemplate;
@@ -96,6 +98,16 @@ public partial class App : Application, IApplication
         services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
         services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();
         services.AddScoped<IAppRatingService, AppRatingService>();
+#if DEBUG
+        // In-memory store backend for development. Swap in a real, platform-specific
+        // IStoreService for release builds.
+        services.AddSingleton<IStoreService, FakeStoreService>();
+#else
+        // No platform-specific store integration yet; register a no-op fallback so
+        // GetProViewModel still resolves (ValidateOnBuild requires every service to be
+        // resolvable, even for pages that aren't navigated to).
+        services.AddSingleton<IStoreService, UnsupportedStoreService>();
+#endif
 
         // Per-window scoped services
         services.AddScoped<IThemeManager, ThemeManager>();
@@ -113,6 +125,7 @@ public partial class App : Application, IApplication
             var service = new NavigationService(sp.GetRequiredService<IFrameProvider>());
             service.RegisterView(typeof(Views.MainView), typeof(MainViewModel));
             service.RegisterView(typeof(Views.SettingsView), typeof(SettingsViewModel));
+            service.RegisterView(typeof(Views.GetProView), typeof(GetProViewModel));
             return service;
         });
 
@@ -122,6 +135,7 @@ public partial class App : Application, IApplication
         // Transient ViewModels (new instance per navigation)
         services.AddTransient<MainViewModel>();
         services.AddTransient<SettingsViewModel>();
+        services.AddTransient<GetProViewModel>();
     }
 
     private static void ConfigureLogging(HostBuilderContext context, ILoggingBuilder logBuilder)

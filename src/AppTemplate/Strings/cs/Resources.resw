@@ -171,4 +171,46 @@
   <data name="RateAppMessage" xml:space="preserve">
     <value>Pokud r&#225;di pou&#382;&#237;v&#225;te tuto aplikaci, nev&#225;hejte ji ohodnotit. Va&#353;e zp&#283;tn&#225; vazba n&#225;m pom&#225;h&#225;!</value>
   </data>
+  <data name="GetProTitle" xml:space="preserve">
+    <value>P&#345;ejít na Pro</value>
+  </data>
+  <data name="GetProSubtitle" xml:space="preserve">
+    <value>Odemkn&#283;te pln&#253; z&#225;&#382;itek jednor&#225;zov&#253;m n&#225;kupem.</value>
+  </data>
+  <data name="GetProFeatureNoAdsTitle" xml:space="preserve">
+    <value>Bez reklam</value>
+  </data>
+  <data name="GetProFeatureNoAdsDescription" xml:space="preserve">
+    <value>Odstra&#328;te v&#353;echny reklamy a u&#382;ívejte si aplikaci bez ru&#353;ení.</value>
+  </data>
+  <data name="GetProFeatureThemesTitle" xml:space="preserve">
+    <value>Prémiové motivy</value>
+  </data>
+  <data name="GetProFeatureThemesDescription" xml:space="preserve">
+    <value>P&#345;izp&#367;sobte si aplikaci exkluzivními barevn&#253;mi motivy.</value>
+  </data>
+  <data name="GetProFeatureSyncTitle" xml:space="preserve">
+    <value>Synchronizace v cloudu</value>
+  </data>
+  <data name="GetProFeatureSyncDescription" xml:space="preserve">
+    <value>Udr&#382;ujte sv&#225; data synchronizovan&#225; na v&#353;ech za&#345;ízeních.</value>
+  </data>
+  <data name="GetProBuyButton" xml:space="preserve">
+    <value>Získat Pro</value>
+  </data>
+  <data name="GetProRestoreButton" xml:space="preserve">
+    <value>Obnovit n&#225;kupy</value>
+  </data>
+  <data name="GetProOwnedMessage" xml:space="preserve">
+    <value>Hotovo &#8211; d&#283;kujeme, &#382;e jste p&#345;e&#353;li na Pro!</value>
+  </data>
+  <data name="GetProPriceError" xml:space="preserve">
+    <value>Cenu se nyní nepoda&#345;ilo na&#269;íst. Zkuste to pozd&#283;ji.</value>
+  </data>
+  <data name="GetProPurchaseError" xml:space="preserve">
+    <value>N&#225;kup se nepoda&#345;ilo dokon&#269;it. Zkuste to znovu.</value>
+  </data>
+  <data name="GetProRestoreError" xml:space="preserve">
+    <value>Nenašli jsme &#382;&#225;dn&#233; n&#225;kupy k obnovení.</value>
+  </data>
 </root>
