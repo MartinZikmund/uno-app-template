@@ -15,7 +15,10 @@ namespace AppTemplate.Droid;
 /// <see cref="Intent.ActionBootCompleted"/> and re-register its pending alarms after boot,
 /// otherwise previously-scheduled notifications will silently never fire.
 /// </remarks>
-[BroadcastReceiver(Enabled = true, Exported = true)]
+// Exported (required for the OS to deliver ACTION_BOOT_COMPLETED) but guarded with the
+// RECEIVE_BOOT_COMPLETED permission - only the system holds it, so third-party apps can't spoof
+// the broadcast via an explicit intent naming this component.
+[BroadcastReceiver(Enabled = true, Exported = true, Permission = "android.permission.RECEIVE_BOOT_COMPLETED")]
 [IntentFilter(new[] { Intent.ActionBootCompleted })]
 public class BootReceiver : BroadcastReceiver
 {
@@ -32,17 +35,28 @@ public class BootReceiver : BroadcastReceiver
 
         Log.Info(LogTag, "Device boot completed; re-scheduling persisted notifications.");
 
-        try
+        // Re-reading persisted notifications (SQLite/file/preferences) can be slow enough to risk
+        // an ANR on the broadcast thread, so hand off to a background thread via goAsync() rather
+        // than blocking OnReceive.
+        var pendingResult = GoAsync();
+        Task.Run(() =>
         {
-            RescheduleNotifications(context);
-        }
-        catch (Exception ex)
-        {
-            // Never let an exception escape OnReceive: an unhandled exception here crashes the
-            // broadcast and can mark the receiver as misbehaving on some OEM builds.
-            // The alarms will be re-scheduled the next time the app is opened.
-            Log.Error(LogTag, $"Failed to re-schedule notifications after boot: {ex}");
-        }
+            try
+            {
+                RescheduleNotifications(context);
+            }
+            catch (Exception ex)
+            {
+                // Never let an exception escape: an unhandled exception here can mark the receiver
+                // as misbehaving on some OEM builds. The alarms will be re-scheduled the next time
+                // the app is opened.
+                Log.Error(LogTag, $"Failed to re-schedule notifications after boot: {ex}");
+            }
+            finally
+            {
+                pendingResult?.Finish();
+            }
+        });
     }
 
     /// <summary>

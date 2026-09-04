@@ -97,10 +97,12 @@ otherwise previously-scheduled notifications silently never fire.
 The receiver pair that implements this pattern lives under `src/AppTemplate/Platforms/Android/`:
 
 - **`BootReceiver`** — an exported `[BroadcastReceiver]` listening for
-  `Intent.ActionBootCompleted`. On boot it re-reads the persisted scheduled notifications and
-  re-registers a pending alarm for each future-dated entry. The actual `AlarmManager` scheduling
-  (including the exact-alarm fallback below) lives in its `ScheduleAlarm` helper, which is the
-  single code path scheduling should reuse so it never diverges from boot-rescheduling.
+  `Intent.ActionBootCompleted`, guarded with the `RECEIVE_BOOT_COMPLETED` permission so only the
+  system can trigger it. On boot it hands off to a background thread via `goAsync()` and re-reads
+  the persisted scheduled notifications there, re-registering a pending alarm for each future-dated
+  entry. The actual `AlarmManager` scheduling (including the exact-alarm fallback below) lives in
+  its `ScheduleAlarm` helper, which is the single code path scheduling should reuse so it never
+  diverges from boot-rescheduling.
 - **`NotificationAlarmReceiver`** — a non-exported `[BroadcastReceiver]` that is the target of
   each scheduled `PendingIntent`. When the alarm fires it creates the `scheduled_notifications`
   channel (required on Android 8.0+), builds the notification with a tap-to-open content intent,
@@ -117,9 +119,16 @@ The manifest declares the permissions the pattern needs:
 <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 ```
 
-`POST_NOTIFICATIONS` is a runtime permission on Android 13 (API 33)+ — request it before
-scheduling. `SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM` are required for exact alarms on Android 12
-(API 31)+; without them the receivers fall back to an inexact (but Doze-friendly) alarm.
+`POST_NOTIFICATIONS` is a runtime permission on Android 13 (API 33)+ — declaring it in the manifest
+isn't enough, the app must also request it at runtime before scheduling, or notifications are
+silently suppressed.
+
+`SCHEDULE_EXACT_ALARM` / `USE_EXACT_ALARM` are special-access permissions, not required for this
+pattern to work: the receivers already fall back to an inexact (but Doze-friendly) alarm when exact
+scheduling isn't available. Most apps should leave these out of the manifest by default and only add
+them if they genuinely need exact-time delivery — and even then, declaring the permission isn't
+sufficient on its own; on Android 12+ the user (or, pre-13, the OS) must also grant exact-alarm
+access, which `AlarmManager.CanScheduleExactAlarms()` checks at runtime.
 
 ### Wiring up the notification source
 
