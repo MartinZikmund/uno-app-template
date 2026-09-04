@@ -9,6 +9,7 @@ One page per topic. Keep it that way — see [`.claude/rules/docs.md`](../.claud
 
 ## Architecture
 
+- [icons.md](./icons.md) — centralized glyph constants in `Resources/Icons.xaml` and how to reference them from XAML.
 - [views.md](./views.md) — `ViewBase<TViewModel>`, `IViewBase`, and how views resolve their view models.
 
 ## Release

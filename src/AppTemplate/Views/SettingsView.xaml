@@ -31,7 +31,7 @@
 
                 <toolkit:SettingsCard Header="{markup:Localize Key=Theme}">
                     <toolkit:SettingsCard.HeaderIcon>
-                        <FontIcon Glyph="&#xE793;" />
+                        <FontIcon Glyph="{StaticResource ThemeIcon}" />
                     </toolkit:SettingsCard.HeaderIcon>
                     <ComboBox ItemsSource="{x:Bind ViewModel.ThemeOptions}" SelectedItem="{x:Bind ViewModel.Theme, Mode=TwoWay}">
                         <ComboBox.ItemTemplate>

@@ -64,7 +64,7 @@
                     Content="{markup:Localize Key=Home}"
                     Tag="Main">
                     <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE80F;" />
+                        <FontIcon Glyph="{StaticResource HomeIcon}" />
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
