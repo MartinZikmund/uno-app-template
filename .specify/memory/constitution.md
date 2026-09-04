@@ -101,7 +101,7 @@ The UI MUST follow Fluent Design and be localizable from the start:
 - XAML includes structural comments delineating sections (e.g. `<!-- Header -->`,
   `<!-- Content -->`, `<!-- Actions -->`).
 - Localization uses the markup localization extension with short, descriptive
-  keys (`{x:Bind loc:Resources.WelcomeTitle}`); `x:Uid` MUST NOT be used. Keys
+  keys (`{markup:Localize Key=WelcomeTitle}`); `x:Uid` MUST NOT be used. Keys
   are clear words (`WelcomeTitle`, `SaveButton`, `ErrorNotFound`) — never GUIDs
   or numeric IDs.
 
