@@ -9,6 +9,7 @@ One page per topic. Keep it that way — see [`.claude/rules/docs.md`](../.claud
 
 ## Architecture
 
+- [json-per-api-contexts.md](./json-per-api-contexts.md) — giving every external API its own `JsonSerializerContext`.
 - [views.md](./views.md) — `ViewBase<TViewModel>`, `IViewBase`, and how views resolve their view models.
 
 ## Release
