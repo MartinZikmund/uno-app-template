@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace AppTemplate.Core.Infrastructure;
 
 public static class IoC
@@ -23,23 +21,20 @@ public static class IoC
 
     public static T? GetService<T>() where T : class
     {
-        EnsureServiceProvider();
-        return (T?)_serviceProvider.GetService(typeof(T));
+        IServiceProvider provider = EnsureServiceProvider();
+        return (T?)provider.GetService(typeof(T));
     }
 
     public static T GetRequiredService<T>() where T : class
     {
-        EnsureServiceProvider();
-        return (T?)_serviceProvider.GetService(typeof(T))
+        IServiceProvider provider = EnsureServiceProvider();
+        return (T?)provider.GetService(typeof(T))
             ?? throw new InvalidOperationException($"Service of type {typeof(T).Name} is not registered.");
     }
 
-    [MemberNotNull(nameof(_serviceProvider))]
-    private static void EnsureServiceProvider()
-    {
-        if (_serviceProvider is null)
-        {
-            throw new InvalidOperationException("Service provider was not yet initialized. Call IoC.SetProvider() first.");
-        }
-    }
+    // Reads the field once into a local so a concurrent Reset() can't null it out between the
+    // check and the subsequent GetService call (which would otherwise throw NullReferenceException
+    // instead of the intended InvalidOperationException).
+    private static IServiceProvider EnsureServiceProvider() =>
+        _serviceProvider ?? throw new InvalidOperationException("Service provider was not yet initialized. Call IoC.SetProvider() first.");
 }
