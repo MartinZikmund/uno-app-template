@@ -31,7 +31,9 @@ public record ScheduledNotification(int Id, string Title, string Message, DateTi
 [BroadcastReceiver(Enabled = true, Exported = false)]
 public class NotificationAlarmReceiver : BroadcastReceiver
 {
-    private const string LogTag = nameof(NotificationAlarmReceiver);
+    // Hard-coded (not nameof(NotificationAlarmReceiver), which is 25 chars): android.util.Log
+    // enforces a 23-character tag limit on API < 26 and throws if it's exceeded.
+    private const string LogTag = "NotifAlarmReceiver";
 
     /// <summary>The notification channel used for scheduled notifications.</summary>
     public const string ChannelId = "scheduled_notifications";
@@ -66,9 +68,16 @@ public class NotificationAlarmReceiver : BroadcastReceiver
 
     private static void PostNotification(Context context, Intent intent)
     {
-        EnsureChannel(context);
+        var notificationId = intent.GetIntExtra(ExtraNotificationId, -1);
+        if (notificationId < 0)
+        {
+            // No/invalid id extra: bail rather than fall back to a shared id that would make
+            // unrelated notifications overwrite each other and hide a wiring bug.
+            Log.Warn(LogTag, $"Missing or invalid {ExtraNotificationId} extra; dropping notification.");
+            return;
+        }
 
-        var notificationId = intent.GetIntExtra(ExtraNotificationId, 0);
+        EnsureChannel(context);
 
         // TODO: Replace these fallbacks with the real persisted payload. The id/title/message are
         // read from the intent extras populated when the alarm was scheduled.
