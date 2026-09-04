@@ -11,17 +11,17 @@ namespace AppTemplate.Services.Navigation;
 
 public sealed class NavigationService : INavigationService
 {
-    private readonly IWindowShellProvider _shellProvider;
+    private readonly IFrameProvider _frameProvider;
     private readonly Dictionary<Type, Type> _viewModelToViewMap = new();
     private bool _initialized;
     private bool _backRequestedSubscribed;
 
-    public NavigationService(IWindowShellProvider shellProvider)
+    public NavigationService(IFrameProvider frameProvider)
     {
-        _shellProvider = shellProvider;
+        _frameProvider = frameProvider;
     }
 
-    private Frame Frame => _shellProvider.RootFrame;
+    private Frame Frame => _frameProvider.Frame;
 
     public bool CanGoBack => _initialized && Frame.CanGoBack;
 
