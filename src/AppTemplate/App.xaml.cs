@@ -5,8 +5,12 @@ using AppTemplate.Services.Dialogs;
 using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Rating;
 using AppTemplate.Services.Settings;
+using AppTemplate.Services.Store;
 using AppTemplate.Services.Theming;
 using Uno.Resizetizer;
+#if __IOS__ || __ANDROID__
+using Uno.RevenueCat;
+#endif
 
 namespace AppTemplate;
 
@@ -45,6 +49,7 @@ public partial class App : Application, IApplication
                     configBuilder
                         .EmbeddedSource<App>()
                         .Section<AppConfig>()
+                        .Section<RevenueCatConfig>()
                 )
                 .UseLocalization()
                 .UseDefaultServiceProvider((context, options) =>
@@ -96,6 +101,21 @@ public partial class App : Application, IApplication
         services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
         services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();
         services.AddScoped<IAppRatingService, AppRatingService>();
+
+        // Store / in-app purchases.
+        // DEBUG uses the in-memory fake so the paywall can be exercised without a live store.
+        // In RELEASE, mobile heads use RevenueCat, Windows uses its Store placeholder, and any
+        // remaining head (desktop / WASM) falls back to the fake so DI still validates.
+#if DEBUG
+        services.AddScoped<IStoreService, FakeStoreService>();
+#elif __IOS__ || __ANDROID__
+        services.AddRevenueCat();
+        services.AddScoped<IStoreService, RevenueCatStoreService>();
+#elif WINDOWS
+        services.AddScoped<IStoreService, WindowsStoreService>();
+#else
+        services.AddScoped<IStoreService, FakeStoreService>();
+#endif
 
         // Per-window scoped services
         services.AddScoped<IThemeManager, ThemeManager>();
