@@ -1,16 +1,16 @@
-<ContentDialog
+﻿<ContentDialog
     x:Class="AppTemplate.Dialogs.ColorPickerDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:AppTemplate.Dialogs"
     xmlns:markup="using:AppTemplate.Markup"
     Title="{markup:Localize Key=ColorPickerTitle}"
+    CloseButtonText="{markup:Localize Key=Cancel}"
     DefaultButton="Primary"
     PrimaryButtonText="{markup:Localize Key=Select}"
-    CloseButtonText="{markup:Localize Key=Cancel}"
     Style="{ThemeResource DefaultContentDialogStyle}">
 
-    <!-- Content -->
+    <!--  Content  -->
     <ColorPicker
         x:Name="ColorPickerControl"
         ColorSpectrumShape="Box"
