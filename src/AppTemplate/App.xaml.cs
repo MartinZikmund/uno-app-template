@@ -10,6 +10,11 @@ using Uno.Resizetizer;
 
 namespace AppTemplate;
 
+/// <summary>
+/// The WinUI application entry point. Implements <see cref="IApplication"/> so that Core
+/// code can depend on the abstracted application surface rather than the concrete
+/// <see cref="Application"/> type.
+/// </summary>
 public partial class App : Application, IApplication
 {
     public static new App Current => (App)Application.Current;
@@ -90,6 +95,8 @@ public partial class App : Application, IApplication
     private static void RegisterServices(HostBuilderContext context, IServiceCollection services)
     {
         // Singleton services
+        // Expose the application through the IApplication abstraction so Core code stays
+        // decoupled from the concrete Microsoft.UI.Xaml.Application type.
         services.AddSingleton<IApplication>(sp => Current);
         services.AddSingleton<MZikmund.Toolkit.WinUI.Services.IPreferences, Preferences>();
         services.AddSingleton<IAppPreferences, AppPreferences>();
