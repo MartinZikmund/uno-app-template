@@ -7,6 +7,7 @@ using AppTemplate.Services.Rating;
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Store;
 using AppTemplate.Services.Theming;
+using AppTemplate.ViewModels;
 using Uno.Resizetizer;
 
 namespace AppTemplate;
