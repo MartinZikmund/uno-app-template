@@ -9,6 +9,7 @@ One page per topic. Keep it that way — see [`.claude/rules/docs.md`](../.claud
 
 ## Architecture
 
+- [serial-disposable.md](./serial-disposable.md) — swappable per-selection cleanup in ViewModels with `SerialDisposable`.
 - [views.md](./views.md) — `ViewBase<TViewModel>`, `IViewBase`, and how views resolve their view models.
 
 ## Release
