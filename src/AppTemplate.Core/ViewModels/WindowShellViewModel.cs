@@ -9,6 +9,7 @@ public partial class WindowShellViewModel : ObservableObject
     public WindowShellViewModel(INavigationService navigationService)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+        _navigationService.CanGoBackChanged += (_, _) => NotifyCanGoBackChanged();
     }
 
     [ObservableProperty]

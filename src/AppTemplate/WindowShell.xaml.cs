@@ -5,6 +5,7 @@ using AppTemplate.Infrastructure;
 using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
+using AppTemplate.ViewModels;
 using Microsoft.UI.Windowing;
 using Windows.Foundation.Metadata;
 
@@ -161,7 +162,13 @@ public sealed partial class WindowShell : Page, IWindowShell
     #region Navigation
 
     private void NavView_Loaded(object sender, RoutedEventArgs e)
-        => NavigateToSection(NavigationSection.Main);
+    {
+        // Route first-run users through onboarding before showing the main content.
+        var preferences = ServiceProvider.GetRequiredService<IAppPreferences>();
+        NavigateToSection(preferences.HasSeenOnboarding
+            ? NavigationSection.Main
+            : NavigationSection.Onboarding);
+    }
 
     private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
@@ -193,6 +200,9 @@ public sealed partial class WindowShell : Page, IWindowShell
             case NavigationSection.Settings:
                 nav.Navigate<SettingsViewModel>();
                 break;
+            case NavigationSection.Onboarding:
+                nav.Navigate<OnboardingViewModel>();
+                break;
             default:
                 throw new NotSupportedException($"Navigation section not supported: {section}");
         }
@@ -210,12 +220,28 @@ public sealed partial class WindowShell : Page, IWindowShell
     private void UpdateNavigationViewSelection()
     {
         var section = ServiceProvider.GetRequiredService<INavigationService>().CurrentSection;
+
+        // Onboarding is a full-screen first-run experience: hide the navigation
+        // chrome so the menu and settings can't be used to bypass it.
+        UpdateNavigationChrome(section);
+
         NavView.SelectedItem = section switch
         {
             NavigationSection.Main => MainNavItem,
             NavigationSection.Settings => NavView.SettingsItem,
             _ => NavView.SelectedItem,
         };
+    }
+
+    private void UpdateNavigationChrome(NavigationSection? section)
+    {
+        var isOnboarding = section == NavigationSection.Onboarding;
+        NavView.IsPaneVisible = !isOnboarding;
+        NavView.IsPaneToggleButtonVisible = !isOnboarding;
+        NavView.IsSettingsVisible = !isOnboarding;
+        NavView.PaneDisplayMode = isOnboarding
+            ? NavigationViewPaneDisplayMode.LeftMinimal
+            : NavigationViewPaneDisplayMode.Auto;
     }
 
     #endregion

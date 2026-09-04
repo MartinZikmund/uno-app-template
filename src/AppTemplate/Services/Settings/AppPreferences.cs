@@ -25,6 +25,13 @@ public sealed class AppPreferences : IAppPreferences
         set => _preferences.Set(FirstStartKey, value);
     }
 
+    private const string HasSeenOnboardingKey = "AppHasSeenOnboarding";
+    public bool HasSeenOnboarding
+    {
+        get => _preferences.Get(HasSeenOnboardingKey, false);
+        set => _preferences.Set(HasSeenOnboardingKey, value);
+    }
+
     private const string LaunchCountKey = "AppLaunchCount";
     public int LaunchCount
     {

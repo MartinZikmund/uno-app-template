@@ -171,4 +171,34 @@
   <data name="RateAppMessage" xml:space="preserve">
     <value>Pokud r&#225;di pou&#382;&#237;v&#225;te tuto aplikaci, nev&#225;hejte ji ohodnotit. Va&#353;e zp&#283;tn&#225; vazba n&#225;m pom&#225;h&#225;!</value>
   </data>
+  <data name="OnboardingTitle" xml:space="preserve">
+    <value>V&#237;tejte</value>
+  </data>
+  <data name="OnboardingWelcomeTitle" xml:space="preserve">
+    <value>V&#237;tejte v App Template</value>
+  </data>
+  <data name="OnboardingWelcomeDescription" xml:space="preserve">
+    <value>D&#283;kujeme za instalaci aplikace. Poj&#271;me se rychle pod&#237;vat, co v&#353;echno um&#237;.</value>
+  </data>
+  <data name="OnboardingFeaturesTitle" xml:space="preserve">
+    <value>V&#253;konn&#233; funkce</value>
+  </data>
+  <data name="OnboardingFeaturesDescription" xml:space="preserve">
+    <value>Objevte v&#353;e, co aplikace nab&#237;z&#237;, p&#345;izp&#367;soben&#233; tak, aby v&#225;m pomohlo zvl&#225;dnout v&#237;ce.</value>
+  </data>
+  <data name="OnboardingReadyTitle" xml:space="preserve">
+    <value>V&#353;e je p&#345;ipraveno</value>
+  </data>
+  <data name="OnboardingReadyDescription" xml:space="preserve">
+    <value>A je to! Klepnut&#237;m na Za&#269;&#237;t za&#269;nete aplikaci pou&#382;&#237;vat.</value>
+  </data>
+  <data name="OnboardingSkip" xml:space="preserve">
+    <value>P&#345;esko&#269;it</value>
+  </data>
+  <data name="OnboardingNext" xml:space="preserve">
+    <value>Dal&#353;&#237;</value>
+  </data>
+  <data name="OnboardingGetStarted" xml:space="preserve">
+    <value>Za&#269;&#237;t</value>
+  </data>
 </root>

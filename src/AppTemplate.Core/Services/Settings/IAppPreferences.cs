@@ -6,6 +6,8 @@ public interface IAppPreferences
 
     bool FirstStart { get; set; }
 
+    bool HasSeenOnboarding { get; set; }
+
     int LaunchCount { get; set; }
 
     bool OfferUserRating { get; set; }
