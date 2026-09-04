@@ -4,8 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:AppTemplate.Controls"
     xmlns:markup="using:AppTemplate.Markup"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:not_win="http://uno.ui/not_win"
     xmlns:toolkit="using:Uno.UI.Toolkit"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    mc:Ignorable="not_win">
 
     <Grid toolkit:VisibleBoundsPadding.PaddingMask="All">
         <Grid.RowDefinitions>
@@ -13,46 +17,46 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  Custom title bar (Windows)  -->
-        <Grid
-            x:Name="TitleBarGrid"
-            Height="48"
-            Background="#11000000"
-            ColumnSpacing="16"
-            Visibility="{x:Bind HasCustomTitleBar}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-        </Grid>
-
-        <!--  App icon in title bar  -->
-        <Grid
-            Width="44"
-            Height="48"
-            Padding="0,8,0,0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Center"
-            Visibility="{x:Bind HasCustomTitleBar}">
-            <Image
-                Width="20"
-                Height="20"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Source="ms-appx:///Assets/Icons/icon_foreground.png" />
-        </Grid>
+        <!--  WinUI title bar (Windows head only; stripped on Uno heads, collapsing this row).  -->
+        <win:TitleBar
+            x:Name="AppTitleBar"
+            Title="{markup:Localize Key=ApplicationName}"
+            BackRequested="AppTitleBar_BackRequested"
+            IsBackButtonVisible="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"
+            IsPaneToggleButtonVisible="True"
+            PaneToggleRequested="AppTitleBar_PaneToggleRequested"
+            Subtitle="{x:Bind ViewModel.Title, Mode=OneWay}">
+            <win:TitleBar.Resources>
+                <!--  Content defaults to Center; Stretch lets the search box fill to MaxWidth.  -->
+                <HorizontalAlignment x:Key="TitleBarContentHorizontalAlignment">Stretch</HorizontalAlignment>
+            </win:TitleBar.Resources>
+            <win:TitleBar.IconSource>
+                <ImageIconSource ImageSource="ms-appx:///Assets/Icons/icon_foreground.png" />
+            </win:TitleBar.IconSource>
+            <win:TitleBar.Content>
+                <!--  Plain, non-interactive placeholder. Apps wire up search here.  -->
+                <AutoSuggestBox
+                    MaxWidth="580"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    IsEnabled="False"
+                    QueryIcon="Find" />
+            </win:TitleBar.Content>
+        </win:TitleBar>
 
         <!--  NavigationView  -->
         <NavigationView
             x:Name="NavView"
             Grid.Row="1"
+            not_win:IsBackButtonVisible="Auto"
+            not_win:IsPaneToggleButtonVisible="True"
+            win:IsBackButtonVisible="Collapsed"
+            win:IsPaneToggleButtonVisible="False"
             BackRequested="NavView_BackRequested"
             CompactModeThresholdWidth="640"
             CompactPaneLength="48"
             ExpandedModeThresholdWidth="1008"
-            IsBackButtonVisible="Auto"
             IsBackEnabled="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"
-            IsPaneToggleButtonVisible="True"
             Loaded="NavView_Loaded"
             OpenPaneLength="280"
             PaneDisplayMode="Auto"
