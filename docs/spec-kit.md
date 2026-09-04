@@ -7,10 +7,14 @@ turn it into a reviewed spec, plan, and task list, and then implement against
 that plan.
 
 The scaffolding lives in the `.specify/` directory and is committed to the repo,
-so the workflow is usable without re-running the Spec Kit CLI:
+so the workflow is usable without re-running the Spec Kit CLI. It targets
+**Spec Kit 1.0.4**; `.specify/init-options.json` records the version and the
+exact options it was generated with:
 
 ```text
 .specify/
+├── .gitignore                   # Machine-local state, deliberately not shared
+├── init-options.json            # CLI version + options this tree was generated with
 ├── memory/
 │   └── constitution.md          # Project constitution (principles + governance)
 ├── templates/
@@ -45,6 +49,7 @@ step.
 | `/speckit-analyze` | Non-destructive consistency/quality check across `spec.md`, `plan.md`, and `tasks.md`. |
 | `/speckit-checklist` | Generate a custom review checklist for the feature. |
 | `/speckit-implement` | Execute the tasks in `tasks.md`. |
+| `/speckit-converge` | Assess the codebase against the spec, plan, and tasks, then append any remaining unbuilt work to `tasks.md` so `/speckit-implement` can finish it. |
 | `/speckit-taskstoissues` | Convert tasks into GitHub issues (optional). |
 
 Optional Git automation (under `.specify/extensions/git/`) provides
@@ -73,3 +78,16 @@ A typical flow:
 - The `.specify/templates/*.md` files are intentionally full of `[PLACEHOLDER]`
   tokens — they are filled in per feature by the commands above. Do not "fix"
   the placeholders in the templates themselves.
+
+## Upgrading Spec Kit
+
+Re-run the CLI with the options already recorded in `.specify/init-options.json`,
+pinning the release you want:
+
+```bash
+uvx --from git+https://github.com/github/spec-kit.git@v1.0.4 specify init \
+    --here --force --non-interactive --integration claude --script ps --extension git
+```
+
+`--force` merges into the existing tree. `.specify/memory/constitution.md` is
+project content and is preserved across upgrades — verify that after any bump.
