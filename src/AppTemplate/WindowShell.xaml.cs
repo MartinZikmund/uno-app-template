@@ -5,6 +5,7 @@ using AppTemplate.Infrastructure;
 using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
+using AppTemplate.ViewModels;
 using Microsoft.UI.Windowing;
 using Windows.Foundation.Metadata;
 
