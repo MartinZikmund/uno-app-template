@@ -1,4 +1,4 @@
-<local:GetProViewBase
+﻿<local:GetProViewBase
     x:Class="AppTemplate.Views.GetProView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -17,7 +17,7 @@
                 Orientation="Vertical"
                 Spacing="16">
 
-                <!-- Header -->
+                <!--  Header  -->
                 <StackPanel Spacing="8">
                     <FontIcon
                         HorizontalAlignment="Center"
@@ -37,7 +37,7 @@
                         TextWrapping="Wrap" />
                 </StackPanel>
 
-                <!-- Feature list (DataTemplate-driven so apps can swap content) -->
+                <!--  Feature list (DataTemplate-driven so apps can swap content)  -->
                 <ItemsControl ItemsSource="{x:Bind ViewModel.Features}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -67,9 +67,7 @@
                                     Grid.Column="1"
                                     VerticalAlignment="Center"
                                     Spacing="2">
-                                    <TextBlock
-                                        Style="{ThemeResource BodyStrongTextBlockStyle}"
-                                        Text="{x:Bind Title}" />
+                                    <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Text="{x:Bind Title}" />
                                     <TextBlock
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                         Style="{ThemeResource CaptionTextBlockStyle}"
@@ -82,34 +80,30 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <!-- Already-pro confirmation -->
+                <!--  Already-pro confirmation  -->
                 <InfoBar
                     IsClosable="False"
                     IsOpen="{x:Bind ViewModel.IsPro, Mode=OneWay}"
                     Message="{markup:Localize Key=GetProOwnedMessage}"
                     Severity="Success" />
 
-                <!-- Error state -->
+                <!--  Error state  -->
                 <InfoBar
                     IsClosable="False"
                     IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
                     Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
                     Severity="Error" />
 
-                <!-- Actions -->
+                <!--  Actions  -->
                 <StackPanel Spacing="8">
                     <Button
                         HorizontalAlignment="Stretch"
                         Command="{x:Bind ViewModel.BuyProCommand}"
                         IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"
                         Style="{ThemeResource AccentButtonStyle}">
-                        <StackPanel
-                            Orientation="Horizontal"
-                            Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock Text="{markup:Localize Key=GetProBuyButton}" />
-                            <TextBlock
-                                Text="{x:Bind ViewModel.Price, Mode=OneWay}"
-                                Visibility="{x:Bind ViewModel.Price, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}" />
+                            <TextBlock Text="{x:Bind ViewModel.Price, Mode=OneWay}" Visibility="{x:Bind ViewModel.Price, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}" />
                         </StackPanel>
                     </Button>
                     <Button
@@ -119,7 +113,7 @@
                         IsEnabled="{x:Bind ViewModel.IsBusy, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}" />
                 </StackPanel>
 
-                <!-- Loading state -->
+                <!--  Loading state  -->
                 <ProgressRing
                     HorizontalAlignment="Center"
                     IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
@@ -128,7 +122,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Responsive padding -->
+        <!--  Responsive padding  -->
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroup>
                 <VisualState>
