@@ -98,13 +98,17 @@ A typical case: only the selected item should keep the screen awake. `IDisplayRe
 
 ### Example
 
+`IDisplayRequestManager` is a head-only service (`AppTemplate.Services`), so a ViewModel that depends on it belongs in the head namespace (`AppTemplate.ViewModels`), not `AppTemplate.Core.ViewModels` — `AppTemplate.Core` can't reference head-only types:
+
 ```csharp
+using AppTemplate.Core.ViewModels;
+using AppTemplate.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Uno.Disposables;
 
-namespace AppTemplate.Core.ViewModels;
+namespace AppTemplate.ViewModels;
 
-public partial class ItemListViewModel : ViewModelBase, IDisposable
+public partial class ItemListViewModel : ViewModelBase
 {
     private readonly IDisplayRequestManager _displayRequestManager;
     private readonly SerialDisposable _displayRequestDisposable = new();
@@ -114,6 +118,7 @@ public partial class ItemListViewModel : ViewModelBase, IDisposable
         _displayRequestManager = displayRequestManager;
     }
 
+    // ItemModel stands in for whatever type your list actually holds.
     [ObservableProperty]
     public partial ItemModel? SelectedItem { get; set; }
 
@@ -126,21 +131,27 @@ public partial class ItemListViewModel : ViewModelBase, IDisposable
             : null;
     }
 
-    public void Dispose()
+    public override void OnNavigatedFrom()
     {
-        // Releases the currently held display request (if any).
-        _displayRequestDisposable.Dispose();
+        // ViewModels are resolved from a per-window scope and aren't disposed just
+        // because the page unloads — clear the field explicitly to release now.
+        _displayRequestDisposable.Disposable = null;
     }
 }
 ```
 
-The same idiom wraps any cleanup that should run on the next swap. Pass a callback to `Disposable.Create(...)` — for example, to unhook an event handler that was attached for the current selection:
+The same idiom wraps any custom cleanup that should run on the next swap — not just an `IDisposable` handed to you by a service. Pass a callback to `Disposable.Create(...)`. For example, unhooking an event handler that was attached for the current selection (capture `value` into a local so the closure unsubscribes the right instance):
 
 ```csharp
-_displayRequestDisposable.Disposable = Disposable.Create(() =>
+partial void OnSelectedItemChanged(ItemModel? value)
 {
-    value.SomethingChanged -= OnSomethingChanged;
-});
+    var item = value;
+    item?.SomethingChanged += OnSomethingChanged;
+
+    _displayRequestDisposable.Disposable = item is not null
+        ? Disposable.Create(() => item.SomethingChanged -= OnSomethingChanged)
+        : null;
+}
 ```
 
 ### When to prefer `SerialDisposable` over manual dispose-then-reassign
@@ -148,14 +159,14 @@ _displayRequestDisposable.Disposable = Disposable.Create(() =>
 | Concern | Manual pattern | `SerialDisposable` |
 |---|---|---|
 | Null-safety | Requires an explicit null check before calling `.Dispose()` | Handles `null` automatically |
-| Exception-safety | A throw between `Dispose()` and reassignment leaks the old resource | Assignment is atomic — the old value is always disposed |
+| Consistency | Easy to forget the `Dispose()` call, or get the order wrong, at some call site | A single assignment always disposes the previous value — nothing to forget |
 | Readability | Two statements for every "swap" | One statement |
 
 ### Teardown
 
-Dispose the `SerialDisposable` field when the ViewModel is torn down (implement `IDisposable` and call `_displayRequestDisposable.Dispose()`) so the final active resource is released once the ViewModel is gone.
+ViewModels in this template are resolved from a per-window DI scope and aren't disposed when you navigate away from a page — only when the window itself closes. Don't rely on `Dispose()` running just because a page unloads; clear the field explicitly instead, as `OnNavigatedFrom()` does above. That's the common case.
 
-If you want to release the resource earlier — while keeping the ViewModel alive — clear it from a `ViewModelBase` lifecycle hook such as `ViewUnloaded()` or `OnNavigatedFrom()` by assigning `_displayRequestDisposable.Disposable = null;`.
+Only implement `IDisposable` on the ViewModel and call `_displayRequestDisposable.Dispose()` if you genuinely control its end of life. Once a `SerialDisposable` has been disposed, assigning `.Disposable` again disposes the new value immediately instead of holding it — so don't call `Dispose()` from a hook that might fire more than once.
 
 ## Versioning
 
