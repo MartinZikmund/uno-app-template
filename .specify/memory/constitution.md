@@ -39,9 +39,9 @@ The codebase MUST use modern, idiomatic C# consistently:
 
 - File-scoped namespaces everywhere; nullable reference types enabled
   (`<Nullable>enable</Nullable>`).
-- Target-typed `new()` with an explicit type on the left
-  (`MyService service = new();`); use `var` only when the type is not on the
-  left side (`var items = collection.Where(...).ToList();`).
+- Prefer target-typed `new()` when the variable type is explicit on the left (e.g.,
+  `MyService service = new();`). Using `var` is acceptable when the type is
+  obvious from the right-hand side (e.g., `var service = new NavigationService(...);`).
 - Always use curly braces for single-line `if`/`for`/`foreach`/`while`.
 - Prefer expression-bodied members for single-line methods and properties.
 - `dotnet format` MUST be run before changes are staged.
