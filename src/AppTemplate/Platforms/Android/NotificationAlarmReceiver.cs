@@ -18,7 +18,7 @@ namespace AppTemplate.Droid;
 /// <param name="Title">Notification title.</param>
 /// <param name="Message">Notification body text.</param>
 /// <param name="TriggerTimeUtc">UTC instant at which the notification should fire.</param>
-public record ScheduledNotification(int Id, string Title, string Message, DateTimeOffset TriggerTimeUtc);
+public partial record ScheduledNotification(int Id, string Title, string Message, DateTimeOffset TriggerTimeUtc);
 
 /// <summary>
 /// Receives an <see cref="AlarmManager"/> alarm and posts the corresponding notification.
