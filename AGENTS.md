@@ -7,7 +7,8 @@ Guidance for AI coding agents working in this repository.
 Detailed, auto-loaded conventions live in **`.claude/rules/`** — read them before writing code:
 `code-style.md` (language, naming, `WarningsAsErrors`, Central Package Management),
 `architecture.md` (Core/head split, MVVM, DI, navigation, localization, "how to add a page"),
-`testing.md` (MSTest/MTP, run command, fakes + FluentAssertions), and `git.md` (commits, branches, versioning).
+`testing.md` (MSTest/MTP, run command, fakes + FluentAssertions), `git.md` (commits, branches, versioning),
+and `docs.md` (feature docs go in `docs/<topic>.md` — **never** appended to `README.md`).
 
 ## Skills & external resources
 
