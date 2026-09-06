@@ -20,7 +20,7 @@
         <!--  WinUI title bar (Windows head only; stripped on Uno heads, collapsing this row).  -->
         <win:TitleBar
             x:Name="AppTitleBar"
-            Title="{markup:Localize Key=ApplicationName}"
+            Title="{x:Bind ViewModel.AppTitle}"
             BackRequested="AppTitleBar_BackRequested"
             IsBackButtonVisible="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"
             IsPaneToggleButtonVisible="True"

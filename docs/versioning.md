@@ -18,7 +18,7 @@
 Single MSBuild property: `AppChannel = Dev | Prod`. Defaults to `Dev`. Every CI packaging workflow sets the value from the branch (release/v* → Prod, else Dev) and passes `/p:AppChannel=...` to the build.
 
 What changes per channel:
-- **Identity:** Android `applicationId`, iOS Bundle ID — `…apptemplate` vs `…apptemplate.dev`. Windows Identity Name is set by the signing certificate's Publisher CN (Prod cert vs Dev self-signed cert).
+- **Identity:** all four native heads take their identity from a single `ApplicationId` property — Android `applicationId`, iOS `CFBundleIdentifier`, and the Windows MSIX `<Identity Name>` — which is `…apptemplate` vs `…apptemplate.dev`. The MSIX `Publisher` comes from `ApplicationPublisher` (`O=Martin Zikmund`) and must match the subject of whichever certificate signs the package.
 - **Display name:** `App Template` vs `App Template Dev`.
 - **App icon:** the Dev channel overrides the icon *foreground* (`Assets/Icons/icon_foreground.svg` vs `icon_foreground_dev.svg`); the background is shared. Uno derives the generated icon resource name from the background file, so the background must stay constant across channels — only the foreground changes.
 - **In-app banner:** a `DEV` corner badge appears when `AppEnvironment.IsDevChannel` is true.
@@ -87,4 +87,8 @@ Because the branch isn't a release branch. NBGV's `publicReleaseRefSpec` only ma
 
 ## Why is the Dev app a separate install from the Store version?
 
-Because their package identities differ: `dev.mzikmund.apptemplate.dev` vs `dev.mzikmund.apptemplate` on Android and iOS, and `AppTemplate.Dev`/Dev-Publisher-CN vs `AppTemplate`/Prod-Publisher-CN on Windows. Different identities mean separate AppData, separate user state, no upgrade collision.
+Because their package identities differ: `dev.mzikmund.apptemplate.dev` vs `dev.mzikmund.apptemplate` — on Windows too, where that string is the MSIX `<Identity Name>` and so produces a different package family name. Different identities mean separate AppData, separate user state, no upgrade collision.
+
+## Worktree builds
+
+There is a third axis on top of the channel: a Dev build made from a **linked git worktree** appends a per-worktree segment to `ApplicationId`, so two worktrees can be installed and run at the same time. It is automatic, never applies to `Prod`, and is a no-op in the main checkout and in CI. See [worktree-identity.md](./worktree-identity.md).

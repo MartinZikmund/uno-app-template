@@ -1,0 +1,128 @@
+<Project>
+
+    <!--
+        Worktree-scoped app identity — APPLICATION.
+
+        WorktreeIdentity.props derives the tags; this file applies them. It lives in .targets
+        (imported AFTER the project body) because the suffix must be layered on top of the
+        ApplicationId/ApplicationTitle that AppTemplate.csproj sets per AppChannel.
+
+        Full documentation: docs/worktree-identity.md
+    -->
+
+    <!-- Identity suffix. ApplicationPublisher is deliberately NOT touched: it must keep matching
+         the signing certificate subject used by package-windows.yml. Icons are not touched either
+         (UnoIconBackgroundFile must stay constant or Android's @mipmap/icon breaks). -->
+    <PropertyGroup Condition="'$(_WorktreeIdentityAllowed)' == 'true'">
+        <ApplicationId>$(ApplicationId).$(_WtIdSegment)</ApplicationId>
+        <ApplicationTitle>$(ApplicationTitle) ($(_WtLongTag))</ApplicationTitle>
+    </PropertyGroup>
+
+    <!--
+        Generates AppEnvironment.WorktreeName so the running app can show which worktree it came
+        from. AppEnvironment can carry an #if flag but not a string, hence generation.
+
+        The worktree stamp is part of the OUTPUT PATH on purpose. With only
+        Inputs="$(MSBuildAllProjects)" the target would be SKIPPED whenever no project file is
+        newer than the output — but the name can change without touching any project file
+        (git worktree move, or -p:AppWorktreeName=). The stale constant would then survive in obj/
+        and the About card would lie about which package is installed.
+    -->
+    <!-- XamlPreCompile is load-bearing: the WinAppSDK head runs a full C# compile pass under that
+         target BEFORE CoreCompile, so hooking only BeforeCompile/CoreCompile builds the Windows
+         head without the generated constant and fails with CS0117. -->
+    <Target Name="GenerateWorktreeInfo"
+            Condition="'$(MSBuildProjectName)' == 'AppTemplate'"
+            BeforeTargets="BeforeCompile;CoreCompile;XamlPreCompile">
+        <PropertyGroup>
+            <_WtStamp Condition="'$(_WorktreeIdentityAllowed)' == 'true'">$(_WtIdSegment)</_WtStamp>
+            <_WtStamp Condition="'$(_WtStamp)' == ''">none</_WtStamp>
+            <_WorktreeInfoFile>$(IntermediateOutputPath)AppEnvironment.Worktree.$(_WtStamp).g.cs</_WorktreeInfoFile>
+            <_WtNameForCode Condition="'$(_WorktreeIdentityAllowed)' == 'true'">$(_WtDisp)</_WtNameForCode>
+        </PropertyGroup>
+
+        <WriteLinesToFile File="$(_WorktreeInfoFile)"
+                          Overwrite="true"
+                          WriteOnlyWhenDifferent="true"
+                          Lines="// &lt;auto-generated /&gt;;namespace AppTemplate.Infrastructure%3B;;public static partial class AppEnvironment;{;    /// &lt;summary&gt;Git worktree this build came from, or empty for the main checkout.&lt;/summary&gt;;    public const string WorktreeName = &quot;$(_WtNameForCode)&quot;%3B;}" />
+
+        <ItemGroup>
+            <Compile Include="$(_WorktreeInfoFile)" />
+            <FileWrites Include="$(_WorktreeInfoFile)" />
+        </ItemGroup>
+    </Target>
+
+    <!--
+        Android launcher label. The label is @string/ApplicationName, which is LOCALIZED
+        (Resources/values/ and values-cs/), so replacing the attribute in Main.Android.cs with a
+        generated constant would silently drop Czech.
+
+        Instead the resources the Android SDK has already staged into obj/.../res/ are patched in
+        place, once per locale, just before aapt2 compiles them. Patching the staged copy rather
+        than swapping @(AndroidResource) items is deliberate: the SDK computes its resource list
+        well before Directory.Build.targets can influence it, so an item swap is silently ignored
+        (verified: the build succeeds and ships the untagged label).
+
+        The regex excludes '[' from the captured value, which makes the patch idempotent on
+        incremental builds.
+    -->
+    <Target Name="ApplyWorktreeAndroidLabel"
+            Condition="'$(MSBuildProjectName)' == 'AppTemplate' and '$(_WorktreeIdentityAllowed)' == 'true' and '$(TargetPlatformIdentifier)' == 'android'"
+            BeforeTargets="_CompileResources">
+        <ItemGroup>
+            <_WtAndroidStagedStrings Include="$(IntermediateOutputPath)res\values*\strings.xml" />
+        </ItemGroup>
+
+        <WriteLinesToFile Condition="'%(_WtAndroidStagedStrings.Identity)' != ''"
+                          File="%(_WtAndroidStagedStrings.FullPath)"
+                          Lines="$([System.Text.RegularExpressions.Regex]::Replace($([System.IO.File]::ReadAllText('%(_WtAndroidStagedStrings.FullPath)')), '(&lt;string name=&quot;ApplicationName&quot;&gt;)([^&lt;\[]*)(&lt;/string&gt;)', '$1$2 [$(_WtShortTag)]$3'))"
+                          Overwrite="true"
+                          WriteOnlyWhenDifferent="true" />
+    </Target>
+
+    <!--
+        iOS home-screen name. Localized through Resources/{en,cs}.lproj/InfoPlist.strings, so the
+        same reasoning as Android applies: regenerate per locale rather than hardcode. The base
+        abbreviates to AppTmpl because CFBundleName must stay under 16 characters and
+        "App Template" already costs 12.
+
+        UNVERIFIED - this machine cannot build the iOS head. Note this swaps @(BundleResource)
+        items, which is the approach that turned out NOT to work for Android (the SDK fixes its
+        resource list first); the iOS bundle pipeline runs later, so it may well be fine here, but
+        that is an assumption, not a result. It can never run in CI (the gate requires
+        AppChannel=Dev and a non-CI build), so the blast radius is a local worktree build on a Mac,
+        and ContinueOnError keeps a mistake from blocking it. Verify on a Mac; if the label comes
+        out untagged, patch the staged copy the way ApplyWorktreeAndroidLabel does.
+    -->
+    <Target Name="ApplyWorktreeIosDisplayName"
+            Condition="'$(MSBuildProjectName)' == 'AppTemplate' and '$(_WorktreeIdentityAllowed)' == 'true' and '$(TargetPlatformIdentifier)' == 'ios'"
+            BeforeTargets="_CompileAppManifest;CompileAppManifest;_CopyResourcesToBundle">
+        <ItemGroup>
+            <_WtIosStagedStrings Include="$(MSBuildProjectDirectory)\Platforms\iOS\Resources\**\InfoPlist.strings" />
+        </ItemGroup>
+
+        <WriteLinesToFile Condition="'%(_WtIosStagedStrings.Identity)' != ''"
+                          ContinueOnError="WarnAndContinue"
+                          File="$(IntermediateOutputPath)wtres\%(_WtIosStagedStrings.RecursiveDir)InfoPlist.strings"
+                          Lines="$([System.Text.RegularExpressions.Regex]::Replace($([System.IO.File]::ReadAllText('%(_WtIosStagedStrings.FullPath)')), '= &quot;App Template&quot;', '= &quot;AppTmpl [$(_WtShortTag)]&quot;'))"
+                          Overwrite="true"
+                          WriteOnlyWhenDifferent="true" />
+
+        <ItemGroup>
+            <BundleResource Remove="%(_WtIosStagedStrings.FullPath)" />
+            <BundleResource Include="$(IntermediateOutputPath)wtres\%(_WtIosStagedStrings.RecursiveDir)InfoPlist.strings"
+                            Link="Resources\%(_WtIosStagedStrings.RecursiveDir)InfoPlist.strings" />
+        </ItemGroup>
+    </Target>
+
+    <!-- WebAssembly: surface the derived per-worktree dev-server port. The launch profiles are
+         tracked files, so they are deliberately not rewritten — per-worktree edits to them are
+         exactly the recurring-merge-conflict pattern .claude/rules/docs.md exists to prevent. -->
+    <Target Name="ReportWorktreeDevPort"
+            Condition="'$(_WorktreeIdentityAllowed)' == 'true' and '$(TargetPlatformIdentifier)' == 'browserwasm'"
+            AfterTargets="Build">
+        <Message Importance="High"
+                 Text="Worktree '$(AppWorktreeName)': serve this head on its own origin with --urls http://localhost:$(_WtDevPort) (port 5000 is reserved for the main checkout)." />
+    </Target>
+
+</Project>

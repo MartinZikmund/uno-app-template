@@ -1,6 +1,7 @@
 using AppTemplate.Core.Infrastructure;
 using AppTemplate.Core.Services;
 using AppTemplate.Core.ViewModels;
+using AppTemplate.Infrastructure;
 using AppTemplate.Services.Dialogs;
 using AppTemplate.Services.Navigation;
 using AppTemplate.Services.Rating;
@@ -24,6 +25,9 @@ public partial class App : Application, IApplication
             return $"{version.Major}.{version.Minor}.{version.Build}";
         }
     }
+
+    public string? WorktreeName =>
+        string.IsNullOrEmpty(AppEnvironment.WorktreeName) ? null : AppEnvironment.WorktreeName;
 
     public App()
     {

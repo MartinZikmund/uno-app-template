@@ -64,7 +64,11 @@ public sealed partial class WindowShell : Page, IWindowShell
     {
         if (ViewModel.Title is not null && !_isWindowClosed)
         {
-            _associatedWindow.Title = ViewModel.Title;
+            // Worktree builds carry their own package identity; showing the worktree here is what
+            // makes two simultaneously-running builds tellable apart in the taskbar and Alt-Tab.
+            _associatedWindow.Title = AppEnvironment.WorktreeName is { Length: > 0 } worktree
+                ? $"{ViewModel.Title} — {worktree}"
+                : ViewModel.Title;
         }
     }
 

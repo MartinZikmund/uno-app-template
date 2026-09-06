@@ -1,6 +1,6 @@
 namespace AppTemplate.Infrastructure;
 
-public static class AppEnvironment
+public static partial class AppEnvironment
 {
 #if APP_CHANNEL_DEV
     public const bool IsDevChannel = true;
