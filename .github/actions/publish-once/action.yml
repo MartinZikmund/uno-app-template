@@ -1,0 +1,58 @@
+name: Publish once
+description: >
+  Skips a publish step when a job for this (environment, sha) already ran to completion.
+  IMPORTANT: this records that a JOB finished, not that a store ACCEPTED the submission.
+  Asynchronous certification failures are surfaced by store-health.yml, and a deliberate
+  re-push is done with store-ops.yml (action: republish, force: true).
+
+inputs:
+  environment:
+    description: "Environment name to check"
+    required: true
+  sha:
+    description: "Commit SHA"
+    required: true
+  github-token:
+    description: "Token with deployments:read"
+    required: true
+  force:
+    description: "Set to 'true' to ignore a prior success"
+    required: false
+    default: "false"
+
+outputs:
+  skip:
+    description: "'true' when this publish should be skipped"
+    value: ${{ steps.check.outputs.skip }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check for a prior successful deployment
+      id: check
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        SHA: ${{ inputs.sha }}
+        FORCE: ${{ inputs.force }}
+      run: |
+        set -euo pipefail
+        echo "skip=false" >> "$GITHUB_OUTPUT"
+
+        if [ "$FORCE" = "true" ]; then
+          echo "::notice::force=true - ignoring any prior deployment."
+          exit 0
+        fi
+
+        ids="$(gh api "repos/$GITHUB_REPOSITORY/deployments?environment=$ENVIRONMENT&sha=$SHA" \
+                --jq '.[].id' 2>/dev/null || true)"
+
+        for id in $ids; do
+          state="$(gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" --jq '[.[].state] | index("success") // empty' || true)"
+          if [ -n "$state" ]; then
+            echo "::notice::$ENVIRONMENT already completed for this commit. Skipping. To push again: run store-ops.yml with action=republish and force=true."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+        done
