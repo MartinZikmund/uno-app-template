@@ -1,0 +1,63 @@
+name: Build WebAssembly
+
+# Reusable: publishes the WASM head and uploads its wwwroot. Deployment lives in
+# release.yml (production) and wasm-pr-preview.yml (PR previews).
+
+on:
+  workflow_call:
+    inputs:
+      channel:        { type: string, required: true }
+      version_simple: { type: string, required: true }
+      artifact_name:  { type: string, required: true }
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      DOTNET_NOLOGO: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      ContinuousIntegrationBuild: true
+      PROJECT_FILE: src/AppTemplate/AppTemplate.csproj
+      TFM: net10.0-browserwasm
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-dotnet-build
+        with:
+          workloads: src/AppTemplate.slnx
+
+      - name: Install wasm-tools
+        run: dotnet workload install wasm-tools
+
+      - name: Publish
+        run: |
+          dotnet publish "$PROJECT_FILE" -c Release -f "$TFM" \
+            -p:AppChannel=${{ inputs.channel }} \
+            -p:CiVersionInjected=true \
+            -p:Version=${{ inputs.version_simple }} \
+            -p:ApplicationDisplayVersion=${{ inputs.version_simple }}
+
+      - name: Stamp the deployed site with its version
+        run: |
+          set -euo pipefail
+          root="src/AppTemplate/bin/Release/$TFM/publish/wwwroot"
+          test -d "$root" || { echo "::error::wwwroot not found at $root"; exit 1; }
+          # WASM has no store version surface. This is how a deployed site is traced
+          # back to a commit.
+          printf '{"version":"%s","channel":"%s","sha":"%s"}\n' \
+            "${{ inputs.version_simple }}" "${{ inputs.channel }}" "$GITHUB_SHA" \
+            > "$root/build-info.json"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: src/AppTemplate/bin/Release/${{ env.TFM }}/publish/wwwroot
+          retention-days: ${{ inputs.channel == 'Prod' && 90 || 14 }}
+          if-no-files-found: error
