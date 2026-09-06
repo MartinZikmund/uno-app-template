@@ -18,7 +18,8 @@ Copy it, rename it, delete what you don't need.
 | **Services already wired** | Theming, preferences, dialogs and confirmations, app rating, share, launcher, display-request, and app-update checks. |
 | **Localization from the start** | `{markup:Localize Key=...}` in XAML, `IStringLocalizer` in code, English and Czech resources included. |
 | **Side-by-side Dev builds** | Nerdbank.GitVersioning with Dev and Prod channels that install alongside each other, distinct icons included. See [docs/versioning.md](./docs/versioning.md). |
-| **CI that packages** | Build and smoke-test workflows plus Windows, Android, iOS packaging and WebAssembly deployment. XAML formatting is enforced on every PR — see [docs/xaml-styler.md](./docs/xaml-styler.md). |
+| **CI that packages** | Every push to `main` packages all five heads and publishes nothing. XAML formatting is enforced on every PR — see [docs/xaml-styler.md](./docs/xaml-styler.md). |
+| **Automated multi-store releases** | `release/vX.Y` branches ship to Google Play, TestFlight / App Store, the Microsoft Store and Azure Static Web Apps, with staged rollouts and one-click approval gates. See [docs/release-pipeline.md](./docs/release-pipeline.md). |
 | **Written for coding agents** | [`AGENTS.md`](./AGENTS.md) and [`.claude/rules/`](./.claude/rules/) carry the conventions an agent needs before it writes a line. |
 
 ## Using this template
@@ -55,8 +56,10 @@ clearer than debugging a script that half-worked.
    filenames unless you also update the `UnoIcon*` properties — the generated Android
    `@mipmap/icon` resource name is derived from them.
 
-5. **Reset the version.** `version.json` starts at `0.1`. Set it to whatever your first release
-   should be; git height supplies the rest.
+5. **Reset the version.** `version.json` starts at `0.1-dev`. Set it to whatever your first
+   release should be; git height supplies the patch component. **Keep the `-dev` suffix** — a
+   bare `"0.1"` makes `nbgv prepare-release` find nothing to cut, and the release workflow
+   refuses to run. See [docs/versioning.md](./docs/versioning.md).
 
 6. **Translate or trim.** Keep both `src/AppTemplate/Strings/en` and `.../cs`, or delete the `cs`
    folder and its Android `values-cs` counterpart if you only ship one language.
@@ -88,7 +91,12 @@ Other heads, per-platform prerequisites, and how to run the packaged Windows app
 
 ## Versioning
 
-This template uses Nerdbank.GitVersioning. `main` produces `0.X.0-dev.{height}` prerelease builds with a Dev-channel identity that installs side-by-side with the Store version. Stable releases come from `release/v{minor}` branches. See [docs/versioning.md](./docs/versioning.md) for the full model and [docs/versioning-migration.md](./docs/versioning-migration.md) to apply it to an existing app.
+This template uses Nerdbank.GitVersioning: the git height is the patch component, so `main`
+produces `0.X.{height}` prerelease builds with a Dev-channel identity that installs
+side-by-side with the Store version. Stable releases come from `release/v{minor}` branches.
+See [docs/versioning.md](./docs/versioning.md) for the full model,
+[docs/release-pipeline.md](./docs/release-pipeline.md) for what CI does with them, and
+[docs/versioning-migration.md](./docs/versioning-migration.md) to apply it to an existing app.
 
 ## License
 

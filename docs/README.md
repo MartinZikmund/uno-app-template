@@ -15,8 +15,11 @@ One page per topic. Keep it that way — see [`.claude/rules/docs.md`](../.claud
 
 ## Release
 
+- [release-pipeline.md](./release-pipeline.md) — what each workflow builds and publishes, environments, secrets, fork behaviour.
+- [release-runbook.md](./release-runbook.md) — cutting a release, shipping a patch, halting a bad rollout.
 - [versioning.md](./versioning.md) — the Dev/Prod channel model, git-height versions, side-by-side identity.
 - [versioning-migration.md](./versioning-migration.md) — applying that model to an existing app.
+- [windows-packaging.md](./windows-packaging.md) — the MSIX path, Store identity, and Microsoft Store submission.
 
 ## Design history
 
