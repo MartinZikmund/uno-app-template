@@ -104,3 +104,31 @@ Push to `release/v0.12` (or whatever minor you cut in step 1) → confirm Prod a
 - Drop any one-off scripts that assumed main published to the Store.
 
 That's it — your app is on the new model.
+
+## Optional: per-worktree identity
+
+If you develop in several git worktrees at once, you can add a third identity axis on top of the
+channel so two worktrees install and run side by side. Copy
+[`src/WorktreeIdentity.props`](../src/WorktreeIdentity.props) and
+[`src/WorktreeIdentity.targets`](../src/WorktreeIdentity.targets) into your `src/`, then import
+them — one line each, so the shared build files stay readable:
+
+```xml
+<!-- src/Directory.Build.props, after the AppChannel PropertyGroup -->
+<Import Project="$(MSBuildThisFileDirectory)WorktreeIdentity.props" />
+
+<!-- src/Directory.Build.targets -->
+<Import Project="$(MSBuildThisFileDirectory)WorktreeIdentity.targets" />
+```
+
+Three things to adjust for your app:
+
+- The `MSBuildProjectName == 'AppTemplate'` conditions in the `.targets` file — change to your head
+  project's name.
+- The `AppTmpl` abbreviation in the iOS target, and the `20`-character cap on `_WtLongTag`. The cap
+  exists because MSIX limits `uap:DefaultTile/@ShortName` to 40 characters, and your
+  `ApplicationTitle` prefix is a different length from this template's 19.
+- `AppEnvironment` must be `partial` for the generated `WorktreeName` constant.
+
+Then run `scripts/verify-worktree-identity.ps1` (adjusting the expected ids) to confirm the
+no-op invariants still hold. Full model: [worktree-identity.md](./worktree-identity.md).
