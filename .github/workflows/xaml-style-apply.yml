@@ -30,7 +30,7 @@ jobs:
     steps:
       - name: Resolve PR and authorize commenter
         id: pr
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const pr = await github.rest.pulls.get({
@@ -72,7 +72,7 @@ jobs:
             core.setOutput('sha', head.sha);
 
       - name: Acknowledge with reaction
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.reactions.createForIssueComment({
@@ -82,12 +82,12 @@ jobs:
               content: 'eyes',
             });
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ steps.pr.outputs.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '10.0.x'
 
@@ -115,7 +115,7 @@ jobs:
 
       - name: Comment with outcome
         if: always() && steps.pr.outputs.ref != ''
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const pushed = '${{ steps.commit.outputs.pushed }}' === 'true';
@@ -141,7 +141,7 @@ jobs:
 
       - name: React success
         if: success()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.reactions.createForIssueComment({
@@ -153,7 +153,7 @@ jobs:
 
       - name: React failure
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.reactions.createForIssueComment({
