@@ -1,12 +1,130 @@
 <Project>
-    <!-- Ensures Nbgv properly sets the Package.appxmanifest version for Uno Windows projects -->
+
+    <!--
+      HOW VERSIONS REACH A PACKAGE
+      ============================
+      CI is authoritative. Every packaging command in .github/workflows/_build-*.yml passes
+
+          -p:CiVersionInjected=true
+          -p:ApplicationDisplayVersion=<X.Y.Z>
+          -p:ApplicationVersion=<0 for Windows | versionCode for Android | X.Y.Z for iOS>
+
+      as MSBuild GLOBAL properties, which win unconditionally at evaluation time.
+
+      Why global properties and not a target: ApplicationVersion / ApplicationDisplayVersion
+      are resolved during EVALUATION by five different SDKs (Uno's WinAppSdk / Desktop / Wasm
+      targets, Microsoft.Android.Sdk.DefaultProperties.targets, Xamarin.Shared.props), while
+      NBGV assigns the real version inside the GetBuildVersion TARGET - far too late to
+      influence them. A command-line property wins on all five at once.
+
+      The targets below exist only so a LOCAL build is not silently wrong, and so a Prod CI
+      build that lost its injection fails loudly instead of shipping versionCode=1.
+      See docs/versioning.md.
+    -->
+
+    <!-- Windows local-dev fallback. Reliable because Uno generates the manifest inside a
+         target, which we can run in front of. -->
     <Target Name="SetNbgvVersionForUnoWindows"
-            Condition="'$(TargetPlatformIdentifier)' == 'windows'"
+            Condition="'$(TargetPlatformIdentifier)' == 'windows' and '$(CiVersionInjected)' != 'true'"
             BeforeTargets="UnoGeneratePackageAppxManifest"
             DependsOnTargets="GetBuildVersion">
         <PropertyGroup>
+            <!-- The Microsoft Store reserves the fourth section and requires it to be 0. -->
             <ApplicationVersion>0</ApplicationVersion>
             <ApplicationDisplayVersion>$(BuildVersionSimple)</ApplicationDisplayVersion>
         </PropertyGroup>
     </Target>
+
+    <!--
+      Android and iOS have NO equivalent local fallback, and this is deliberate. Both SDKs
+      consume ApplicationVersion / ApplicationDisplayVersion from evaluation-time
+      PropertyGroups, so a target cannot reliably override them. A local
+      `dotnet build -f net10.0-android` therefore still emits versionCode=1. That is
+      harmless - you never upload from a laptop. Pass the properties on the command line
+      if a local number matters.
+    -->
+
+    <!--
+      WINDOWS STORE IDENTITY
+      ======================
+      Partner Center owns the Windows package identity, and it is a DIFFERENT namespace from
+      the Android applicationId / iOS bundle id that $(ApplicationId) feeds. All three of
+      Identity/@Name, Identity/@Publisher and Properties/PublisherDisplayName must match
+      Partner Center -> Product identity EXACTLY (case- and punctuation-sensitive) or the
+      submission is rejected with "The name found in the package is not one of your
+      reserved app names."
+
+      This is done by post-processing the manifest Uno generates rather than by setting
+      $(ApplicationPublisher), because Uno.Resizetizer writes the publisher as
+      "O=$(ApplicationPublisher)" - there is no value of that property that yields a bare
+      "CN=...". Poking the generated file is independent of that behaviour.
+
+      Values come from repo variables via CI. Unset => the manifest is left alone and a
+      fork builds green with its own identity.
+    -->
+    <!-- CI exports these as ENVIRONMENT VARIABLES. MSBuild surfaces an environment variable
+         as a property of the IDENTICAL name - case-insensitive, but underscores are part of
+         the name - so WINDOWS_STORE_PUBLISHER becomes $(WINDOWS_STORE_PUBLISHER) and never
+         $(WindowsStorePublisher). Map them here.
+
+         Why not just pass -p: on the command line? MSBuild splits switch parameters on
+         commas, and a Partner Center publisher is a distinguished name that usually
+         contains them ("CN=Contoso Ltd., O=Contoso Ltd., C=CZ") - that route needs manual
+         %2C escaping. The environment is the safe channel.
+
+         The '== empty' guards keep an explicit -p: override winning if anyone does pass one. -->
+    <PropertyGroup Condition="'$(TargetPlatformIdentifier)' == 'windows'">
+        <WindowsStoreIdentityName Condition="'$(WindowsStoreIdentityName)' == ''">$(WINDOWS_STORE_IDENTITY_NAME)</WindowsStoreIdentityName>
+        <WindowsStorePublisher Condition="'$(WindowsStorePublisher)' == ''">$(WINDOWS_STORE_PUBLISHER)</WindowsStorePublisher>
+        <WindowsStorePublisherDisplayName Condition="'$(WindowsStorePublisherDisplayName)' == ''">$(WINDOWS_STORE_PUBLISHER_DISPLAY_NAME)</WindowsStorePublisherDisplayName>
+    </PropertyGroup>
+
+    <Target Name="StampWindowsStoreIdentity"
+            Condition="'$(TargetPlatformIdentifier)' == 'windows' and '$(AppChannel)' == 'Prod'
+                       and ('$(WindowsStoreIdentityName)' != '' or '$(WindowsStorePublisher)' != '')"
+            AfterTargets="UnoGeneratePackageAppxManifest">
+        <PropertyGroup>
+            <_StoreManifest>@(AppxManifest)</_StoreManifest>
+            <_AppxNs>&lt;Namespace Prefix='d' Uri='http://schemas.microsoft.com/appx/manifest/foundation/windows10' /&gt;</_AppxNs>
+        </PropertyGroup>
+
+        <Error Condition="'$(_StoreManifest)' == '' or !Exists('$(_StoreManifest)')"
+               Text="StampWindowsStoreIdentity: could not locate the generated AppxManifest (@(AppxManifest)). The Store identity would not be applied." />
+
+        <XmlPoke Condition="'$(WindowsStoreIdentityName)' != ''"
+                 XmlInputPath="$(_StoreManifest)"
+                 Query="/d:Package/d:Identity/@Name"
+                 Value="$(WindowsStoreIdentityName)"
+                 Namespaces="$(_AppxNs)" />
+
+        <XmlPoke Condition="'$(WindowsStorePublisher)' != ''"
+                 XmlInputPath="$(_StoreManifest)"
+                 Query="/d:Package/d:Identity/@Publisher"
+                 Value="$(WindowsStorePublisher)"
+                 Namespaces="$(_AppxNs)" />
+
+        <XmlPoke Condition="'$(WindowsStorePublisherDisplayName)' != ''"
+                 XmlInputPath="$(_StoreManifest)"
+                 Query="/d:Package/d:Properties/d:PublisherDisplayName"
+                 Value="$(WindowsStorePublisherDisplayName)"
+                 Namespaces="$(_AppxNs)" />
+
+        <Message Importance="high"
+                 Text="Stamped Store identity into $(_StoreManifest): Name='$(WindowsStoreIdentityName)' Publisher='$(WindowsStorePublisher)' PublisherDisplayName='$(WindowsStorePublisherDisplayName)'" />
+    </Target>
+
+    <!-- Belt: fail a Prod CI build that lost its version injection, instead of shipping
+         versionCode=1 to a store. Braces: .github/workflows/_build-*.yml additionally read
+         the version back OUT of the produced .aab / .ipa / .msixbundle. -->
+    <Target Name="AssertStoreVersionStamped"
+            Condition="'$(ContinuousIntegrationBuild)' == 'true' and '$(AppChannel)' == 'Prod'"
+            BeforeTargets="Build">
+        <Error Condition="'$(CiVersionInjected)' != 'true'"
+               Text="Prod CI builds must pass -p:CiVersionInjected=true together with the version properties. See docs/versioning.md." />
+        <Error Condition="'$(ApplicationDisplayVersion)' == '' or '$(ApplicationDisplayVersion)' == '1.0.0'"
+               Text="ApplicationDisplayVersion is '$(ApplicationDisplayVersion)' - CI did not inject a real version." />
+        <Error Condition="'$(ApplicationVersion)' == '' or ('$(ApplicationVersion)' == '1' and '$(TargetPlatformIdentifier)' != 'windows')"
+               Text="ApplicationVersion is '$(ApplicationVersion)' - CI did not inject a real version." />
+    </Target>
+
 </Project>
