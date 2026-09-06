@@ -56,7 +56,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Workloads are required even though the test project is plain net10.0: it
+      # references AppTemplate.Core, which is an Uno.Sdk project multi-targeting android,
+      # iOS, Windows, desktop and wasm, so restoring it pulls in every one of those.
+      # Restricting it with -p:TargetFrameworks=net10.0 is not an option - that global
+      # property also reaches the test project and breaks MSTest.Sdk's adapter
+      # registration ("The test framework adapter has not been registered").
       - uses: ./.github/actions/setup-dotnet-build
+        with:
+          workloads: src/AppTemplate.slnx
 
       # MSTest on Microsoft.Testing.Platform. Do NOT pass VSTest-only flags
       # (--nologo, --logger); MTP errors out on them.
