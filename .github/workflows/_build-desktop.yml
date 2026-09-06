@@ -1,0 +1,77 @@
+name: Build Desktop
+
+# Reusable: self-contained, single-file, R2R publish of the Uno Skia desktop head per RID,
+# zipped for attachment to a GitHub Release. Nothing here is code-signed or notarized.
+
+on:
+  workflow_call:
+    inputs:
+      channel:        { type: string, required: true }
+      version_simple: { type: string, required: true }
+      artifact_name:  { type: string, required: true }
+      include_macos:  { type: boolean, required: false, default: false }
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: ${{ fromJSON(inputs.include_macos && '["win-x64","linux-x64","osx-arm64"]' || '["win-x64","linux-x64"]') }}
+    runs-on: ${{ startsWith(matrix.rid, 'win') && 'windows-2025' || (startsWith(matrix.rid, 'osx') && 'macos-26' || 'ubuntu-24.04') }}
+    env:
+      DOTNET_NOLOGO: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      ContinuousIntegrationBuild: true
+      APP_NAME: AppTemplate
+      PROJECT_FILE: src/AppTemplate/AppTemplate.csproj
+      TFM: net10.0-desktop
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-dotnet-build
+        with:
+          workloads: src/AppTemplate.slnx
+
+      - name: Publish (${{ matrix.rid }})
+        shell: bash
+        run: |
+          set -euo pipefail
+          # -p:TargetFrameworks is REQUIRED alongside -r on a multi-targeted Uno project.
+          dotnet publish "$PROJECT_FILE" -c Release -f "$TFM" -r "${{ matrix.rid }}" \
+            -p:TargetFrameworks="$TFM" \
+            -p:SelfContained=true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:PublishReadyToRun=true \
+            -p:AppChannel=${{ inputs.channel }} \
+            -p:CiVersionInjected=true \
+            -p:Version=${{ inputs.version_simple }} \
+            -p:ApplicationDisplayVersion=${{ inputs.version_simple }}
+
+      - name: Zip
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="src/AppTemplate/bin/Release/$TFM/${{ matrix.rid }}/publish"
+          test -d "$out" || { echo "::error::publish directory not found: $out"; exit 1; }
+          mkdir -p "$RUNNER_TEMP/stage"
+          name="${APP_NAME}-${{ inputs.version_simple }}-${{ matrix.rid }}.zip"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            powershell -Command "Compress-Archive -Path '$out/*' -DestinationPath '$RUNNER_TEMP/stage/$name' -Force"
+          else
+            (cd "$out" && zip -qr "$RUNNER_TEMP/stage/$name" .)
+          fi
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact_name }}-${{ matrix.rid }}
+          path: ${{ runner.temp }}/stage
+          retention-days: ${{ inputs.channel == 'Prod' && 90 || 14 }}
+          if-no-files-found: error

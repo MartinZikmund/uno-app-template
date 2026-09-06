@@ -1,0 +1,252 @@
+name: Build Windows
+
+# Reusable: publishes the WinAppSDK head for each architecture, then packages them into a
+# single multi-architecture .msixbundle with the winapp CLI.
+#
+# WHY winapp AND NOT MSBUILD: WinAppSDK 1.7 (what Uno.Sdk 6.7 pins) ships NO bundling
+# targets - `_CreateBundle`, `_CreateAppStoreContainerForUAP` and `_GenerateAppxUploadPackageFile`
+# live only in the standalone Microsoft.Windows.SDK.BuildTools.MSIX package, which is not in
+# this repo's restore graph, and `UapAppxPackageBuildMode` appears zero times in the targets
+# that ARE imported. So `/p:AppxBundle=Always` cannot produce a bundle here and the old
+# `/p:UapAppxPackageBuildMode=CI` was a flag nothing read. winapp is the supported path.
+#
+# Prod bundles are left UNSIGNED on purpose - the Microsoft Store re-signs every package and
+# replaces any existing signature. Dev bundles are signed with a certificate generated in the
+# job, so a fork gets a sideloadable package with zero secrets.
+#
+# See docs/windows-packaging.md.
+
+on:
+  workflow_call:
+    inputs:
+      channel:        { type: string, required: true }   # Dev | Prod
+      version_simple: { type: string, required: true }   # X.Y.Z
+      version_store4: { type: string, required: true }   # X.Y.Z.0
+      artifact_name:  { type: string, required: true }
+      smoke_launch:   { type: boolean, required: false, default: false }
+      architectures:
+        # Windows 11 has no x86 edition; WinUI Gallery and Files both ship x64+ARM64 only.
+        # If this product has already published x86 packages, add it back before cutting -
+        # existing x86 users would otherwise stop receiving updates.
+        type: string
+        required: false
+        default: "x64,arm64"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2025
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    env:
+      DOTNET_NOLOGO: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      ContinuousIntegrationBuild: true
+      APP_NAME: AppTemplate
+      PROJECT_FILE: src/AppTemplate/AppTemplate.csproj
+      TFM: net10.0-windows10.0.26100
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-dotnet-build
+        with:
+          workloads: src/AppTemplate.slnx
+
+      - uses: microsoft/setup-WinAppCli@v0.2
+        with:
+          # PIN, never `latest`: winapp is a 0.x preview, and bundling only appeared in
+          # 0.3.2 - an older resolve silently takes a single input folder and cannot bundle.
+          version: 'v0.6.1'
+
+      - name: Show winapp version
+        run: winapp --version
+
+      - name: Publish each architecture
+        env:
+          WINDOWS_STORE_IDENTITY_NAME: ${{ vars.WINDOWS_STORE_IDENTITY_NAME }}
+          WINDOWS_STORE_PUBLISHER: ${{ vars.WINDOWS_STORE_PUBLISHER }}
+          WINDOWS_STORE_PUBLISHER_DISPLAY_NAME: ${{ vars.WINDOWS_STORE_PUBLISHER_DISPLAY_NAME }}
+        run: |
+          set -euo pipefail
+          IFS=, read -ra ARCHES <<< "${{ inputs.architectures }}"
+          for arch in "${ARCHES[@]}"; do
+            case "$arch" in
+              x64)   platform=x64 ;;
+              arm64) platform=ARM64 ;;
+              x86)   platform=x86 ;;
+              *) echo "::error::unsupported architecture '$arch'"; exit 1 ;;
+            esac
+            echo "::group::publish win-$arch"
+            # -p:Platform is REQUIRED alongside -r, or the build fails with NETSDK1032
+            # ("RuntimeIdentifier platform and PlatformTarget must be compatible").
+            # -p:TargetFrameworks is required alongside -r on a multi-targeted Uno project.
+            # ApplicationVersion=0 is load-bearing: the Store rejects any package whose
+            # version has a non-zero revision component.
+            dotnet publish "$PROJECT_FILE" -c Release -f "$TFM" \
+              -r "win-$arch" -p:Platform="$platform" \
+              -p:TargetFrameworks="$TFM" \
+              -p:GenerateAppxPackageOnBuild=false \
+              -p:AppChannel=${{ inputs.channel }} \
+              -p:CiVersionInjected=true \
+              -p:ApplicationDisplayVersion=${{ inputs.version_simple }} \
+              -p:ApplicationVersion=0
+            echo "::endgroup::"
+          done
+
+      - name: Locate the generated manifest
+        id: manifest
+        run: |
+          set -euo pipefail
+          IFS=, read -ra ARCHES <<< "${{ inputs.architectures }}"
+          first="${ARCHES[0]}"
+          # The <Platform> segment appears in obj/ for some architectures and not others,
+          # so find it rather than assuming the path.
+          man="$(find src/AppTemplate/obj -path "*win-$first/unoresizetizer/m/Package.appxmanifest" 2>/dev/null | head -1 || true)"
+          [ -n "$man" ] || { echo "::error::could not find the generated Package.appxmanifest for win-$first"; exit 1; }
+          echo "manifest=$man" >> "$GITHUB_OUTPUT"
+          echo "Using $man"
+
+      # Parsed as XML, not with grep+sed: a Store publisher is a distinguished name full of
+      # '=' and ',' ("CN=Contoso Ltd., O=Contoso Ltd., C=CZ"), which regex extraction mangles.
+      #
+      # The version is checked on every channel. The three Store identity values are checked
+      # only on Prod, because StampWindowsStoreIdentity is itself gated on AppChannel=Prod -
+      # a Dev manifest legitimately carries Uno's own identity. Each identity value is also
+      # skipped when its repo variable is unset, so a fork stays green.
+      - name: Verify the manifest version and Store identity
+        env:
+          MANIFEST: ${{ steps.manifest.outputs.manifest }}
+          WANT_VERSION: ${{ inputs.version_store4 }}
+          CHANNEL: ${{ inputs.channel }}
+          WANT_NAME: ${{ vars.WINDOWS_STORE_IDENTITY_NAME }}
+          WANT_PUBLISHER: ${{ vars.WINDOWS_STORE_PUBLISHER }}
+          WANT_PUBLISHER_DISPLAY: ${{ vars.WINDOWS_STORE_PUBLISHER_DISPLAY_NAME }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os, sys, xml.etree.ElementTree as ET
+          ns = {"d": "http://schemas.microsoft.com/appx/manifest/foundation/windows10"}
+          root = ET.parse(os.environ["MANIFEST"]).getroot()
+          ident = root.find("d:Identity", ns)
+          disp = root.find("d:Properties/d:PublisherDisplayName", ns)
+          bad = False
+
+          got_version = ident.get("Version")
+          want_version = os.environ["WANT_VERSION"]
+          if got_version != want_version:
+              print(f"::error::Identity/@Version is '{got_version}', expected '{want_version}'")
+              bad = True
+          else:
+              print(f"  Identity/@Version = {got_version}")
+
+          if os.environ["CHANNEL"] == "Prod":
+              for label, got, want in [
+                  ("Identity/@Name",       ident.get("Name"),      os.environ.get("WANT_NAME", "")),
+                  ("Identity/@Publisher",  ident.get("Publisher"), os.environ.get("WANT_PUBLISHER", "")),
+                  ("PublisherDisplayName", (disp.text or "") if disp is not None else None,
+                                                                  os.environ.get("WANT_PUBLISHER_DISPLAY", "")),
+              ]:
+                  if not want:
+                      print(f"  {label} not configured - skipping (fork-safe)")
+                  elif got != want:
+                      print(f"::error::manifest {label} is '{got}', expected '{want}'")
+                      bad = True
+                  else:
+                      print(f"  {label} = {got}")
+          sys.exit(1 if bad else 0)
+          PY
+
+      - name: Package (multi-architecture .msixbundle)
+        id: pack
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/stage"
+          IFS=, read -ra ARCHES <<< "${{ inputs.architectures }}"
+
+          layouts=()
+          for arch in "${ARCHES[@]}"; do
+            d="src/AppTemplate/bin/Release/$TFM/win-$arch/publish"
+            [ -f "$d/$APP_NAME.exe" ] || { echo "::error::missing $d/$APP_NAME.exe"; exit 1; }
+            layouts+=("$d")
+          done
+
+          out="$RUNNER_TEMP/stage/${APP_NAME}_${{ inputs.version_simple }}.msixbundle"
+          # winapp detects each folder's architecture from its executable's PE header and
+          # emits one multi-arch bundle, deriving the bundle version from the manifest
+          # Identity. (makeappx without an explicit /bv stamps the CURRENT DATE-TIME, which
+          # yields a non-zero revision and is rejected by the Store - that trap is why the
+          # third-party bundler action is gone.)
+          winapp package "${layouts[@]}" \
+            --manifest "${{ steps.manifest.outputs.manifest }}" \
+            --exe "$APP_NAME.exe" \
+            --output "$out"
+          echo "bundle=$out" >> "$GITHUB_OUTPUT"
+          ls -la "$RUNNER_TEMP/stage"
+
+      # ---- Dev: sign so the bundle can actually be sideloaded, with no secrets at all ----
+      - name: Sign the Dev bundle with a generated certificate
+        if: inputs.channel == 'Dev'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $pfx = Join-Path $env:RUNNER_TEMP 'devcert.pfx'
+          $cer = Join-Path $env:RUNNER_TEMP "stage/$env:APP_NAME-Dev.cer"
+
+          # `cert generate` infers the subject from the manifest, so it always matches
+          # Identity/@Publisher - the mismatch that otherwise fails signing with 0x8007000B.
+          winapp cert generate --manifest "${{ steps.manifest.outputs.manifest }}" --output $pfx
+          winapp sign "${{ steps.pack.outputs.bundle }}" --cert $pfx --cert-password password
+
+          # Ship the public cert so a tester can trust it once and install the bundle.
+          $c = Get-PfxCertificate -FilePath $pfx
+          Export-Certificate -Cert $c -FilePath $cer | Out-Null
+          Get-ChildItem (Join-Path $env:RUNNER_TEMP 'stage')
+
+      - name: Verify the version inside the produced bundle
+        run: |
+          set -euo pipefail
+          python - "${{ steps.pack.outputs.bundle }}" "${{ inputs.version_store4 }}" <<'PY'
+          import sys, zipfile, re
+          bundle, want = sys.argv[1], sys.argv[2]
+          with zipfile.ZipFile(bundle) as z:
+              names = z.namelist()
+              m = z.read("AppxMetadata/AppxBundleManifest.xml").decode("utf-8", "replace")
+          got = re.search(r'<Identity[^>]*\bVersion="([^"]+)"', m).group(1)
+          print(f"bundle Identity/@Version = {got}")
+          if got != want:
+              sys.exit(f"::error::bundle version {got} != expected {want}")
+          # The Store rejects any package whose revision component is not 0.
+          if not re.fullmatch(r"\d+\.\d+\.\d+\.0", got):
+              sys.exit(f"::error::bundle version {got} must be X.Y.Z.0 (revision must be 0)")
+          payloads = [n for n in names if n.endswith(".msix")]
+          print("architectures in bundle:", payloads)
+          if not payloads:
+              sys.exit("::error::bundle contains no .msix payloads")
+          PY
+
+      - name: Smoke launch the packaged app
+        if: inputs.smoke_launch && inputs.channel == 'Dev'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          # Proves the package actually registers and starts - the failure a build alone
+          # cannot catch. Non-blocking: flaky UI automation must not fail a build.
+          winapp run "src/AppTemplate/bin/Release/$TFM/win-x64/publish" \
+            --exe "$APP_NAME.exe" --detach --json || true
+          winapp ui screenshot -a "App Template Dev" --output "$RUNNER_TEMP/stage/smoke.png" \
+            || echo "::warning::smoke screenshot failed"
+          winapp unregister --manifest "${{ steps.manifest.outputs.manifest }}" || true
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ${{ runner.temp }}/stage
+          retention-days: ${{ inputs.channel == 'Prod' && 90 || 14 }}
+          if-no-files-found: error
