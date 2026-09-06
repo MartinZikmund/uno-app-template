@@ -1,0 +1,62 @@
+<Project>
+
+    <!--
+        Worktree-scoped app identity — APPLICATION.
+
+        WorktreeIdentity.props derives the tags; this file applies them. It lives in .targets
+        (imported AFTER the project body) because the suffix must be layered on top of the
+        ApplicationId/ApplicationTitle that AppTemplate.csproj sets per AppChannel.
+
+        Full documentation: docs/worktree-identity.md
+    -->
+
+    <!-- Identity suffix. ApplicationPublisher is deliberately NOT touched: it must keep matching
+         the signing certificate subject used by package-windows.yml. Icons are not touched either
+         (UnoIconBackgroundFile must stay constant or Android's @mipmap/icon breaks). -->
+    <PropertyGroup Condition="'$(_WorktreeIdentityAllowed)' == 'true'">
+        <ApplicationId>$(ApplicationId).$(_WtIdSegment)</ApplicationId>
+        <ApplicationTitle>$(ApplicationTitle) ($(_WtLongTag))</ApplicationTitle>
+    </PropertyGroup>
+
+    <!--
+        Generates AppEnvironment.WorktreeName so the running app can show which worktree it came
+        from. AppEnvironment can carry an #if flag but not a string, hence generation.
+
+        The worktree stamp is part of the OUTPUT PATH on purpose. With only
+        Inputs="$(MSBuildAllProjects)" the target would be SKIPPED whenever no project file is
+        newer than the output — but the name can change without touching any project file
+        (git worktree move, or -p:AppWorktreeName=). The stale constant would then survive in obj/
+        and the About card would lie about which package is installed.
+    -->
+    <Target Name="GenerateWorktreeInfo"
+            Condition="'$(MSBuildProjectName)' == 'AppTemplate'"
+            BeforeTargets="BeforeCompile;CoreCompile">
+        <PropertyGroup>
+            <_WtStamp Condition="'$(_WorktreeIdentityAllowed)' == 'true'">$(_WtIdSegment)</_WtStamp>
+            <_WtStamp Condition="'$(_WtStamp)' == ''">none</_WtStamp>
+            <_WorktreeInfoFile>$(IntermediateOutputPath)AppEnvironment.Worktree.$(_WtStamp).g.cs</_WorktreeInfoFile>
+            <_WtNameForCode Condition="'$(_WorktreeIdentityAllowed)' == 'true'">$(_WtDisp)</_WtNameForCode>
+        </PropertyGroup>
+
+        <WriteLinesToFile File="$(_WorktreeInfoFile)"
+                          Overwrite="true"
+                          WriteOnlyWhenDifferent="true"
+                          Lines="// &lt;auto-generated /&gt;;namespace AppTemplate.Infrastructure%3B;;public static partial class AppEnvironment;{;    /// &lt;summary&gt;Git worktree this build came from, or empty for the main checkout.&lt;/summary&gt;;    public const string WorktreeName = &quot;$(_WtNameForCode)&quot;%3B;}" />
+
+        <ItemGroup>
+            <Compile Include="$(_WorktreeInfoFile)" />
+            <FileWrites Include="$(_WorktreeInfoFile)" />
+        </ItemGroup>
+    </Target>
+
+    <!-- WebAssembly: surface the derived per-worktree dev-server port. The launch profiles are
+         tracked files, so they are deliberately not rewritten — per-worktree edits to them are
+         exactly the recurring-merge-conflict pattern .claude/rules/docs.md exists to prevent. -->
+    <Target Name="ReportWorktreeDevPort"
+            Condition="'$(_WorktreeIdentityAllowed)' == 'true' and '$(TargetPlatformIdentifier)' == 'browserwasm'"
+            AfterTargets="Build">
+        <Message Importance="High"
+                 Text="Worktree '$(AppWorktreeName)': serve this head on its own origin with --urls http://localhost:$(_WtDevPort) (port 5000 is reserved for the main checkout)." />
+    </Target>
+
+</Project>

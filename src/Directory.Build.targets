@@ -9,4 +9,9 @@
             <ApplicationDisplayVersion>$(BuildVersionSimple)</ApplicationDisplayVersion>
         </PropertyGroup>
     </Target>
+
+    <!-- Per-worktree app identity (applies the suffix + generates the in-app name).
+         Must be a .targets import: the suffix layers on top of the ApplicationId the project
+         sets per AppChannel. See docs/worktree-identity.md. -->
+    <Import Project="$(MSBuildThisFileDirectory)WorktreeIdentity.targets" />
 </Project>
