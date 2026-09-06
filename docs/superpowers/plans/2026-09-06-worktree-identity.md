@@ -820,3 +820,63 @@ dotnet test tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj
 pwsh scripts/verify-worktree-identity.ps1
 ```
 Expected: all tests pass; all invariants hold.
+
+---
+
+## As built (2026-09-06)
+
+Implemented across `ac4f3af`, `a9e763c`, `f5c6d90`, `4d10768`. Four things differed from the plan
+above; the plan text is left intact so the reasoning is legible, but **prefer this section where
+they disagree**.
+
+### 1. Task 8's Android approach does not work — swap the *staged copy*, not the item
+
+Removing and re-adding `@(AndroidResource)` from a target in `Directory.Build.targets` is **silently
+ignored**. The Android SDK fixes its resource list before that file can influence it, so the build
+*succeeds* and ships the untagged label — the worst failure mode. An earlier variant also hit
+`APT2144: invalid file path …res\strings.xml`, because `%(RecursiveDir)` is empty outside a batched
+target and the resource landed in `res/` rather than `res/values/`.
+
+What ships instead: `ApplyWorktreeAndroidLabel` hooks `BeforeTargets="_CompileResources"` and patches
+the files the SDK has already staged into `obj/…/res/values*/strings.xml`, just before aapt2 compiles
+them. The regex excludes `[` from the captured value, so it is idempotent on incremental builds.
+Verified: both `values/` and `values-cs/` come out as `App Template [Iden]`.
+
+The iOS target still uses the item-swap shape and is **unverified** — this machine cannot build that
+head. It carries `ContinueOnError` and can never run in CI. If the label comes out untagged on a Mac,
+give it the same treatment as Android.
+
+### 2. The codegen target must also hook `XamlPreCompile`
+
+`BeforeTargets="BeforeCompile;CoreCompile"` is not enough. The WinAppSDK head runs a full C# compile
+pass under `XamlPreCompile` *first*, so the Windows build failed with `CS0117: 'AppEnvironment' does
+not contain a definition for 'WorktreeName'` while the desktop head built fine.
+
+### 3. Two extra pieces of work the plan did not anticipate
+
+- **The title bar, not just the window title.** `ExtendsContentIntoTitleBar = true` means the custom
+  `win:TitleBar` *is* the visible chrome; `_associatedWindow.Title` only reaches the taskbar and
+  Alt-Tab. `WindowShellViewModel.AppTitle` was added and the TitleBar bound to it, so the worktree is
+  actually readable on screen.
+- **`FakeApplication.Resources` must throw, not construct.** Uno's `net10.0` build is a reference
+  assembly: `new ResourceDictionary()` throws `NotSupportedException("Ref assembly")` via
+  `NativeDispatcher.GetHasThreadAccess()`. Any future Core test fake touching Uno *object*
+  construction hits this — reference *types* are fine, instantiation is not.
+
+### 4. Spec open questions, resolved
+
+| # | Question | Answer |
+|---|---|---|
+| 1 | MSBuild property → Uno WASM dev server? | **Not attempted.** The build prints the derived port; `--urls` is the documented lever |
+| 2 | Does Skia Desktop derive app data from `ApplicationId`? | **Still unverified.** Windows MSIX isolation was proven (two distinct `%LOCALAPPDATA%\Packages` folders); the Skia path was not exercised |
+| 3 | Does `StableStringHash(x,'Sha256')` return hex? | **Yes** — 64 hex chars; a 6-char substring is safe |
+| 4 | Two concurrent Uno Dev Server instances? | **Not measured** |
+| 5 | Does swapping resource items survive aapt? | **No** — see §1 |
+
+### 5. What was verified end to end
+
+Two builds registered and running at once: distinct package family names
+(`…apptemplate.dev` vs `…apptemplate.dev.wtworktree1b71ff`), distinct window titles, distinct
+`%LOCALAPPDATA%\Packages\…` folders, `Worktree: identity` present in one About card and absent from
+the other. Android head builds with both locales tagged. 15 Core tests pass. All seven invariants in
+`scripts/verify-worktree-identity.ps1` hold.
