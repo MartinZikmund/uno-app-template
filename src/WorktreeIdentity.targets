@@ -28,9 +28,12 @@
         (git worktree move, or -p:AppWorktreeName=). The stale constant would then survive in obj/
         and the About card would lie about which package is installed.
     -->
+    <!-- XamlPreCompile is load-bearing: the WinAppSDK head runs a full C# compile pass under that
+         target BEFORE CoreCompile, so hooking only BeforeCompile/CoreCompile builds the Windows
+         head without the generated constant and fails with CS0117. -->
     <Target Name="GenerateWorktreeInfo"
             Condition="'$(MSBuildProjectName)' == 'AppTemplate'"
-            BeforeTargets="BeforeCompile;CoreCompile">
+            BeforeTargets="BeforeCompile;CoreCompile;XamlPreCompile">
         <PropertyGroup>
             <_WtStamp Condition="'$(_WorktreeIdentityAllowed)' == 'true'">$(_WtIdSegment)</_WtStamp>
             <_WtStamp Condition="'$(_WtStamp)' == ''">none</_WtStamp>
