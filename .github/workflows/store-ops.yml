@@ -193,13 +193,15 @@ jobs:
           name: release-android
           path: pkg-android
 
+      # The site lands in the path wrangler.jsonc points `assets.directory` at, so the
+      # re-deploy is the same `wrangler deploy` release.yml runs, with no override.
       - uses: actions/download-artifact@v8
         if: contains(inputs.republish_targets, 'web')
         with:
           run-id: ${{ inputs.value }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           name: release-wasm
-          path: pkg-wasm
+          path: src/AppTemplate/bin/Release/net10.0-browserwasm/publish/wwwroot
 
       - uses: actions/download-artifact@v8
         if: contains(inputs.republish_targets, 'msstore')
@@ -210,7 +212,7 @@ jobs:
           path: pkg-windows
 
       - name: Show what was recovered
-        run: find pkg-android pkg-wasm pkg-windows -type f 2>/dev/null | head -50 || true
+        run: find pkg-android pkg-windows src/AppTemplate/bin/Release/net10.0-browserwasm/publish/wwwroot -type f 2>/dev/null | head -50 || true
 
       - name: Re-upload to Play (internal)
         if: contains(inputs.republish_targets, 'play')
@@ -224,14 +226,11 @@ jobs:
 
       - name: Re-deploy the web build
         if: contains(inputs.republish_targets, 'web')
-        uses: Azure/static-web-apps-deploy@v1
+        uses: cloudflare/wrangler-action@v4
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURESTATICWEBAPPSDEPLOYMENTTOKEN }}
-          action: upload
-          app_location: "pkg-wasm"
-          skip_app_build: true
-          skip_api_build: true
-          skip_deploy_on_missing_secrets: false
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
 
       - name: Note the Microsoft Store path
         if: contains(inputs.republish_targets, 'msstore')

@@ -1,0 +1,56 @@
+name: Prepare WASM assets for Cloudflare
+description: >
+  Normalises a published WebAssembly wwwroot for upload to Cloudflare Workers static
+  assets: makes sure `_headers` survived the publish, drops the pre-compressed
+  siblings Workers never serves, and fails if any asset exceeds the per-file limit.
+
+inputs:
+  publish-dir:
+    description: "The published wwwroot to prepare, relative to the workspace."
+    required: false
+    default: src/AppTemplate/bin/Release/net10.0-browserwasm/publish/wwwroot
+  source-headers:
+    description: "Fallback source for `_headers` if the publish glob dropped it."
+    required: false
+    default: src/AppTemplate/Platforms/WebAssembly/wwwroot/_headers
+
+runs:
+  using: composite
+  steps:
+    - name: Prepare assets for upload
+      shell: bash
+      env:
+        PUBLISH_DIR: ${{ inputs.publish-dir }}
+        SOURCE_HEADERS: ${{ inputs.source-headers }}
+      run: |
+        set -euo pipefail
+
+        test -d "$PUBLISH_DIR" || { echo "::error::No published wwwroot at $PUBLISH_DIR"; exit 1; }
+
+        if [[ -f "$PUBLISH_DIR/_headers" ]]; then
+          echo "_headers reached the publish output"
+        else
+          echo "::warning::_headers was dropped by the publish glob - copying it in"
+          cp "$SOURCE_HEADERS" "$PUBLISH_DIR/_headers"
+        fi
+
+        # The SDK emits a .br and .gz sibling next to most assets, for servers that
+        # content-negotiate by rewriting to them (as web.config does on IIS). Workers
+        # compresses at the edge and never serves those siblings, so they are inert
+        # weight. Nothing references them - neither service-worker.js nor index.html
+        # mentions .br/.gz.
+        before_files=$(find "$PUBLISH_DIR" -type f | wc -l)
+        before_size=$(du -sh "$PUBLISH_DIR" | cut -f1)
+        find "$PUBLISH_DIR" -type f \( -name '*.br' -o -name '*.gz' \) -delete
+        echo "stripped pre-compressed siblings: ${before_files} files (${before_size}) -> $(find "$PUBLISH_DIR" -type f | wc -l) files ($(du -sh "$PUBLISH_DIR" | cut -f1))"
+
+        # Cloudflare allows 20,000 files and 25 MiB per file; fail loudly rather than
+        # letting wrangler reject the upload halfway through.
+        # awk picks the max in one pass: `sort | head -1` makes head close the pipe
+        # early, and the resulting SIGPIPE on sort trips this step's `-o pipefail`.
+        largest=$(find "$PUBLISH_DIR" -type f -printf '%s %p\n' | awk 'NR==1 || $1>m {m=$1; l=$0} END {print l}')
+        echo "largest asset: $largest"
+        if (( ${largest%% *} > 26214400 )); then
+          echo "::error::Asset exceeds Cloudflare's 25 MiB per-file limit: $largest"
+          exit 1
+        fi

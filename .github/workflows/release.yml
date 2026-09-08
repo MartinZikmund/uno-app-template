@@ -3,8 +3,8 @@ name: Release
 # A push to release/v** builds every head in the Prod channel and publishes it.
 #
 # Automatic (no approval): Play *internal*, TestFlight, a Microsoft Store *draft*
-#   submission (uploaded but certification NOT started), the Azure SWA production
-#   deploy, the git tag and a draft GitHub Release.
+#   submission (uploaded but certification NOT started), the Cloudflare Workers
+#   production deploy, the git tag and a draft GitHub Release.
 # Gated (required reviewer): Play production rollout, App Store "submit for review",
 #   Microsoft Store commit. The rule is: gate on "a member of the public sees this",
 #   not on "a store received a file".
@@ -296,7 +296,7 @@ jobs:
     timeout-minutes: 30
     environment: web-production
     env:
-      HAS_SWA: ${{ secrets.AZURESTATICWEBAPPSDEPLOYMENTTOKEN != '' }}
+      HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v7
       - id: once
@@ -306,29 +306,28 @@ jobs:
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Skip - no Azure Static Web Apps token
-        if: env.HAS_SWA != 'true'
-        run: echo "::warning::AZURESTATICWEBAPPSDEPLOYMENTTOKEN is not configured - skipping the web deploy."
+      - name: Skip - no Cloudflare API token
+        if: env.HAS_CLOUDFLARE != 'true'
+        run: echo "::warning::CLOUDFLARE_API_TOKEN is not configured - skipping the web deploy."
 
+      # Into the path wrangler.jsonc already points `assets.directory` at, so the
+      # deploy needs no override and local `wrangler dev` stays identical to CI.
       - uses: actions/download-artifact@v8
-        if: steps.once.outputs.skip != 'true' && env.HAS_SWA == 'true'
+        if: steps.once.outputs.skip != 'true' && env.HAS_CLOUDFLARE == 'true'
         with:
           name: release-wasm
-          path: wwwroot
+          path: src/AppTemplate/bin/Release/net10.0-browserwasm/publish/wwwroot
 
-      - name: Deploy to Azure Static Web Apps
-        if: steps.once.outputs.skip != 'true' && env.HAS_SWA == 'true'
-        uses: Azure/static-web-apps-deploy@v1
+      # The presence check above already covers "not configured", and wrangler has no
+      # skip-on-missing-secret escape hatch - so a MALFORMED token fails the job loudly
+      # instead of silently no-op'ing a production release. That is the intent.
+      - name: Deploy to Cloudflare Workers
+        if: steps.once.outputs.skip != 'true' && env.HAS_CLOUDFLARE == 'true'
+        uses: cloudflare/wrangler-action@v4
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURESTATICWEBAPPSDEPLOYMENTTOKEN }}
-          action: upload
-          app_location: "wwwroot"
-          skip_app_build: true
-          skip_api_build: true
-          # The presence check above already covers "not configured". Leaving this false
-          # means a MALFORMED token fails loudly instead of silently no-op'ing a
-          # production release.
-          skip_deploy_on_missing_secrets: false
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
 
   # ------------------------------------------------------------ tag + release page
   # `tag` needs ONLY the automatic publishes. Declining a gated Store approval must not

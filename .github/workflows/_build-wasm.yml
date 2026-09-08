@@ -1,7 +1,8 @@
 name: Build WebAssembly
 
-# Reusable: publishes the WASM head and uploads its wwwroot. Deployment lives in
-# release.yml (production) and wasm-pr-preview.yml (PR previews).
+# Reusable: publishes the WASM head and uploads its wwwroot, already normalised for
+# Cloudflare Workers. Deployment lives in release.yml (production) and
+# wasm-pr-preview.yml (PR previews).
 
 on:
   workflow_call:
@@ -54,6 +55,13 @@ jobs:
           printf '{"version":"%s","channel":"%s","sha":"%s"}\n' \
             "${{ inputs.version_simple }}" "${{ inputs.channel }}" "$GITHUB_SHA" \
             > "$root/build-info.json"
+
+      # Normalise before uploading, so the artifact every publish job downloads is
+      # already exactly what gets served - and the 90-day release artifact is not
+      # carrying siblings nothing will ever read.
+      - uses: ./.github/actions/prepare-wasm-assets
+        with:
+          publish-dir: src/AppTemplate/bin/Release/${{ env.TFM }}/publish/wwwroot
 
       - uses: actions/upload-artifact@v7
         with:
