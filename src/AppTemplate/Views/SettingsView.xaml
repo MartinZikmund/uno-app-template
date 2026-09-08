@@ -49,7 +49,15 @@
                     <toolkit:SettingsCard.HeaderIcon>
                         <BitmapIcon ShowAsMonochrome="False" UriSource="ms-appx:///Assets/Icons/icon_foreground.png" />
                     </toolkit:SettingsCard.HeaderIcon>
-                    <TextBlock Text="{x:Bind ViewModel.AppVersion}" />
+                    <StackPanel HorizontalAlignment="Right" Spacing="2">
+                        <TextBlock HorizontalAlignment="Right" Text="{x:Bind ViewModel.AppVersion}" />
+                        <TextBlock
+                            HorizontalAlignment="Right"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind ViewModel.WorktreeLabel}"
+                            Visibility="{x:Bind ViewModel.WorktreeLabel, Converter={StaticResource StringVisibilityConverter}}" />
+                    </StackPanel>
                 </toolkit:SettingsCard>
 
                 <!--  Debug section  -->

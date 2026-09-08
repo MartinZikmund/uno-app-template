@@ -135,6 +135,10 @@
   <data name="AboutAppDescription" xml:space="preserve">
     <value>Aplikace Uno Platform</value>
   </data>
+  <data name="WorktreeFormat" xml:space="preserve">
+    <value>Pracovn&#237; strom: {0}</value>
+    <comment>{0} is the git worktree name; shown under the version in About for local worktree builds.</comment>
+  </data>
   <data name="Debugging" xml:space="preserve">
     <value>Lad&#283;n&#237;</value>
   </data>
