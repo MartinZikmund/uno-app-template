@@ -25,7 +25,7 @@ about them.
 | `forward-merge.yml` | push to `release/v**` | Keeps one open `release/vX.Y → main` PR so a hotfix is never lost. |
 | `store-ops.yml` | manual | Break-glass: halt or walk a rollout, pause a phased release, unblock a stuck submission, re-push an old run's bits. |
 | `store-health.yml` | weekly | Catches asynchronous store failures and un-finalized rollouts. |
-| `wasm-pr-preview.yml` | PR to `main` | Per-PR preview site on Azure Static Web Apps. |
+| `wasm-pr-preview.yml` | PR to `main` | Per-PR preview version on Cloudflare Workers, aliased `pr-<number>`. No teardown job — see [deployment.md](./deployment.md). |
 | `_build-*.yml` | called | One reusable workflow per head. Never publishes; only ever produces an artifact. |
 
 The five `_build-*.yml` workflows are the only place a head is *packaged*. `build-main.yml`
@@ -52,7 +52,7 @@ Automatic on every `release/v*` push:
 - **TestFlight** → uploaded and processed
 - **Microsoft Store** → draft submission, uploaded with `--noCommit` so certification has
   *not* started
-- **Azure Static Web Apps** → production
+- **Cloudflare Workers** → production
 - the `vX.Y.Z` git tag and a **draft** GitHub Release carrying the desktop zips, the
   Windows `.msixbundle` and its `.cer`
 
@@ -78,7 +78,7 @@ is the larger half of the benefit — bigger than the approval prompt.
 | `play-internal` | none | `release/v*` | Play service account |
 | `testflight` | none | `release/v*` | ASC API key |
 | `ms-store-draft` | none | `release/v*` | Partner Center credentials |
-| `web-production` | none | `release/v*` | SWA token |
+| `web-production` | none | `release/v*` | Cloudflare API token |
 | `play-production` | **1 required** | `release/v*` | Play service account |
 | `appstore-production` | **1 required** | `release/v*` | ASC API key |
 | `ms-store-production` | **1 required** | `release/v*` | Partner Center credentials |
@@ -150,7 +150,7 @@ push and triggers `release.yml` the normal way.
 | `APPLE_ADHOC_PROVISIONING_PROFILE_BASE64` | iOS build on `main` | `main` falls back to a simulator build |
 | `APPSTORE_ISSUER_ID`, `APPSTORE_API_KEY_ID`, `APPSTORE_API_PRIVATE_KEY` | TestFlight, review submission | those jobs skip green |
 | `MS_STORE_TENANT_ID`, `MS_STORE_SELLER_ID`, `MS_STORE_CLIENT_ID`, `MS_STORE_CLIENT_SECRET` | Microsoft Store | Store jobs skip; the `.msixbundle` artifact stays available for manual upload |
-| `AZURESTATICWEBAPPSDEPLOYMENTTOKEN` | web deploy | skips green |
+| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | web deploy, PR previews | both skip green |
 | `RELEASE_APP_PRIVATE_KEY` | release cut, tag | degrades to the `GITHUB_TOKEN` + dispatch path |
 
 The Microsoft Store credential must be a **Microsoft Entra ID** application — a personal
@@ -168,6 +168,7 @@ Microsoft account will not authenticate.
 
 ## Related
 
+- [deployment.md](./deployment.md) — the Cloudflare Workers hosting model and its one-time setup.
 - [release-runbook.md](./release-runbook.md) — cutting, patching, halting: the operational steps.
 - [versioning.md](./versioning.md) — how a version number becomes each store's version.
 - [windows-packaging.md](./windows-packaging.md) — the MSIX path and Microsoft Store identity.

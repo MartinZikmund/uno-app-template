@@ -184,7 +184,7 @@ jobs:
             echo "| main now tracks | \`$(jq -r '.CurrentBranch.Version' "$RUNNER_TEMP/cut.json")\` (${{ steps.bump.outputs.mode }}) |"
             echo "| Build | [Release runs](${{ github.server_url }}/${{ github.repository }}/actions/workflows/release.yml) |"
             echo ""
-            echo "**Automatic:** Play *internal*, TestFlight, a Microsoft Store *draft*, and the Azure SWA production deploy."
+            echo "**Automatic:** Play *internal*, TestFlight, a Microsoft Store *draft*, and the Cloudflare Workers production deploy."
             echo ""
             echo "**Waiting for you:** \`play-production\`, \`appstore-production\`, \`ms-store-production\` - approve them in the run's *Review deployments* prompt once the internal builds look right."
             echo ""
