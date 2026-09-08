@@ -9,4 +9,12 @@ public static partial class AppEnvironment
     public const bool IsDevChannel = false;
     public const string ChannelLabel = "";
 #endif
+
+    /// <summary>
+    /// Text for the title-bar channel badge: the channel label, plus the worktree when this build
+    /// came from one (<c>DEV · identity</c>). <see cref="WorktreeName"/> is supplied by the
+    /// generated part of this class.
+    /// </summary>
+    public static string ChannelBadgeLabel =>
+        WorktreeName is { Length: > 0 } worktree ? $"{ChannelLabel} · {worktree}" : ChannelLabel;
 }

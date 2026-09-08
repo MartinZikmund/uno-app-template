@@ -17,12 +17,30 @@ Both install. Both run. Neither can see the other's settings.
 
 ## What you see
 
-| Where | Main checkout | Worktree |
+| Where | Main checkout (Dev) | Worktree |
 |---|---|---|
-| Start menu / taskbar | `App Template Dev` | `App Template Dev (identity)` |
-| Window title | `Settings` | `Settings — identity` |
-| Settings → About | `0.1.92` | `0.1.92` with `Worktree: identity` beneath |
-| Android / iOS home screen | `App Template` | `App Template [Iden]` / `AppTmpl [Iden]` |
+| Start menu / Settings → Apps | `App Template Dev` | `App Template Dev (identity)` |
+| Title-bar badge | `DEV` | `DEV · identity` |
+| Taskbar / Alt-Tab | `Settings` | `Settings — identity` |
+| Settings → About | `0.1.94` | `0.1.94` with `Worktree: identity` beneath |
+| Android launcher | `App Template Dev` | `App Template Dev [Iden]` |
+| iOS home screen | `App Template Dev` | `App Template Dev [Iden]` |
+
+The worktree rides along with the existing `DEV` badge in the title bar rather than being spliced
+into the app name, so the chrome stays readable. On the Windows head the badge lives in
+`TitleBar.RightHeader`, which the control positions *before* the system caption buttons — a corner
+overlay sits on top of the close button.
+
+**On mobile the channel now reaches the label too.** `ApplicationTitle` never gets there — those
+names are resource-driven — so a Dev build used to read plain `App Template`, contradicting what
+[versioning.md](./versioning.md) promises about the channel changing the display name. Both heads
+now append `Dev`, with the worktree tag on top of it.
+
+The one exception is iOS `CFBundleName`, which Apple caps under 16 characters — `App Template Dev`
+is already 16. It uses a fixed short base instead (`AppTmpl Dev`, or `AppTmpl [Iden]` in a
+worktree, where the tag is the more useful discriminator since a worktree build is always Dev).
+`CFBundleDisplayName` — what the home screen actually renders — carries the full name either way.
+Override `IosShortNameBase` if `AppTmpl` is wrong for your app.
 
 ## How it works
 
@@ -113,9 +131,20 @@ under 16, which is why the base abbreviates to `AppTmpl` there.
 
 The Android launcher label and the iOS home-screen name are localised (`values/` + `values-cs/`,
 `en.lproj/` + `cs.lproj/`). Replacing them with a generated constant would have silently dropped
-Czech. Instead the build regenerates **each locale's** resource file into `obj/` with the tag
-appended, and repoints the resource item at the copy. `Main.Android.cs` still reads
-`Label = "@string/ApplicationName"`, and translators keep editing the tracked files.
+Czech. Instead the build regenerates **each locale's** resource file with the suffix appended.
+`Main.Android.cs` still reads `Label = "@string/ApplicationName"`, and translators keep editing the
+tracked files.
+
+Two details worth knowing if you touch `ApplyMobileLabelAndroid`:
+
+- The generated content is always derived from the **pristine tracked source**, never from a
+  previously generated copy. That is what makes it idempotent across incremental builds — appending
+  to its own output would grow the label on every rebuild.
+- It writes over the copy the Android SDK has already staged into `obj/…/res/`, rather than swapping
+  the `@(AndroidResource)` item. Swapping the item **does not work**: the SDK fixes its resource list
+  before `Directory.Build.targets` can influence it, so the build succeeds and ships the untagged
+  label. The iOS equivalent still swaps `@(BundleResource)` and is unverified — see the limitations
+  below.
 
 ### WebAssembly
 

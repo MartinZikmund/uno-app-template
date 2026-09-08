@@ -57,11 +57,24 @@ function Assert-Identity {
 }
 
 try {
-    $inWorktree = (Get-Identity).ApplicationId -match '\.wt[a-z0-9]{14}$'
+    # Determine the context from the FILESYSTEM, never from the evaluated ApplicationId.
+    # Deriving it from the suffix would be circular: a suffix that leaked into the main checkout
+    # is exactly the I2 regression this script exists to catch, and it would flip the context to
+    # "linked worktree" and skip the check that would have caught it.
+    # A linked worktree has .git as a FILE whose gitdir sits under <common>/.git/worktrees/.
+    $dotGit = Join-Path $repoRoot '.git'
+    $inWorktree = $false
+    if (Test-Path -Path $dotGit -PathType Leaf) {
+        $gitdir = (Get-Content -Raw $dotGit).Trim()
+        if ($gitdir -match '^gitdir:\s*(.+)$') {
+            $resolved = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($repoRoot, $Matches[1].Trim()))
+            $inWorktree = (Split-Path -Leaf (Split-Path -Parent $resolved)) -eq 'worktrees'
+        }
+    }
 
     Write-Host ''
     Write-Host 'Worktree-scoped app identity invariants' -ForegroundColor Cyan
-    Write-Host ('  context: {0}' -f $(if ($inWorktree) { 'linked worktree' } else { 'main checkout' })) -ForegroundColor DarkGray
+    Write-Host ('  context: {0} (from .git on disk)' -f $(if ($inWorktree) { 'linked worktree' } else { 'main checkout' })) -ForegroundColor DarkGray
     Write-Host ''
 
     # I1 - a release build can never carry a worktree suffix, however it is invoked.
@@ -102,7 +115,13 @@ try {
             { param($i) $i.ApplicationTitle.Length -le 40 }
     }
     else {
-        Write-Host '  SKIP  suffix assertions (not in a linked worktree)' -ForegroundColor Yellow
+        # I2 - the main checkout must be byte-identical to a build without this feature.
+        # This is the assertion the old suffix-derived context could silently skip.
+        Assert-Identity 'I2  main checkout is never suffixed' `
+            @() `
+            { param($i)
+                $i.ApplicationId -eq 'dev.mzikmund.apptemplate.dev' -and
+                $i.ApplicationTitle -eq 'App Template Dev' }
     }
 
     Write-Host ''

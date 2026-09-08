@@ -20,7 +20,7 @@
         <!--  WinUI title bar (Windows head only; stripped on Uno heads, collapsing this row).  -->
         <win:TitleBar
             x:Name="AppTitleBar"
-            Title="{x:Bind ViewModel.AppTitle}"
+            Title="{markup:Localize Key=ApplicationName}"
             BackRequested="AppTitleBar_BackRequested"
             IsBackButtonVisible="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"
             IsPaneToggleButtonVisible="True"
@@ -33,6 +33,13 @@
             <win:TitleBar.IconSource>
                 <ImageIconSource ImageSource="ms-appx:///Assets/Icons/icon_foreground.png" />
             </win:TitleBar.IconSource>
+            <!--
+                RightHeader sits before the system caption buttons and the min drag region, so the
+                badge can never overlap the close button the way a corner overlay does.
+            -->
+            <win:TitleBar.RightHeader>
+                <controls:DevChannelBadge Margin="0,0,8,0" VerticalAlignment="Center" />
+            </win:TitleBar.RightHeader>
             <win:TitleBar.Content>
                 <!--  Plain, non-interactive placeholder. Apps wire up search here.  -->
                 <AutoSuggestBox
@@ -76,7 +83,17 @@
             <Frame x:Name="InnerFrame" />
         </NavigationView>
 
-        <!--  Dev-channel indicator overlay. See AppEnvironment + DevChannelBadge.  -->
-        <controls:DevChannelBadge Grid.RowSpan="2" />
+        <!--
+            Dev-channel indicator for heads with no WinUI TitleBar (the Windows head hosts the
+            same control in TitleBar.RightHeader above). The not_win wrapper is mc:Ignorable, so
+            this whole subtree is dropped on Windows.
+        -->
+        <not_win:Border
+            Grid.RowSpan="2"
+            Margin="0,8,8,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top">
+            <controls:DevChannelBadge />
+        </not_win:Border>
     </Grid>
 </Page>
