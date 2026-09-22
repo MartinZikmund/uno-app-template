@@ -12,6 +12,9 @@
     <PropertyGroup>
         <DevBadgeLabel Condition="'$(DevBadgeLabel)' == '' and ('$(CI)' == 'true' or '$(ContinuousIntegrationBuild)' == 'true')">CI</DevBadgeLabel>
         <DevBadgeLabel Condition="'$(DevBadgeLabel)' == ''">DEV</DevBadgeLabel>
+
+        <!-- The in-app title-bar badge follows the same label (AppEnvironment.IsCiBuild). -->
+        <DefineConstants Condition="'$(AppChannel)' == 'Dev' and '$(DevBadgeLabel)' == 'CI'">$(DefineConstants);APP_CI_BUILD</DefineConstants>
     </PropertyGroup>
 
     <UsingTask TaskName="ComposeDevAsset"
