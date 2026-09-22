@@ -96,8 +96,11 @@ channel, CI and kill-switch guards all sit on the *application* step, not on det
 
 ## Guarantees
 
-These are asserted by [`scripts/verify-worktree-identity.ps1`](../scripts/verify-worktree-identity.ps1),
-which is worth running after touching either MSBuild file:
+These are asserted by [`scripts/verify-worktree-identity.ps1`](../scripts/verify-worktree-identity.ps1).
+On the template repository, [`template-selftest.yml`](../.github/workflows/template-selftest.yml)
+runs it whenever the identity files change, from the clone and from a throwaway linked worktree.
+Apps created from the template skip that workflow, so run the script by hand after touching either
+MSBuild file:
 
 ```powershell
 pwsh scripts/verify-worktree-identity.ps1
@@ -218,7 +221,7 @@ Get-AppxPackage dev.mzikmund.apptemplate.dev.wt* | Select-Object Name, PackageFa
 
 ## If you add features later
 
-Two rules that are cheap to honour now and expensive to retrofit:
+Three rules that are cheap to honour now and expensive to retrofit:
 
 1. **A SQLite database must be rooted at `ApplicationData.Current.LocalFolder`.** `sqlite-net-e` is
    referenced but nothing constructs a connection yet. Rooted there, it is isolated per worktree for
@@ -227,6 +230,11 @@ Two rules that are cheap to honour now and expensive to retrofit:
    `<Extensions>` element today. The moment one appears — a toast COM activator CLSID, an
    `apptemplate://` protocol handler, a file-type association — it registers per *machine*, and two
    worktrees will fight over it. That needs separate handling.
+3. **Keep `Identity/@Name` and `Properties/DisplayName` blank in `Package.appxmanifest`.**
+   Uno.Resizetizer only fills *empty* fields from `ApplicationId` / `ApplicationTitle`, so a
+   hardcoded value, such as the one Visual Studio's *Associate App with the Store* writes, silently
+   cancels the worktree suffix and every worktree installs over the same package. Store identity
+   belongs in the generated manifest at packaging time, never in the tracked one.
 
 ## See also
 
