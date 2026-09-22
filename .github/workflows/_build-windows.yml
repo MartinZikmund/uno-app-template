@@ -100,16 +100,19 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Locate the generated manifest
+      - name: Locate the package manifest
         id: manifest
         run: |
           set -euo pipefail
           IFS=, read -ra ARCHES <<< "${{ inputs.architectures }}"
           first="${ARCHES[0]}"
-          # The <Platform> segment appears in obj/ for some architectures and not others,
+          # MSBuild's final AppxManifest.xml, not Uno's generated Package.appxmanifest: only the
+          # final one declares the Microsoft.WindowsAppRuntime framework dependency, and winapp
+          # does not add it. winapp still sets each package's architecture from its executable.
+          # The <Platform> segment appears in bin/ for some architectures and not others,
           # so find it rather than assuming the path.
-          man="$(find src/AppTemplate/obj -path "*win-$first/unoresizetizer/m/Package.appxmanifest" 2>/dev/null | head -1 || true)"
-          [ -n "$man" ] || { echo "::error::could not find the generated Package.appxmanifest for win-$first"; exit 1; }
+          man="$(find src/AppTemplate/bin -path "*Release/$TFM/win-$first/AppxManifest.xml" 2>/dev/null | head -1 || true)"
+          [ -n "$man" ] || { echo "::error::could not find the AppxManifest.xml for win-$first"; exit 1; }
           echo "manifest=$man" >> "$GITHUB_OUTPUT"
           echo "Using $man"
 
