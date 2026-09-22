@@ -63,7 +63,7 @@ public static class DevBadge
 
     // Visible regions in frame units: the square the image is fitted into, before ForegroundScale / Scale.
     const double AndroidAdaptiveSafeRadius = 33.0 / 108.0; // 66dp safe zone of the 108dp adaptive layer
-    const double AndroidSplashRadius = 36.0 / 108.0;       // 72dp visible circle of the 108dp Android 12+ splash drawable
+    const double AndroidSplashRadius = 0.484;              // measured: Android 12+ crops the splash drawable to this radius
     const double IosCornerRatio = 0.2237;
     const double Margin = 0.01;
     const double PullStep = 0.0025;
