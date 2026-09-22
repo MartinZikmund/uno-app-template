@@ -11,6 +11,11 @@
     <ProjectReference Include="..\..\src\AppTemplate.Core\AppTemplate.Core.csproj" />
   </ItemGroup>
 
+  <!-- The Dev-asset composer is an MSBuild inline task (src/DevAssets.targets); compile the same source to test it. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\DevAssets.Task.cs" Link="DevAssets\DevAssets.Task.cs" />
+  </ItemGroup>
+
   <!-- Assertion + mocking stack prescribed by .claude/rules/testing.md.
        Versions match src/Directory.Packages.props (tests live outside the CPM scope). -->
   <ItemGroup>
