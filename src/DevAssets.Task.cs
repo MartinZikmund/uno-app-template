@@ -6,8 +6,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 
 namespace AppTemplate.Build;
 
@@ -252,4 +256,154 @@ public static class DevBadge
     }
 
     static double Distance(double dx, double dy) => Math.Sqrt(dx * dx + dy * dy);
+}
+
+/// <summary>Which mask and scale an asset is rendered with, resolved the way Uno.Resizetizer reads them.</summary>
+public sealed class DevAssetPlacement(DevBadgeMask mask, double scale)
+{
+    public DevBadgeMask Mask { get; } = mask;
+
+    public double Scale { get; } = scale;
+
+    public static DevAssetPlacement Resolve(bool isIcon, string targetPlatform, ITaskItem asset)
+    {
+        string platform = targetPlatform.ToLowerInvariant();
+        string metadata = isIcon ? "ForegroundScale" : "Scale";
+
+        // A platform override (e.g. AndroidForegroundScale) wins, as in Resizetizer's ResizeImageInfo.
+        double scale = ReadScale(asset, PlatformPrefix(platform) + metadata) ?? ReadScale(asset, metadata) ?? 1.0;
+        DevBadgeMask mask = (platform, isIcon) switch
+        {
+            ("android", true) => DevBadgeMask.AndroidAdaptive,
+            ("android", false) => DevBadgeMask.AndroidSplash,
+            ("ios", true) => DevBadgeMask.IosIcon,
+            _ => DevBadgeMask.None,
+        };
+        return new DevAssetPlacement(mask, scale);
+    }
+
+    static string PlatformPrefix(string platform) => platform switch
+    {
+        "android" => "Android",
+        "ios" => "IOS",
+        "windows" => "Windows",
+        "browserwasm" => "Wasm",
+        _ => "Skia",
+    };
+
+    static double? ReadScale(ITaskItem asset, string name) =>
+        double.TryParse(asset.GetMetadata(name), NumberStyles.Number, CultureInfo.InvariantCulture, out double value) && value > 0 ? value : null;
+}
+
+// The base type is fully qualified: the test project's implicit usings also bring System.Threading.Tasks.Task into scope.
+
+/// <summary>
+/// Replaces each UnoIcon foreground (Kind=Icon) or UnoSplashScreen image (Kind=Splash) with a badged copy at
+/// OutputRoot/&lt;content hash&gt;/&lt;original file name&gt;, so every generated resource name stays the same.
+/// </summary>
+public sealed class ComposeDevAsset : Microsoft.Build.Utilities.Task
+{
+    static readonly UTF8Encoding Utf8 = new(false);
+
+    [Required]
+    public ITaskItem[] Assets { get; set; } = [];
+
+    /// <summary>"Icon" rewrites ForegroundFile; "Splash" rewrites the item spec.</summary>
+    [Required]
+    public string Kind { get; set; } = "";
+
+    public string TargetPlatform { get; set; } = "";
+
+    [Required]
+    public string ProjectDirectory { get; set; } = "";
+
+    [Required]
+    public string OutputRoot { get; set; } = "";
+
+    [Output]
+    public ITaskItem[] Result { get; set; } = [];
+
+    public override bool Execute()
+    {
+        bool isIcon = string.Equals(Kind, "Icon", StringComparison.OrdinalIgnoreCase);
+        string root = Path.GetFullPath(Path.Combine(ProjectDirectory, OutputRoot));
+        Result = Assets.Select(asset => Compose(asset, isIcon, root)).ToArray();
+        return !Log.HasLoggedErrors;
+    }
+
+    ITaskItem Compose(ITaskItem asset, bool isIcon, string root)
+    {
+        string file = isIcon ? asset.GetMetadata("ForegroundFile") : asset.ItemSpec;
+        if (file.Length == 0)
+        {
+            return asset;
+        }
+
+        string source = Path.GetFullPath(Path.Combine(ProjectDirectory, file));
+        if (source.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        {
+            return asset;
+        }
+
+        DevAssetPlacement placement = DevAssetPlacement.Resolve(isIcon, TargetPlatform, asset);
+        string composed;
+        bool fits;
+        try
+        {
+            composed = DevBadge.Compose(File.ReadAllText(source), placement.Mask, placement.Scale, out fits);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or XmlException or FormatException)
+        {
+            Log.LogWarning(null, "DEVASSETS001", null, source, 0, 0, 0, 0, "Dev badge skipped, the original artwork is used instead: {0}", ex.Message);
+            return asset;
+        }
+
+        if (!fits)
+        {
+            Log.LogWarning(null, "DEVASSETS002", null, source, 0, 0, 0, 0, "The Dev badge doesn't fit inside the {0} mask at scale {1} and may be clipped.", placement.Mask, placement.Scale.ToString(CultureInfo.InvariantCulture));
+        }
+
+        string badged = Publish(composed, root, Path.GetFileName(source));
+        if (isIcon)
+        {
+            TaskItem icon = new(asset);
+            icon.SetMetadata("ForegroundFile", badged);
+            return icon;
+        }
+
+        return new TaskItem(badged, asset.CloneCustomMetadata());
+    }
+
+    static string Publish(string content, string root, string fileName)
+    {
+        byte[] bytes = Utf8.GetBytes(content);
+        string hash;
+        using (SHA256 sha = SHA256.Create())
+        {
+            hash = string.Concat(sha.ComputeHash(bytes).Take(6).Select(b => b.ToString("x2", CultureInfo.InvariantCulture)));
+        }
+
+        string directory = Path.Combine(root, hash);
+        string path = Path.Combine(directory, fileName);
+        if (File.Exists(path))
+        {
+            return path;
+        }
+
+        // Android's inner builds compose the same asset from several project instances at once, so publish atomically.
+        Directory.CreateDirectory(directory);
+        string temp = $"{path}.{Guid.NewGuid():N}.tmp";
+        File.WriteAllBytes(temp, bytes);
+        try
+        {
+            File.Move(temp, path);
+        }
+        catch (IOException)
+        {
+            // Another instance won the race with identical content.
+            File.Delete(temp);
+        }
+
+        return path;
+    }
 }
