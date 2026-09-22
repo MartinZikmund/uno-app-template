@@ -69,6 +69,14 @@ string json = JsonSerializer.Serialize(model, AppTemplateJsonContext.Default.Exa
 ExampleModel? value = JsonSerializer.Deserialize(json, AppTemplateJsonContext.Default.ExampleModel);
 ```
 
+## Preferences
+
+`Preferences.GetComplex` / `SetComplex` resolve types through `AppTemplateJsonContext`, plus
+`PreferencesJsonContext` in the app head for WinUI types such as `ElementTheme`. Register any
+type you store there; saving an unregistered one throws `NotSupportedException`.
+
+## Third-party helpers
+
 For third-party helpers that only accept `JsonSerializerOptions`, expose the context
 through a resolver:
 
