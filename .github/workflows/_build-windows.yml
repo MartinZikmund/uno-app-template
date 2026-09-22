@@ -234,18 +234,53 @@ jobs:
               sys.exit("::error::bundle contains no .msix payloads")
           PY
 
+      # Proves the package registers and survives startup - the failure a build alone cannot
+      # catch (a trimmed package once crashed on launch while every step stayed green). Only the
+      # screenshot is best-effort.
       - name: Smoke launch the packaged app
         if: inputs.smoke_launch && inputs.channel == 'Dev'
-        continue-on-error: true
+        shell: pwsh
         run: |
-          set -euo pipefail
-          # Proves the package actually registers and starts - the failure a build alone
-          # cannot catch. Non-blocking: flaky UI automation must not fail a build.
-          winapp run "src/AppTemplate/bin/Release/$TFM/win-x64/publish" \
-            --exe "$APP_NAME.exe" --detach --json || true
-          winapp ui screenshot -a "App Template Dev" --output "$RUNNER_TEMP/stage/smoke.png" \
-            || echo "::warning::smoke screenshot failed"
-          winapp unregister --manifest "${{ steps.manifest.outputs.manifest }}" || true
+          $ErrorActionPreference = 'Stop'
+          $layout = "src/AppTemplate/bin/Release/$env:TFM/win-x64/publish"
+          $manifest = (Get-ChildItem src/AppTemplate/bin -Recurse -Filter AppxManifest.xml |
+            Where-Object FullName -match "Release[\\/]$env:TFM[\\/]win-x64[\\/]AppxManifest\.xml$" |
+            Select-Object -First 1).FullName
+          if (-not $manifest) { throw 'no AppxManifest.xml for win-x64' }
+
+          # The package is framework-dependent and the runner has no Windows App Runtime: install the
+          # one this build restored, the way the Store would.
+          $ns = @{ d = 'http://schemas.microsoft.com/appx/manifest/foundation/windows10' }
+          $runtime = (Select-Xml -Path $manifest -Namespace $ns -XPath '//d:PackageDependency').Node |
+            Where-Object Name -like 'Microsoft.WindowsAppRuntime.*'
+          if ($runtime -and -not (Get-AppxPackage -Name $runtime.Name | Where-Object Architecture -eq 'X64')) {
+            $packages = (dotnet nuget locals global-packages --list) -replace '^global-packages:\s*', ''
+            $msix = Get-ChildItem (Join-Path $packages 'microsoft.windowsappsdk') -Recurse -Filter "$($runtime.Name).msix" |
+              Where-Object FullName -like '*win10-x64*' | Sort-Object FullName | Select-Object -Last 1
+            if (-not $msix) { throw "no $($runtime.Name).msix in $packages" }
+            Add-AppxPackage -Path $msix.FullName
+          }
+
+          $app = winapp run $layout --manifest $manifest --exe "$env:APP_NAME.exe" --detach --json | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $app.ProcessId) { throw "winapp run failed ($LASTEXITCODE)" }
+          try {
+            $started = Get-Date
+            Start-Sleep -Seconds 15
+            if (-not (Get-Process -Id $app.ProcessId -ErrorAction SilentlyContinue)) {
+              Get-WinEvent -FilterHashtable @{ LogName = 'Application'; StartTime = $started.AddSeconds(-5) } -ErrorAction SilentlyContinue |
+                Where-Object ProviderName -in 'Application Error', '.NET Runtime' | Select-Object -First 2 |
+                ForEach-Object { Write-Host $_.Message }
+              Write-Host "::error::the packaged app exited within 15 s of launch"
+              exit 1
+            }
+            winapp ui screenshot -a $app.ProcessId --output (Join-Path $env:RUNNER_TEMP 'stage/smoke.png')
+            if ($LASTEXITCODE -ne 0) { Write-Host "::warning::smoke screenshot failed" }
+          }
+          finally {
+            Stop-Process -Id $app.ProcessId -ErrorAction SilentlyContinue
+            # --force: winapp run registers a staged copy of the layout, not the manifest's own folder
+            winapp unregister --manifest $manifest --force
+          }
 
       - uses: actions/upload-artifact@v7
         with:
