@@ -282,7 +282,9 @@ How the build differed from §1–§8 and the plan:
   `unoresizetizer/AppIcons/` and `UnoImage.stamp`. It runs on every channel. Verified by D5's switch-back check. `AppleIconAssetsGenerator`
   has the same pattern and is unverified.
 - **Template-only test project.** The unit tests live in `tests/Template.SelfTests`, not `AppTemplate.Core.Tests`: apps copy the latter
-  and delete the former. `.claude/rules/testing.md` now says so.
+  and delete the former. The worktree label tests (`SettingsViewModelTests`, the in-app end of worktree identity) moved there too, which
+  leaves `AppTemplate.Core.Tests` with `IoCTests`. `.claude/rules/testing.md` now defines a template test as a test of the template's own
+  dev tooling.
 - **`Microsoft.Build.Utilities.Core` 18.9.6**, not 18.10.1: 18.10 dropped `net10.0` (it ships `net11.0` only). Referenced from `net10.0`,
   it resolved to a reference-only assembly and test discovery failed with `FileNotFoundException`.
 - **Desktop splash path.** The desktop head writes the splash to `unoresizetizer/r/`, not `sp/` like the Windows head. The verify
