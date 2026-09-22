@@ -1,7 +1,7 @@
 using System.Collections;
 using Microsoft.Build.Framework;
 
-namespace AppTemplate.Core.Tests.Fakes;
+namespace Template.SelfTests.Fakes;
 
 internal sealed class FakeBuildEngine : IBuildEngine
 {

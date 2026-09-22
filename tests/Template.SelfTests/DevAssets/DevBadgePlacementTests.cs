@@ -1,7 +1,7 @@
 using AppTemplate.Build;
 using FluentAssertions;
 
-namespace AppTemplate.Core.Tests.DevAssets;
+namespace Template.SelfTests.DevAssets;
 
 [TestClass]
 public sealed class DevBadgePlacementTests

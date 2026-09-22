@@ -1,10 +1,10 @@
 using AppTemplate.Build;
-using AppTemplate.Core.Tests.Fakes;
+using Template.SelfTests.Fakes;
 using FluentAssertions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace AppTemplate.Core.Tests.DevAssets;
+namespace Template.SelfTests.DevAssets;
 
 [TestClass]
 public sealed class ComposeDevAssetTests

@@ -13,7 +13,7 @@ on:
       - "src/DevAssets.Task.cs"
       - "src/AppTemplate/Assets/Icons/**"
       - "src/AppTemplate/Assets/Splash/**"
-      - "tests/AppTemplate.Core.Tests/DevAssets/**"
+      - "tests/Template.SelfTests/**"
       - "scripts/verify-dev-assets.ps1"
       - "src/Directory.Build.props"
       - "src/Directory.Build.targets"
@@ -33,7 +33,7 @@ on:
       - "src/DevAssets.Task.cs"
       - "src/AppTemplate/Assets/Icons/**"
       - "src/AppTemplate/Assets/Splash/**"
-      - "tests/AppTemplate.Core.Tests/DevAssets/**"
+      - "tests/Template.SelfTests/**"
       - "scripts/verify-dev-assets.ps1"
       - "src/Directory.Build.props"
       - "src/Directory.Build.targets"
@@ -97,7 +97,7 @@ jobs:
 
       - name: Unit tests
         shell: pwsh
-        run: dotnet test tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj --filter "FullyQualifiedName~DevAssets"
+        run: dotnet test tests/Template.SelfTests/Template.SelfTests.csproj
 
       # Desktop head only: it needs no workload and renders the same icon and splash outputs as the Windows head.
       - name: Verify rendered assets
