@@ -61,6 +61,16 @@ public partial class SettingsViewModel : ViewModelBase
 
     public string AppVersion => _application.AppVersion;
 
+    /// <summary>
+    /// Localized "Worktree: {name}" line shown under the version, or <see langword="null"/> when
+    /// this build did not come from a git worktree. Composed here rather than in XAML because
+    /// {markup:Localize} takes no format arguments.
+    /// </summary>
+    public string? WorktreeLabel =>
+        _application.WorktreeName is { Length: > 0 } worktree
+            ? _localizer["WorktreeFormat", worktree].Value
+            : null;
+
     public bool IsDebug =>
 #if DEBUG
         true;

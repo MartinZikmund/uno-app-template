@@ -6,6 +6,7 @@ One page per topic. Keep it that way — see [`.claude/rules/docs.md`](../.claud
 
 - [building.md](./building.md) — target frameworks, per-platform prerequisites, build and run commands.
 - [spec-kit.md](./spec-kit.md) — the Spec Kit spec-driven development workflow (`/speckit-*` commands and the project constitution).
+- [worktree-identity.md](./worktree-identity.md) — per-worktree package identity, so two git worktrees can be installed and run side by side.
 - [xaml-styler.md](./xaml-styler.md) — XAML formatting rules and how CI enforces them.
 
 ## Architecture

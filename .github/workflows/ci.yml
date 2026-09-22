@@ -54,4 +54,4 @@ jobs:
 
       - name: Build ${{ env.APP_NAME }} (Debug)
         shell: pwsh
-        run: dotnet build $env:PROJECT_FILE -c Debug
+        run: dotnet build $env:PROJECT_FILE -c Debug -p:ContinuousIntegrationBuild=true

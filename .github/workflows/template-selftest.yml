@@ -1,0 +1,69 @@
+name: Template Self-Test
+
+# Tests the template's own build machinery, not the app. Apps created from the template skip it
+# (repository guard below); delete this file once you've adopted the template.
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "src/WorktreeIdentity.props"
+      - "src/WorktreeIdentity.targets"
+      - "src/Directory.Build.props"
+      - "src/Directory.Build.targets"
+      - "src/AppTemplate/AppTemplate.csproj"
+      - "scripts/verify-worktree-identity.ps1"
+      - "version.json"
+      - "global.json"
+      - ".github/workflows/template-selftest.yml"
+  pull_request:
+    branches:
+      - main
+      - release/**
+    paths:
+      - "src/WorktreeIdentity.props"
+      - "src/WorktreeIdentity.targets"
+      - "src/Directory.Build.props"
+      - "src/Directory.Build.targets"
+      - "src/AppTemplate/AppTemplate.csproj"
+      - "scripts/verify-worktree-identity.ps1"
+      - "version.json"
+      - "global.json"
+      - ".github/workflows/template-selftest.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  worktree_identity:
+    name: Worktree identity invariants
+    if: github.repository == 'MartinZikmund/uno-app-template'
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # A CI checkout is a plain clone, so this covers the main-checkout side (I1-I3, kill switch).
+      - name: Verify from the clone
+        shell: pwsh
+        run: ./scripts/verify-worktree-identity.ps1
+
+      # Only a linked worktree exercises detection and the suffix limits (I5, I6).
+      - name: Verify from a linked worktree
+        shell: pwsh
+        run: |
+          $wt = Join-Path $env:RUNNER_TEMP 'selftest-wt'
+          git worktree add --detach $wt
+          & (Join-Path $wt 'scripts/verify-worktree-identity.ps1')

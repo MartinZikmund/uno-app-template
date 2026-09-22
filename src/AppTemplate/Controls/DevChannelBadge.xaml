@@ -3,11 +3,12 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:infra="using:AppTemplate.Infrastructure"
-    Margin="0,8,8,0"
-    HorizontalAlignment="Right"
-    VerticalAlignment="Top"
     IsHitTestVisible="False"
     Visibility="{x:Bind infra:AppEnvironment.IsDevChannel, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}">
+    <!--
+        Positioning belongs to the call site: the Windows head hosts this in TitleBar.RightHeader,
+        other heads overlay it in the top-right corner. See WindowShell.xaml.
+    -->
     <Border
         Padding="6,2"
         Background="{ThemeResource SystemFillColorCautionBrush}"
@@ -16,6 +17,6 @@
             FontSize="10"
             FontWeight="SemiBold"
             Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-            Text="{x:Bind infra:AppEnvironment.ChannelLabel, Mode=OneTime}" />
+            Text="{x:Bind infra:AppEnvironment.ChannelBadgeLabel, Mode=OneTime}" />
     </Border>
 </UserControl>

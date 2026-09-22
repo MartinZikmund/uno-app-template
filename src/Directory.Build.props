@@ -31,4 +31,7 @@
         <AppChannel Condition="'$(AppChannel)' == ''">Dev</AppChannel>
         <DefineConstants Condition="'$(AppChannel)' == 'Dev'">$(DefineConstants);APP_CHANNEL_DEV</DefineConstants>
     </PropertyGroup>
+
+    <!-- Per-worktree app identity (detection + derivation). See docs/worktree-identity.md. -->
+    <Import Project="$(MSBuildThisFileDirectory)WorktreeIdentity.props" />
 </Project>

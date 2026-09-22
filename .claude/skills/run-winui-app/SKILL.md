@@ -55,9 +55,19 @@ that folder, which is why we disambiguate with `--exe` below).
 dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100 -c Debug
 ```
 
-`AppChannel` defaults to `Dev` (see `src/Directory.Build.props`), so the package identity
-(`dev.mzikmund.apptemplate.dev`) and the `DEV` corner badge are set automatically — no extra
-flags. A first build takes ~1 min; rebuilds are fast.
+`AppChannel` defaults to `Dev` (see `src/Directory.Build.props`), so the package identity and the
+`DEV` corner badge are set automatically — no extra flags. A first build takes ~1 min; rebuilds are
+fast.
+
+Don't assume a literal identity string. It is `dev.mzikmund.apptemplate.dev` in the main checkout,
+but a build from a **git worktree** appends a per-worktree segment
+(`…apptemplate.dev.wtworktree1b71ff`) so two worktrees can be installed at once — see
+[`docs/worktree-identity.md`](../../../docs/worktree-identity.md). Read the real value when you
+need it:
+
+```powershell
+dotnet msbuild src/AppTemplate/AppTemplate.csproj -getProperty:ApplicationId -p:TargetFramework=net10.0-windows10.0.26100
+```
 
 ### 3. Launch — pick the path that fits
 
@@ -66,10 +76,14 @@ package, launches it, and **returns immediately** with the AUMID and PID, so you
 to automate or screenshot it:
 
 ```powershell
-$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"   # from the repo root; swap the TFM if it bumped
-winapp run $out --exe AppTemplate.exe --detach --json
-# -> { "AUMID": "dev.mzikmund.apptemplate.dev_...!App", "ProcessId": 470772 }
+$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"   # swap the TFM if it bumped
+$app = winapp run $out --exe AppTemplate.exe --detach --json | ConvertFrom-Json
+$AppPid = $app.ProcessId
+# $app -> { "AUMID": "<ApplicationId>_<publisherhash>!App", "ProcessId": 470772 }
 ```
+
+`$out` is built from `Get-Location`, so **run this from the checkout you actually mean**. With
+several worktrees open it will otherwise register, launch and later unregister the wrong build.
 
 Useful extra flags: `--unregister-on-exit` (auto-clean when the app closes), `--clean` (wipe the
 app's LocalState/settings before deploying), `--debug-output` (stream OutputDebugString + first-
@@ -92,14 +106,20 @@ run` auto-select the compatible `MsixPackage` profile and launch the packaged Wi
 
 ### 4. Automate the running app with `winapp ui`
 
-Every `ui` command targets the app with `-a "App Template"`. That value is the **window title**,
-which is `App Template` for both channels (the manifest DisplayName `App Template Dev` is *not* the
-window title). If unsure, discover it first:
+Every `ui` command targets the app with `-a`, which accepts a **process name, window title, or
+PID**. Always pass the **PID** you captured at launch (`$AppPid` above).
+
+Do not target by window title. Titles are not unique: a build made from a git worktree carries its
+own package identity *and* its own window title (`App Template — identity`), so with two builds
+running, a title match is ambiguous or wrong. `winapp` will list the candidate windows rather than
+guess — which stalls an agent mid-loop. The PID is unambiguous and you already have it.
 
 ```powershell
-winapp ui list-windows                    # all windows; find yours by process "AppTemplate"
-winapp ui status -a "App Template"         # confirm connection (process, PID, HWND)
+winapp ui list-windows              # all windows, if you ever lose the PID
+winapp ui status -a $AppPid         # confirm connection (process, PID, HWND)
 ```
+
+`-w <HWND>` takes precedence over `-a` if you need to be even more specific.
 
 #### The core loop: inspect → act → verify
 
@@ -112,9 +132,9 @@ reliable rhythm is:
    step — the tree changes after navigation, popups, and toggles.
 
 ```powershell
-winapp ui inspect -a "App Template"          # full tree: slugs, types, names, bounds
-winapp ui inspect -a "App Template" -i       # interactive elements only (buttons, inputs, list items)
-winapp ui search  "Settings" -a "App Template"  # find elements whose name matches text
+winapp ui inspect -a $AppPid          # full tree: slugs, types, names, bounds
+winapp ui inspect -a $AppPid -i       # interactive elements only (buttons, inputs, list items)
+winapp ui search  "Settings" -a $AppPid  # find elements whose name matches text
 ```
 
 #### Selectors: prefer the slug
@@ -137,28 +157,28 @@ any navigation or popup and use the fresh slug.
 # invoke = the smart "activate it". Tries Invoke → Toggle → SelectionItem → ExpandCollapse
 # patterns in order, so it presses buttons, flips toggles/checkboxes, expands combos/expanders,
 # and selects list/combo items. This is your default for "press this".
-winapp ui invoke "SettingsItem" -a "App Template"
+winapp ui invoke "SettingsItem" -a $AppPid
 
 # click = a real mouse click at the element's coordinates. Use when there is no UIA pattern
 # (column headers, custom-drawn items) or you specifically need a mouse gesture.
-winapp ui click "<slug>" -a "App Template"            # add --double or --right as needed
+winapp ui click "<slug>" -a $AppPid            # add --double or --right as needed
 
 # set-value = type text via the UIA ValuePattern. Works ONLY on *editable* controls
 # (TextBox, editable ComboBox, Slider). Selection-only controls reject it — see the combo
 # example below.
-winapp ui set-value "txt-name-a3" "Hello world" -a "App Template"
+winapp ui set-value "txt-name-a3" "Hello world" -a $AppPid
 
-winapp ui focus           "<slug>" -a "App Template"   # move keyboard focus (e.g. before typing)
-winapp ui scroll-into-view "<slug>" -a "App Template"  # bring an off-screen element into view
+winapp ui focus           "<slug>" -a $AppPid   # move keyboard focus (e.g. before typing)
+winapp ui scroll-into-view "<slug>" -a $AppPid  # bring an off-screen element into view
 ```
 
 #### Reading state to verify
 
 ```powershell
-winapp ui get-value    "<slug>" -a "App Template"               # current text/value
-winapp ui get-property "<slug>" -a "App Template"               # all UIA props (or --property X)
-winapp ui get-focused  -a "App Template"                        # what currently has focus
-winapp ui screenshot   -a "App Template" --output .screenshots\app.png   # then read the PNG back
+winapp ui get-value    "<slug>" -a $AppPid               # current text/value
+winapp ui get-property "<slug>" -a $AppPid               # all UIA props (or --property X)
+winapp ui get-focused  -a $AppPid                        # what currently has focus
+winapp ui screenshot   -a $AppPid --output .screenshots\app.png   # then read the PNG back
 ```
 
 Always write screenshots into the repo-root **`.screenshots/`** folder (it's git-ignored) — create
@@ -171,7 +191,7 @@ After an action that triggers loading, navigation, or a dialog, **wait for the r
 sleeping a fixed amount** — it's faster and far less flaky:
 
 ```powershell
-winapp ui wait-for "<slug>" -a "App Template" --timeout 10000    # until it appears / reaches a value
+winapp ui wait-for "<slug>" -a $AppPid --timeout 10000    # until it appears / reaches a value
 ```
 
 #### Worked example — change the theme (a selection-only ComboBox)
@@ -180,12 +200,12 @@ This shows the whole loop, including the common gotcha that `set-value` does **n
 non-editable ComboBox — you expand it and pick the item instead:
 
 ```powershell
-winapp ui invoke "SettingsItem" -a "App Template"          # 1. navigate to Settings
-winapp ui inspect -a "App Template" -i                     # 2. discover the "Theme" combo's slug
-winapp ui invoke "cmb-theme-cd0a" -a "App Template"        # 3. expand it (ExpandCollapsePattern)
-winapp ui search "Dark" -a "App Template"                  # 4. find the item; note "Dark" is ambiguous
-winapp ui invoke "itm-dark-e7bf" -a "App Template"         # 5. select it by its exact slug
-winapp ui get-value "cmb-theme-cd0a" -a "App Template"     # 6. verify -> "Dark"
+winapp ui invoke "SettingsItem" -a $AppPid          # 1. navigate to Settings
+winapp ui inspect -a $AppPid -i                     # 2. discover the "Theme" combo's slug
+winapp ui invoke "cmb-theme-cd0a" -a $AppPid        # 3. expand it (ExpandCollapsePattern)
+winapp ui search "Dark" -a $AppPid                  # 4. find the item; note "Dark" is ambiguous
+winapp ui invoke "itm-dark-e7bf" -a $AppPid         # 5. select it by its exact slug
+winapp ui get-value "cmb-theme-cd0a" -a $AppPid     # 6. verify -> "Dark"
 ```
 
 > The slugs above (`cmb-theme-cd0a`, `itm-dark-e7bf`) are illustrative — always read the current
@@ -194,9 +214,14 @@ winapp ui get-value "cmb-theme-cd0a" -a "App Template"     # 6. verify -> "Dark"
 ### 5. Clean up
 
 ```powershell
-Get-Process AppTemplate -ErrorAction SilentlyContinue | Stop-Process -Force
+Stop-Process -Id $AppPid -Force -ErrorAction SilentlyContinue
 winapp unregister --manifest "$out\AppxManifest.xml"
 ```
+
+Stop the **PID**, not the process name. `Get-Process AppTemplate | Stop-Process` is machine-wide and
+kills every worktree's app, not just yours — `AssemblyName` is `AppTemplate` in all of them.
+`winapp unregister` is correctly scoped, because it reads the identity out of the generated
+manifest in `$out`.
 
 `winapp unregister` only removes development-mode registrations (it's a no-op otherwise, which is
 safe). Skip the manual stop if you launched with `--unregister-on-exit` and the app has closed.
@@ -207,7 +232,10 @@ safe). Skip the manual stop if you launched with `--unregister-on-exit` and the 
   directory also persists between calls, so prefer absolute paths over `cd`.
 - **`--exe AppTemplate.exe`:** the output folder contains both `AppTemplate.exe` and
   `RestartAgent.exe`; `winapp run` needs the disambiguation.
-- **`-a` matches the window title** (`App Template`), not the manifest DisplayName.
+- **`-a` takes a process name, window title, or PID — always give it the PID.** Window titles are
+  not unique across worktrees, and `winapp` lists candidates instead of guessing when ambiguous.
+- **Don't hardcode the package identity or window title.** Both vary per worktree; read
+  `ApplicationId` from MSBuild and the PID from `winapp run --json`.
 - **`-f` on `dotnet run` is mandatory** — otherwise you get the WebAssembly head.
 - **Don't background with `Start-Job`** — use `winapp run --detach`.
 - Run `winapp <command> --help` (e.g. `winapp run --help`, `winapp ui --help`) for the full,
@@ -215,7 +243,8 @@ safe). Skip the manual stop if you launched with `--unregister-on-exit` and the 
 
 ## Reference
 
-- Background notes & verification log: `docs/winui-run-notes.md`.
+- Per-worktree identity (why the id, title and PID all vary):
+  [`docs/worktree-identity.md`](../../../docs/worktree-identity.md).
 - dotnet run for packaged apps:
   https://devblogs.microsoft.com/ifdef-windows/introducing-dotnet-new-templates-for-winui/
 - Windows App Development CLI v0.3 (`run` + `ui`):

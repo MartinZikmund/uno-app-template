@@ -40,17 +40,19 @@ reference (PowerShell; the WinUI TFM is the `*-windows*` entry in
 dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100 -c Debug
 
 # 2. Launch packaged + detached (returns AUMID + PID; stays non-blocking so you can automate)
-$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"   # run from the repo root
-winapp run $out --exe AppTemplate.exe --detach --json
+$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"   # run from the worktree you mean
+$app = winapp run $out --exe AppTemplate.exe --detach --json | ConvertFrom-Json
+$AppPid = $app.ProcessId
 
-# 3. Automate the live window (-a is the window TITLE, "App Template")
+# 3. Automate the live window. Target the PID, never the window title: identity AND title vary
+#    per git worktree, so a title match is ambiguous with two builds running.
 #    Workflow: inspect (find a slug) -> act (invoke/click/set-value) -> verify (get-value/wait-for).
-winapp ui inspect    -a "App Template"                                    # discover element slugs
-winapp ui invoke     "SettingsItem" -a "App Template"                     # press by slug or text
-winapp ui screenshot -a "App Template" --output .screenshots\app.png      # -> repo-root .screenshots/ (git-ignored)
+winapp ui inspect    -a $AppPid                                    # discover element slugs
+winapp ui invoke     "SettingsItem" -a $AppPid                     # press by slug or text
+winapp ui screenshot -a $AppPid --output .screenshots\app.png      # -> repo-root .screenshots/ (git-ignored)
 
-# 4. Clean up
-Get-Process AppTemplate -ErrorAction SilentlyContinue | Stop-Process -Force
+# 4. Clean up (stop the PID: Get-Process AppTemplate is machine-wide and kills other worktrees)
+Stop-Process -Id $AppPid -Force -ErrorAction SilentlyContinue
 winapp unregister --manifest "$out\AppxManifest.xml"
 ```
 
@@ -59,6 +61,11 @@ AppTemplate.exe` disambiguates from the co-located `RestartAgent.exe`; `-f <winu
 mandatory on `dotnet run` (without it you get the WebAssembly head); don't background the app with
 PowerShell `Start-Job` (it doesn't survive across tool calls) — `winapp run --detach` is the right
 primitive. Requires the `winapp` CLI (`winget install Microsoft.WinAppCli`).
+
+**Don't hardcode the package id or window title.** A build from a git worktree gets its own
+identity (`…apptemplate.dev.wt…`) and its own window title so two worktrees can run side by side —
+see [docs/worktree-identity.md](docs/worktree-identity.md). Read `ApplicationId` from MSBuild and
+the PID from `winapp run --json`.
 
 ## Testing new features in the running app
 

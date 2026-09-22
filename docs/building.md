@@ -47,17 +47,26 @@ CLI (`winget install Microsoft.WinAppCli`):
 
 ```powershell
 $out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"
-winapp run $out --exe AppTemplate.exe --detach --json      # returns AUMID + PID, non-blocking
+$app = winapp run $out --exe AppTemplate.exe --detach --json | ConvertFrom-Json   # non-blocking
+$AppPid = $app.ProcessId
 
-winapp ui inspect    -a "App Template"                     # discover element slugs
-winapp ui screenshot -a "App Template" --output .screenshots\app.png
+winapp ui inspect    -a $AppPid                            # discover element slugs
+winapp ui screenshot -a $AppPid --output .screenshots\app.png
 
-Get-Process AppTemplate -ErrorAction SilentlyContinue | Stop-Process -Force
+Stop-Process -Id $AppPid -Force -ErrorAction SilentlyContinue
 winapp unregister --manifest "$out\AppxManifest.xml"
 ```
 
-`--exe AppTemplate.exe` disambiguates from the co-located `RestartAgent.exe`. The full command set
-and its gotchas live in `.claude/skills/run-winui-app/SKILL.md`.
+`--exe AppTemplate.exe` disambiguates from the co-located `RestartAgent.exe`.
+
+Target the **PID**, not the window title, and stop the PID rather than the process name. Both
+matter once you use worktrees: a worktree build carries its own package identity and window title,
+while `AssemblyName` stays `AppTemplate` everywhere — so `Get-Process AppTemplate | Stop-Process`
+kills every worktree's app. See [worktree-identity.md](./worktree-identity.md).
+
+The full command set and its gotchas live in
+[`.claude/skills/run-winui-app/SKILL.md`](../.claude/skills/run-winui-app/SKILL.md) — that file is
+canonical; this is a summary.
 
 ## Tests
 
