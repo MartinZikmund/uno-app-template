@@ -27,7 +27,8 @@ middle of the logo. Centred on the axis, a mask only ever lifts it straight up, 
 
 A Dev build made on CI (`CI=true`, as GitHub Actions sets it, or `ContinuousIntegrationBuild=true`) reads **CI** in a
 blue (`#0078D4`) pill with white lettering instead, so a staging deployment such as the WebAssembly site is never
-mistaken for a local build. Prod builds get no badge either way.
+mistaken for a local build. The in-app title-bar badge (`DevChannelBadge`) follows suit: it reads "CI" in the same blue,
+through `AppEnvironment.IsCiBuild`, which the build sets whenever the icon's label is CI. Prod builds get no badge either way.
 
 The worktree name is deliberately **not** on the icon: at taskbar sizes it would be 1–3px tall. Worktrees show their name
 as text instead. See [worktree-identity.md](./worktree-identity.md).
