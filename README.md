@@ -65,7 +65,9 @@ clearer than debugging a script that half-worked.
 
 7. **Delete what you don't need.** Sample views, the Czech resources, the rating service — none of
    it is load-bearing. Removing a service means deleting its files and its registration in
-   `App.RegisterServices`.
+   `App.RegisterServices`. Delete `tests/Template.SelfTests` (and its `/Template/` folder in
+   `src/AppTemplate.slnx`) and `.github/workflows/template-selftest.yml` too: they test the
+   template's own build machinery, not your app.
 
 ### If you're a coding agent
 

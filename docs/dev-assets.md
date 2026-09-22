@@ -7,7 +7,7 @@ There is no Dev artwork to draw, commit, or keep in sync.
 ## What you see
 
 The badge copies the in-app `DevChannelBadge` from the title bar: a gold (`#FFB900`) pill with dark "DEV" lettering,
-24% of the image tall, in the top-right corner.
+28% of the image tall, in the top-right corner.
 
 | Where | Dev build |
 |---|---|
@@ -72,13 +72,14 @@ A cosmetic badge never fails the build.
 ## Verifying
 
 ```powershell
-dotnet test tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj --filter "FullyQualifiedName~DevAssets"
+dotnet test tests/Template.SelfTests/Template.SelfTests.csproj
 pwsh scripts/verify-dev-assets.ps1                   # desktop head
 pwsh scripts/verify-dev-assets.ps1 -IncludeAndroid   # adds D5; needs the Android workload
 ```
 
-On the template repository, [`template-selftest.yml`](../.github/workflows/template-selftest.yml) runs both whenever the
-Dev asset files or the artwork change.
+The unit tests live in `tests/Template.SelfTests`, the template's own test project. On the template repository,
+[`template-selftest.yml`](../.github/workflows/template-selftest.yml) runs both whenever the Dev asset files or the artwork
+change. Apps created from the template delete both; `src/DevAssets.*` keeps working without them.
 
 | # | Guarantee |
 |---|---|

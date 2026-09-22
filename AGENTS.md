@@ -89,7 +89,9 @@ dotnet test tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj
 ```
 
 Logic worth testing lives in **`AppTemplate.Core`** (view models, services, navigation) and belongs
-under **`AppTemplate.Core.Tests`** — keep testable code there so it stays head-independent.
+under **`AppTemplate.Core.Tests`** — keep testable code there so it stays head-independent. Tests of the
+template's own build machinery go in **`tests/Template.SelfTests`** instead, because apps delete that project
+(see `.claude/rules/testing.md`).
 
 ## Working style
 

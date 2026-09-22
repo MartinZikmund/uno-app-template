@@ -5,6 +5,7 @@ description: How to write and run tests in this template
 # Testing
 
 - Tests live in **`AppTemplate.Core.Tests`** (MSTest on **Microsoft.Testing.Platform**, `net10.0`). Keep testable logic in `AppTemplate.Core` so it can be covered without a UI head.
+- **Tests of the template's own machinery** (build targets and tasks such as `src/DevAssets.*`, repo scripts) go in **`tests/Template.SelfTests`**, never in `AppTemplate.Core.Tests`. Apps created from the template copy `AppTemplate.Core.Tests` and delete `Template.SelfTests`, so a template-only test in the former becomes dead weight in every app.
 - **TDD:** write a failing test first, watch it fail, then implement until it passes.
 
 ## Running
