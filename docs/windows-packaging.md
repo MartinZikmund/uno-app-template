@@ -21,7 +21,7 @@ a 0.x preview and bundling only appeared in 0.3.2.
 
 ```powershell
 winapp package ./publish/x64 ./publish/arm64 `
-  --manifest <generated Package.appxmanifest> `
+  --manifest <final AppxManifest.xml> `
   --exe AppTemplate.exe `
   --output AppTemplate_<version>.msixbundle
 ```
@@ -89,15 +89,40 @@ Output paths — note that the publish layout does **not** pick up the platform 
 
 ```
 src/AppTemplate/bin/Release/<tfm>/<rid>/publish/                     the layout
-src/AppTemplate/obj/[<Platform>/]Release/<tfm>/<rid>/unoresizetizer/m/Package.appxmanifest
+src/AppTemplate/bin/[<Platform>/]Release/<tfm>/<rid>/AppxManifest.xml   the final manifest
 ```
 
 The workflow locates the manifest with a `find` rather than assuming, because the
 `<Platform>` segment appears only for some architectures.
 
-That second path is the **generated** manifest — the one carrying the real identity and
-version. The checked-in `src/AppTemplate/Package.appxmanifest` is a template pinned to
-`Version="0.0.0.0"`; never pass it to `winapp package`.
+That second path is MSBuild's **final** manifest. It carries the real identity and version,
+and it is the only one that declares the `Microsoft.WindowsAppRuntime` framework dependency
+the package needs (see [Package size](#package-size)). `winapp` does not add that dependency
+itself, and it still sets each package's architecture from its executable. Don't pass Uno's
+intermediate `obj/…/unoresizetizer/m/Package.appxmanifest`, which lacks it, or the checked-in
+`src/AppTemplate/Package.appxmanifest`, a template pinned to `Version="0.0.0.0"`.
+
+## Package size
+
+The x64 package is 49.5 MB installed (187.7 MB before this setup), and an x64 + ARM64 bundle
+is a 43.8 MB download.
+
+- **Framework-dependent Windows App SDK.** Uno.Sdk sets `WindowsAppSDKSelfContained=true`
+  ([unoplatform/uno#24578](https://github.com/unoplatform/uno/issues/24578)), which bundles
+  the whole runtime into every architecture's package. The app sets it back to `false`, the
+  Windows App SDK default; the Store installs `Microsoft.WindowsAppRuntime.1.x` itself.
+- **Partial trimming.** The publish profiles turn trimming on; `TrimMode=partial` trims the
+  framework but not the app, because full trimming strips what XAML reaches through WinRT
+  (markup extensions, converters, `{Binding}` sources). Reflection-based JSON is still off in
+  a trimmed build, so serialize through source-generated metadata
+  ([json-aot-serialization.md](./json-aot-serialization.md)).
+- **Workarounds in `src/Directory.Build.targets`**, each linked to its Uno issue:
+  - `DropUnusedSkiaNative` drops `libSkiaSharp.dll` and its 80 MB native PDB, which
+    `Uno.WinUI.Graphics2DSK` brings in although nothing draws with Skia on Windows
+    ([unoplatform/uno#24576](https://github.com/unoplatform/uno/issues/24576)).
+  - `SaveNuGetUnoWinUIReferences` / `RestoreNuGetUnoWinUIReferences` undo Uno.WinUI's swap to
+    its net9 `Uno.UI.Toolkit.dll`, which skips the trimmer and crashes the trimmed app at
+    startup ([unoplatform/uno#24577](https://github.com/unoplatform/uno/issues/24577)).
 
 ## Signing
 
