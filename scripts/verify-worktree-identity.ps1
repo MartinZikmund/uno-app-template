@@ -8,7 +8,10 @@
     linked git worktree. Both guarantees are easy to break by moving a Condition, so they
     are asserted here rather than trusted. See docs/worktree-identity.md.
 
-    Safe to run from the main checkout: there the "in a worktree" assertions are skipped.
+    Runs in CI on the template repository only (.github/workflows/template-selftest.yml), from
+    the clone and from a throwaway linked worktree. Run it by hand after touching
+    WorktreeIdentity.props/.targets. From the main checkout the worktree-only assertions are
+    skipped.
 
 .EXAMPLE
     pwsh scripts/verify-worktree-identity.ps1
@@ -22,6 +25,15 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $repoRoot
+
+# MSBuild reads environment variables as properties, so a runner's ambient CI=true would switch the
+# identity off for every assertion: the clone checks would pass vacuously and the worktree ones fail.
+# The CI gate is still covered - I3 passes it explicitly with -p:.
+$ambientCiVars = @{}
+foreach ($name in 'CI', 'ContinuousIntegrationBuild') {
+    $ambientCiVars[$name] = [Environment]::GetEnvironmentVariable($name)
+    [Environment]::SetEnvironmentVariable($name, $null)
+}
 
 $script:failures = 0
 
@@ -133,5 +145,8 @@ try {
     Write-Host 'All worktree identity invariants hold.' -ForegroundColor Green
 }
 finally {
+    foreach ($name in $ambientCiVars.Keys) {
+        [Environment]::SetEnvironmentVariable($name, $ambientCiVars[$name])
+    }
     Pop-Location
 }
