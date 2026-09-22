@@ -40,7 +40,7 @@ public sealed class DevBadgeComposeTests
 
         (Number(rect, "x") + Number(rect, "width")).Should().BeApproximately(50, 1e-3);
         Number(rect, "y").Should().Be(0);
-        Number(rect, "height").Should().BeApproximately(12, 1e-3);
+        Number(rect, "height").Should().BeApproximately(14, 1e-3);
         rect.Attribute("fill")!.Value.Should().Be(DevBadge.Fill);
     }
 
@@ -63,7 +63,7 @@ public sealed class DevBadgeComposeTests
         XElement result = XElement.Parse(DevBadge.Compose(svg, DevBadgeMask.None, 1, out _));
 
         result.Attribute("viewBox")!.Value.Should().Be("0 0 200 100");
-        Number(Badge(result).Element(Svg + "rect")!, "height").Should().BeApproximately(24, 1e-3);
+        Number(Badge(result).Element(Svg + "rect")!, "height").Should().BeApproximately(28, 1e-3);
     }
 
     [TestMethod]

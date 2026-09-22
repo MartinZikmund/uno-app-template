@@ -51,12 +51,13 @@ public sealed class BadgeBox(double x, double y, double width, double height, do
 /// <summary>Stamps the Dev-channel badge onto an SVG.</summary>
 public static class DevBadge
 {
-    // The in-app DevChannelBadge (Padding 6,2, 10px SemiBold text, CornerRadius 4, ~17.3px tall) scaled to 24% of
+    // The in-app DevChannelBadge (Padding 6,2, 10px SemiBold text, CornerRadius 4, ~17.3px tall) scaled to 28% of
     // the image. Fractions of the image's shorter side.
-    public const double HeightRatio = 0.24;
-    public const double CornerRadiusRatio = 0.0552;
-    public const double PaddingRatio = 0.085;
-    public const double TextSizeRatio = 0.1392;
+    public const double HeightRatio = 0.28;
+    public const double CornerRadiusRatio = HeightRatio * 4 / InAppHeight;
+    public const double PaddingRatio = HeightRatio * 6 / InAppHeight;
+    public const double TextSizeRatio = HeightRatio * 10 / InAppHeight;
+    const double InAppHeight = 17.3;
     public const string Fill = "#FFB900";
     public const string TextFill = "#141414";
 
@@ -66,7 +67,7 @@ public static class DevBadge
     const double IosCornerRatio = 0.2237;
     const double Margin = 0.01;
     const double PullStep = 0.0025;
-    const int MaxPullSteps = 200;
+    const double MaxDiagonalPull = 0.5;
 
     // "DEV" in Selawik Semibold 1.01 (© Microsoft, SIL Open Font License 1.1), as outlines so the badge never depends
     // on the build machine's fonts. Font units, baseline at y = 0, y pointing down.
@@ -91,25 +92,40 @@ public static class DevBadge
         double frameX = viewBoxX + (viewBoxWidth - frame) / 2;
         double frameY = viewBoxY + (viewBoxHeight - frame) / 2;
 
-        // Diagonal pull keeps the badge in its corner as far as the mask allows.
-        double dx = Math.Sign(Math.Round(frameX + frame / 2 - (flush.X + flush.Right) / 2, 9));
-        double dy = Math.Sign(Math.Round(frameY + frame / 2 - (flush.Y + flush.Bottom) / 2, 9));
-        double length = Math.Sqrt(dx * dx + dy * dy);
+        bool Visible(BadgeBox b) => IsVisible(b.Normalize(frameX, frameY, frame), mask, scale);
 
-        BadgeBox badge = flush;
-        for (int step = 0; step <= MaxPullSteps; step++)
+        // Pull diagonally first, which keeps the badge in its corner. If that never clears the mask, head straight for the
+        // centre: a symmetric badge centred in a convex mask fits wherever it can fit at all.
+        double toCentreX = frameX + frame / 2 - (flush.X + flush.Right) / 2;
+        double toCentreY = frameY + frame / 2 - (flush.Y + flush.Bottom) / 2;
+        BadgeBox? placed =
+            Pull(flush, Math.Sign(Math.Round(toCentreX, 9)), Math.Sign(Math.Round(toCentreY, 9)), MaxDiagonalPull * frame, PullStep * frame, Visible)
+            ?? Pull(flush, toCentreX, toCentreY, Distance(toCentreX, toCentreY), PullStep * frame, Visible);
+
+        fits = placed is not null;
+        return placed ?? flush.Offset(toCentreX, toCentreY);
+    }
+
+    // Walks the badge along (dx, dy) in fixed steps, up to maxDistance, and returns the first position shown in full.
+    static BadgeBox? Pull(BadgeBox start, double dx, double dy, double maxDistance, double step, Func<BadgeBox, bool> visible)
+    {
+        double length = Distance(dx, dy);
+        for (int i = 0; i * step <= maxDistance + step / 2; i++)
         {
-            double distance = length == 0 ? 0 : step * PullStep * frame / length;
-            badge = flush.Offset(dx * distance, dy * distance);
-            if (IsVisible(badge.Normalize(frameX, frameY, frame), mask, scale))
+            double distance = length == 0 ? 0 : i * step / length;
+            BadgeBox moved = start.Offset(dx * distance, dy * distance);
+            if (visible(moved))
             {
-                fits = true;
-                return badge;
+                return moved;
+            }
+
+            if (length == 0)
+            {
+                break;
             }
         }
 
-        fits = false;
-        return badge;
+        return null;
     }
 
     /// <summary>Returns <paramref name="svg"/> with the badge drawn on top; the original drawing is nested unchanged.</summary>

@@ -14,8 +14,8 @@ public sealed class DevBadgePlacementTests
         fits.Should().BeTrue();
         badge.Right.Should().BeApproximately(100, 1e-9);
         badge.Y.Should().Be(0);
-        badge.Height.Should().BeApproximately(24, 1e-9);
-        badge.Radius.Should().BeApproximately(5.52, 1e-9);
+        badge.Height.Should().BeApproximately(28, 1e-9);
+        badge.Radius.Should().BeApproximately(28 * 4 / 17.3, 1e-9);
     }
 
     [TestMethod]
@@ -23,8 +23,8 @@ public sealed class DevBadgePlacementTests
     {
         BadgeBox badge = DevBadge.Place(0, 0, 100, 100, DevBadgeMask.None, 1, out _);
 
-        // 13.92 * 3892 / 2048 (the "DEV" advance) + 2 * 8.5
-        badge.Width.Should().BeApproximately(43.4534, 1e-3);
+        // In-app proportions at 28% height: text 28 * 10 / 17.3 em, "DEV" advance 3892 / 2048 em, padding 28 * 6 / 17.3.
+        badge.Width.Should().BeApproximately(50.1798, 1e-3);
     }
 
     [TestMethod]
@@ -34,7 +34,7 @@ public sealed class DevBadgePlacementTests
 
         badge.Right.Should().BeApproximately(110, 1e-9);
         badge.Y.Should().Be(-10);
-        badge.Height.Should().BeApproximately(28.8, 1e-9);
+        badge.Height.Should().BeApproximately(33.6, 1e-9);
     }
 
     [TestMethod]
@@ -42,7 +42,7 @@ public sealed class DevBadgePlacementTests
     {
         BadgeBox badge = DevBadge.Place(0, 0, 200, 100, DevBadgeMask.None, 1, out _);
 
-        badge.Height.Should().BeApproximately(24, 1e-9);
+        badge.Height.Should().BeApproximately(28, 1e-9);
         badge.Right.Should().BeApproximately(200, 1e-9);
     }
 
