@@ -65,4 +65,9 @@
         <Generator>MSBuild:Compile</Generator>
       </Page>
     </ItemGroup>
+    <!-- RevenueCat in-app purchases for the mobile heads only (iOS / Android). -->
+    <ItemGroup Condition="'$(IsAndroid)' == 'true' or '$(IsIOS)' == 'true'">
+        <PackageReference Include="MZikmund.Uno.RevenueCat" />
+    </ItemGroup>
+
 </Project>
