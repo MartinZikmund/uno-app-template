@@ -1,0 +1,59 @@
+<Project>
+
+    <!--
+        Dev-channel icon and splash: the prod artwork with a DEV badge stamped on at build time, so an app only ever
+        supplies prod artwork. Opt out with -p:GenerateDevAssets=false.
+
+        Full documentation: docs/dev-assets.md
+    -->
+
+    <UsingTask TaskName="ComposeDevAsset"
+               TaskFactory="RoslynCodeTaskFactory"
+               AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+        <Task>
+            <Code Type="Class" Language="cs" Source="$(MSBuildThisFileDirectory)DevAssets.Task.cs" />
+        </Task>
+    </UsingTask>
+
+    <!--
+        Evaluation is left alone: Uno.Sdk only creates UnoIcon / UnoSplashScreen when their files exist at evaluation
+        time, which a build-generated file never does. The items are re-pointed here instead, just before Resizetizer
+        collects them.
+
+        Copies land in devassets/<content hash>/<original file name>. The hash because Resizetizer doesn't notice a
+        changed file at an unchanged path; the original name because Resizetizer derives resource names from it.
+    -->
+    <Target Name="GenerateDevAssets"
+            BeforeTargets="UnoResizetizeCollectItems"
+            Condition="'$(AppChannel)' == 'Dev' and '$(GenerateDevAssets)' != 'false'">
+
+        <ComposeDevAsset Condition="'@(UnoIcon)' != ''"
+                         Assets="@(UnoIcon)"
+                         Kind="Icon"
+                         TargetPlatform="$(TargetPlatformIdentifier)"
+                         ProjectDirectory="$(MSBuildProjectDirectory)"
+                         OutputRoot="$(IntermediateOutputPath)devassets">
+            <Output TaskParameter="Result" ItemName="_DevAssetIcon" />
+        </ComposeDevAsset>
+
+        <ComposeDevAsset Condition="'@(UnoSplashScreen)' != ''"
+                         Assets="@(UnoSplashScreen)"
+                         Kind="Splash"
+                         TargetPlatform="$(TargetPlatformIdentifier)"
+                         ProjectDirectory="$(MSBuildProjectDirectory)"
+                         OutputRoot="$(IntermediateOutputPath)devassets">
+            <Output TaskParameter="Result" ItemName="_DevAssetSplash" />
+        </ComposeDevAsset>
+
+        <ItemGroup Condition="'@(_DevAssetIcon)' != ''">
+            <UnoIcon Remove="@(UnoIcon)" />
+            <UnoIcon Include="@(_DevAssetIcon)" />
+        </ItemGroup>
+
+        <ItemGroup Condition="'@(_DevAssetSplash)' != ''">
+            <UnoSplashScreen Remove="@(UnoSplashScreen)" />
+            <UnoSplashScreen Include="@(_DevAssetSplash)" />
+        </ItemGroup>
+    </Target>
+
+</Project>
