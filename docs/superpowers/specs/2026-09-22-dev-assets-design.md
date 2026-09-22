@@ -112,7 +112,7 @@ height is **28% of the image**. All values are percentages of the image's shorte
 | Width | text advance + 2 × padding | from the outline's advance width |
 | Fill | `#FFB900` | reads on dark and light taskbars |
 | Text | `#141414` | |
-| Anchor | top-right corner, flush | before the mask pull (§3.3) |
+| Anchor | bottom-centre, flush | before the mask lift (§3.3); top-right in the first build, see §9 |
 
 **"DEV" is drawn as outlines, not `<text>`.** The label never changes, so pre-drawn paths avoid any dependence on the fonts installed on the
 build machine. The Android and iOS CI runners (Linux, macOS) don't have Segoe UI. The outlines come from **Selawik SemiBold**, Microsoft's
@@ -148,7 +148,7 @@ the rounded corners' real arcs, with a 1% margin.
 | Icon on Windows / Desktop / WASM | `None` | whole canvas: badge stays flush |
 | Icon on Android | `AndroidAdaptive` | circle at the centre, radius `min(50, 50 × (66/108) / ForegroundScale)`: the 66dp safe zone of the 108dp layer, which every launcher mask contains |
 | Icon on iOS | `IosIcon` | canvas minus the corner arcs of a rounded rect with radius 22.37% of the icon, mapped through `ForegroundScale` |
-| Splash on Android | `AndroidSplash` | the Android 12+ splash circle (192dp of the 288dp icon, so ⅓ radius), mapped through the splash `Scale` (verified in the spike) |
+| Splash on Android | `AndroidSplash` | circle of radius 0.484 × the splash drawable, **measured** on a Pixel Tablet (§9), mapped through the splash `Scale` |
 | Splash elsewhere | `None` | whole canvas |
 
 The pull runs diagonally first, which keeps the badge in its corner. If the diagonal never clears the mask, it heads straight for the centre
@@ -281,6 +281,16 @@ How the build differed from §1–§8 and the plan:
   `InvalidateStaleAndroidAppIcons` target records `ForegroundFile|ForegroundScale|AndroidForegroundScale` and, when that changes, clears
   `unoresizetizer/AppIcons/` and `UnoImage.stamp`. It runs on every channel. Verified by D5's switch-back check. `AppleIconAssetsGenerator`
   has the same pattern and is unverified.
+- **Bottom-centre, after testing on a device.** On a Pixel Tablet the top-right badge looked wrong: a corner has to be pulled
+  deep into Android's circular masks, so the pill landed on the middle of the logo. Seven alternatives were compared (corner
+  pull, scaled Windows icon, shrunk logo, bottom and top pills, bottom band, corner sash). Bottom-centre won on every target: a
+  centred badge is only ever lifted straight up, which also removed the diagonal pull and its centre fallback.
+- **The Android splash circle is measured, not derived.** §3.3's `(36/108) / Scale` came from the adaptive-icon proportions and
+  was wrong: a solid red probe splash on the Pixel Tablet (Android 17) showed the drawable rendered at ~191dp and cropped to a
+  circle of radius **0.484 × the drawable**. `AndroidSplashRadius` is that measurement.
+- **CI label.** Dev builds made on CI (`CI=true` or `ContinuousIntegrationBuild=true`) read "CI" in blue `#0078D4` with white text,
+  so a staging deployment is never mistaken for a local build. `BadgeLabel` carries each label's Selawik outline, advance and
+  colours; `-p:DevBadgeLabel=DEV|CI` overrides the default, and anything else warns `DEVASSETS003` and draws DEV.
 - **Template-only test project.** The unit tests live in `tests/Template.SelfTests`, not `AppTemplate.Core.Tests`: apps copy the latter
   and delete the former. The worktree label tests (`SettingsViewModelTests`, the in-app end of worktree identity) moved there too, which
   leaves `AppTemplate.Core.Tests` with `IoCTests`. `.claude/rules/testing.md` now defines a template test as a test of the template's own
