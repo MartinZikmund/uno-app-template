@@ -56,4 +56,35 @@
         </ItemGroup>
     </Target>
 
+    <!--
+        Resizetizer's Android adaptive-icon generator treats its output as up to date whenever it is newer than the
+        foreground FILE, so switching to an older foreground (Dev -> Prod, or back to a reused badged copy) keeps the
+        previous icon. When the foreground or its scale changes, clear that output and the stamp that would skip it.
+        Runs on every channel: the Prod build after a Dev build is exactly the case that needs it.
+    -->
+    <Target Name="InvalidateStaleAndroidAppIcons"
+            BeforeTargets="UnoResizetizeImages"
+            Condition="'$(TargetPlatformIdentifier)' == 'android'">
+        <PropertyGroup>
+            <_AppIconStateFile>$(IntermediateOutputPath)devassets.appicon.state</_AppIconStateFile>
+            <_AppIconState>@(UnoIcon->'%(ForegroundFile)|%(ForegroundScale)|%(AndroidForegroundScale)')</_AppIconState>
+            <_PreviousAppIconState />
+        </PropertyGroup>
+
+        <ReadLinesFromFile File="$(_AppIconStateFile)" Condition="Exists('$(_AppIconStateFile)')">
+            <Output TaskParameter="Lines" PropertyName="_PreviousAppIconState" />
+        </ReadLinesFromFile>
+
+        <RemoveDir Directories="$(_UnoIntermediateAppIcon)"
+                   Condition="'$(_PreviousAppIconState)' != '$(_AppIconState)' and '$(_UnoIntermediateAppIcon)' != ''" />
+        <Delete Files="$(_UnoResizetizerStampFile)"
+                Condition="'$(_PreviousAppIconState)' != '$(_AppIconState)' and '$(_UnoResizetizerStampFile)' != ''" />
+
+        <WriteLinesToFile File="$(_AppIconStateFile)" Lines="$(_AppIconState)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+
+        <ItemGroup>
+            <FileWrites Include="$(_AppIconStateFile)" />
+        </ItemGroup>
+    </Target>
+
 </Project>
