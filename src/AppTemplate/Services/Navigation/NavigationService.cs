@@ -27,6 +27,8 @@ public sealed class NavigationService : INavigationService
 
     public NavigationSection? CurrentSection { get; private set; }
 
+    public event EventHandler? CanGoBackChanged;
+
     public void Initialize()
     {
         _initialized = true;
@@ -65,6 +67,8 @@ public sealed class NavigationService : INavigationService
 #if HAS_UNO
 		UpdateBackRequestedSubscription();
 #endif
+
+        CanGoBackChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public bool GoBack()
@@ -93,6 +97,8 @@ public sealed class NavigationService : INavigationService
 		UpdateBackRequestedSubscription();
 #endif
 
+        CanGoBackChanged?.Invoke(this, EventArgs.Empty);
+
         return true;
     }
 
@@ -102,6 +108,11 @@ public sealed class NavigationService : INavigationService
 #if HAS_UNO
 		UpdateBackRequestedSubscription();
 #endif
+
+        // Frame.Navigated (which drives the shell's CanGoBack refresh) can fire
+        // during Frame.Navigate, before this back-stack clear runs — so re-notify
+        // explicitly or the back button can be left stale (enabled but inert).
+        CanGoBackChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private static NavigationInfoAttribute? GetNavigationInfo(Type viewType)

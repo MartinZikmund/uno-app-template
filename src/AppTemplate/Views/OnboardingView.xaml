@@ -1,0 +1,125 @@
+﻿<local:OnboardingViewBase
+    x:Class="AppTemplate.Views.OnboardingView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AppTemplate.Views"
+    xmlns:markup="using:AppTemplate.Markup"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid Padding="24" RowSpacing="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  Slides  -->
+        <FlipView Grid.Row="0" SelectedIndex="{x:Bind ViewModel.CurrentPageIndex, Mode=TwoWay}">
+
+            <!--  Welcome slide  -->
+            <FlipViewItem>
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="16">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        FontSize="72"
+                        Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                        Glyph="&#xE80F;" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Style="{ThemeResource TitleLargeTextBlockStyle}"
+                        Text="{markup:Localize Key=OnboardingWelcomeTitle}" />
+                    <TextBlock
+                        MaxWidth="480"
+                        HorizontalAlignment="Center"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{markup:Localize Key=OnboardingWelcomeDescription}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </FlipViewItem>
+
+            <!--  Feature highlight slide  -->
+            <FlipViewItem>
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="16">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        FontSize="72"
+                        Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                        Glyph="&#xE734;" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Style="{ThemeResource TitleLargeTextBlockStyle}"
+                        Text="{markup:Localize Key=OnboardingFeaturesTitle}" />
+                    <TextBlock
+                        MaxWidth="480"
+                        HorizontalAlignment="Center"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{markup:Localize Key=OnboardingFeaturesDescription}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </FlipViewItem>
+
+            <!--  Get started slide  -->
+            <FlipViewItem>
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="16">
+                    <FontIcon
+                        HorizontalAlignment="Center"
+                        FontSize="72"
+                        Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                        Glyph="&#xE930;" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Style="{ThemeResource TitleLargeTextBlockStyle}"
+                        Text="{markup:Localize Key=OnboardingReadyTitle}" />
+                    <TextBlock
+                        MaxWidth="480"
+                        HorizontalAlignment="Center"
+                        Style="{ThemeResource BodyTextBlockStyle}"
+                        Text="{markup:Localize Key=OnboardingReadyDescription}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </FlipViewItem>
+        </FlipView>
+
+        <!--  Page indicator  -->
+        <PipsPager
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            NumberOfPages="{x:Bind ViewModel.PageCount}"
+            SelectedPageIndex="{x:Bind ViewModel.CurrentPageIndex, Mode=TwoWay}" />
+
+        <!--  Actions  -->
+        <Grid Grid.Row="2">
+            <Button
+                HorizontalAlignment="Left"
+                Command="{x:Bind ViewModel.SkipCommand}"
+                Content="{markup:Localize Key=OnboardingSkip}"
+                Visibility="{x:Bind ViewModel.IsNotOnLastPage, Mode=OneWay}" />
+
+            <Button
+                HorizontalAlignment="Right"
+                Command="{x:Bind ViewModel.NextCommand}"
+                Content="{markup:Localize Key=OnboardingNext}"
+                Style="{ThemeResource AccentButtonStyle}"
+                Visibility="{x:Bind ViewModel.IsNotOnLastPage, Mode=OneWay}" />
+
+            <Button
+                HorizontalAlignment="Right"
+                Command="{x:Bind ViewModel.GetStartedCommand}"
+                Content="{markup:Localize Key=OnboardingGetStarted}"
+                Style="{ThemeResource AccentButtonStyle}"
+                Visibility="{x:Bind ViewModel.IsOnLastPage, Mode=OneWay}" />
+        </Grid>
+    </Grid>
+</local:OnboardingViewBase>
