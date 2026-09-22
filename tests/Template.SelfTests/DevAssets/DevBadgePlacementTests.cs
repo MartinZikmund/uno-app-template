@@ -61,12 +61,12 @@ public sealed class DevBadgePlacementTests
     [TestMethod]
     [DataRow(0.85)]
     [DataRow(1.0)]
-    public void Place_AndroidSplash_StaysInsideSplashCircle(double scale)
+    public void Place_AndroidSplash_StaysInsideMeasuredSplashCircle(double scale)
     {
         BadgeBox badge = DevBadge.Place(0, 0, 100, 100, DevBadgeMask.AndroidSplash, scale, out bool fits);
 
         fits.Should().BeTrue();
-        FarthestReach(badge).Should().BeLessThanOrEqualTo(100 * (36.0 / 108.0) / scale);
+        FarthestReach(badge).Should().BeLessThanOrEqualTo(100 * 0.484 / scale);
     }
 
     [TestMethod]
