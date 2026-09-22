@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Localization;
 
-namespace AppTemplate.Core.Tests.Fakes;
+namespace Template.SelfTests.Fakes;
 
 /// <summary>
 /// Localizer whose table the test supplies. An unknown key resolves to the key itself, which

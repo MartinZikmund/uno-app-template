@@ -1,8 +1,9 @@
 <Project Sdk="MSTest.Sdk">
 
   <!--
-    Tests for the TEMPLATE's own build machinery, not for the app. Apps created from the template delete this project
-    along with .github/workflows/template-selftest.yml. App tests belong in AppTemplate.Core.Tests.
+    Tests for the TEMPLATE's own dev tooling (Dev assets, worktree identity), not for the app. Apps created from the
+    template delete this project along with .github/workflows/template-selftest.yml. App tests belong in
+    AppTemplate.Core.Tests.
   -->
 
   <PropertyGroup>
@@ -11,6 +12,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <!-- The worktree label on the About page (SettingsViewModel.WorktreeLabel). -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AppTemplate.Core\AppTemplate.Core.csproj" />
+  </ItemGroup>
 
   <!-- The Dev-asset composer is an MSBuild inline task (src/DevAssets.targets); compile the same source to test it. -->
   <ItemGroup>

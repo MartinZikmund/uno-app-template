@@ -14,6 +14,7 @@ on:
       - "src/AppTemplate/Assets/Icons/**"
       - "src/AppTemplate/Assets/Splash/**"
       - "tests/Template.SelfTests/**"
+      - "src/AppTemplate.Core/**"
       - "scripts/verify-dev-assets.ps1"
       - "src/Directory.Build.props"
       - "src/Directory.Build.targets"
@@ -34,6 +35,7 @@ on:
       - "src/AppTemplate/Assets/Icons/**"
       - "src/AppTemplate/Assets/Splash/**"
       - "tests/Template.SelfTests/**"
+      - "src/AppTemplate.Core/**"
       - "scripts/verify-dev-assets.ps1"
       - "src/Directory.Build.props"
       - "src/Directory.Build.targets"
@@ -80,6 +82,23 @@ jobs:
           git worktree add --detach $wt
           & (Join-Path $wt 'scripts/verify-worktree-identity.ps1')
 
+  self_tests:
+    name: Template self-tests
+    if: github.repository == 'MartinZikmund/uno-app-template'
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Unit tests
+        shell: pwsh
+        run: dotnet test tests/Template.SelfTests/Template.SelfTests.csproj
+
   dev_assets:
     name: Dev icon and splash badge
     if: github.repository == 'MartinZikmund/uno-app-template'
@@ -94,10 +113,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-
-      - name: Unit tests
-        shell: pwsh
-        run: dotnet test tests/Template.SelfTests/Template.SelfTests.csproj
 
       # Desktop head only: it needs no workload and renders the same icon and splash outputs as the Windows head.
       - name: Verify rendered assets
