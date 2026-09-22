@@ -35,9 +35,7 @@
         <UnoIconBackgroundFile>Assets/Icons/icon_transparent.svg</UnoIconBackgroundFile>
         <UnoIconBackgroundFile Condition="'$(IsIOS)' == 'true' or '$(IsAndroid)' == 'true'">Assets/Icons/icon.svg</UnoIconBackgroundFile>
 
-        <!-- Dev channel: override only the foreground (the logo). This keeps the
-             generated icon resource name stable while giving Dev a distinct look. -->
-        <UnoIconForegroundFile Condition="'$(AppChannel)' == 'Dev'">Assets/Icons/icon_foreground_dev.svg</UnoIconForegroundFile>
+        <!-- Dev builds badge the icon and splash below at build time (src/DevAssets.targets). -->
 
         <UnoIconForegroundScale>1</UnoIconForegroundScale>
         <UnoIconForegroundScale Condition="'$(IsAndroid)' == 'true'">0.6</UnoIconForegroundScale>

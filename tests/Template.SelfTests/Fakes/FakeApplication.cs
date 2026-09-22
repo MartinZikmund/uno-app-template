@@ -1,7 +1,7 @@
 using AppTemplate.Core.Infrastructure;
 using Microsoft.UI.Xaml;
 
-namespace AppTemplate.Core.Tests.Fakes;
+namespace Template.SelfTests.Fakes;
 
 /// <summary>Hand-written <see cref="IApplication"/> stand-in; no DI container or UI head needed.</summary>
 internal sealed class FakeApplication : IApplication
