@@ -10,6 +10,9 @@
 
 **Spec:** [`docs/superpowers/specs/2026-09-22-dev-assets-design.md`](../specs/2026-09-22-dev-assets-design.md). Read §2, §3 and §7.1 (spike results) before starting.
 
+> **Executed 2026-09-22.** Where the build diverged from this plan (28% badge, centre fallback, Android stale-icon guard, the
+> `Template.SelfTests` project, MSBuild 18.9.6, the desktop splash path), the spec's §9 records what and why. This plan is kept as written.
+
 ## Global Constraints
 
 - Badge: top-right, height 24% of the image's shorter side, corner radius 5.52%, horizontal padding 8.5%, text size 13.92%; fill `#FFB900`, text `#141414`.

@@ -1,7 +1,7 @@
 # Generated Dev-channel icon and splash — design
 
 **Date:** 2026-09-22
-**Status:** Proposed
+**Status:** Implemented (see §9 for what changed on the way)
 **Builds on:** [`2026-05-28-versioning-redesign-design.md`](2026-05-28-versioning-redesign-design.md) (the `AppChannel` model) and
 [`2026-09-06-worktree-identity-design.md`](2026-09-06-worktree-identity-design.md) (the in-app `DevChannelBadge`).
 **Applies to:** `uno-app-template` and every app created from it.
@@ -50,10 +50,10 @@ UnoSplashScreen    = splash.svg        icon_foreground.svg, splash_screen.svg   
    the build could never be named there. Leaving the properties alone sidesteps that entirely.
 2. **`GenerateDevAssets`** runs with `BeforeTargets="UnoResizetizeCollectItems"`. For each of the two items it calls the composer (§3) and gets
    back the path of the badged copy.
-3. It **re-points the items**:
-   - `UnoIcon`: `<UnoIcon Update="@(UnoIcon)" ForegroundFile="…" />`. The item spec (the background) is unchanged.
-   - `UnoSplashScreen`: the item spec *is* the file, so the item is replaced by a transform (`@(UnoSplashScreen->'…')`). A transform keeps the
-     `BaseSize` / `Color` / `Scale` metadata.
+3. It **re-points the items**. The task returns copies of the items with all metadata kept, and the target swaps them in (`Remove`, then
+   `Include`):
+   - `UnoIcon`: only `ForegroundFile` changes. The item spec (the background) stays as it is.
+   - `UnoSplashScreen`: the item spec *is* the file, so the copy gets the new path, with `BaseSize` / `Color` / `Scale` carried over.
 4. Resizetizer runs as it does today.
 
 ### 2.1 Why `<hash>/<original filename>`
@@ -62,7 +62,7 @@ UnoSplashScreen    = splash.svg        icon_foreground.svg, splash_screen.svg   
   (whose item spec for the app icon is the *background*) and `UnoImage.inputs` in its `Inputs`. The inputs file records the foreground's
   **path**, not its timestamp. The default layout only regenerates on a foreground edit by accident, because Uno.Sdk's `Assets/**/*.svg` glob
   also includes the foreground as a plain `UnoImage`. A file under `obj/` gets no such help. A new folder per content hash changes the recorded
-  path, which invalidates the target. (Suspected upstream issue, recorded for filing.)
+  path, which invalidates the target. (Upstream issue, confirmed in the spike and recorded for filing.)
 - **The filename is kept because resource names derive from it.** The splash output name (`uno_splash_image`, the Windows manifest splash
   entry) comes from the splash file name. Keeping `splash_screen.svg` and `icon_foreground.svg` as-is means every generated resource keeps the
   name it has today.
@@ -101,14 +101,14 @@ Visual Studio 18 MSBuild, so the file follows `.claude/rules/code-style.md`. Wha
 ### 3.1 The badge
 
 The badge copies the in-app `DevChannelBadge` (`Padding="6,2"`, 10px SemiBold text, `CornerRadius="4"`, about 17.3px tall), scaled so its
-height is **24% of the image**. All values are percentages of the image's shorter side:
+height is **28% of the image**. All values are percentages of the image's shorter side:
 
 | Property | Value | Derivation |
 |---|---|---|
-| Height | 24 | chosen in the playground |
-| Corner radius | 5.52 | 4 / 17.3 × 24 (≈ 46% of half-height) |
-| Horizontal padding | 8.5 | 6 / 17.3 × 24, rounded |
-| Text size (em) | 13.92 | 10 / 17.3 × 24 (58% of badge height) |
+| Height | 28 | 24 in the playground, enlarged in review |
+| Corner radius | 6.47 | 4 / 17.3 × 28 (≈ 46% of half-height) |
+| Horizontal padding | 9.71 | 6 / 17.3 × 28 |
+| Text size (em) | 16.18 | 10 / 17.3 × 28 (58% of badge height) |
 | Width | text advance + 2 × padding | from the outline's advance width |
 | Fill | `#FFB900` | reads on dark and light taskbars |
 | Text | `#141414` | |
@@ -151,8 +151,8 @@ the rounded corners' real arcs, with a 1% margin.
 | Splash on Android | `AndroidSplash` | the Android 12+ splash circle (192dp of the 288dp icon, so ⅓ radius), mapped through the splash `Scale` (verified in the spike) |
 | Splash elsewhere | `None` | whole canvas |
 
-With today's settings (`UnoIconForegroundScale` 0.6 on Android, 1 elsewhere), the playground measured the pull at **≈ 19.5% on Android** and
-**≈ 8% on iOS**.
+The pull runs diagonally first, which keeps the badge in its corner. If the diagonal never clears the mask, it heads straight for the centre
+instead: a symmetric badge centred in a convex mask fits wherever it can fit at all.
 
 ### 3.4 Determinism
 
@@ -183,7 +183,7 @@ A cosmetic badge must never break a build.
 | `src/Directory.Build.targets` | import `DevAssets.targets` |
 | `src/AppTemplate/AppTemplate.csproj` | remove the Dev `UnoIconForegroundFile` line and its comment |
 | `src/AppTemplate/Assets/Icons/icon_foreground_dev.svg` | **delete** |
-| `tests/AppTemplate.Core.Tests/…` | link `DevAssets.Task.cs`; add `Microsoft.Build.Utilities.Core` (explicit version: tests sit outside CPM); tests under `DevAssets/` |
+| `tests/Template.SelfTests/…` | **new** template-only test project: links `DevAssets.Task.cs`, references `Microsoft.Build.Utilities.Core` (explicit version: tests sit outside CPM); listed in `src/AppTemplate.slnx` under `/Template/` |
 | `scripts/verify-dev-assets.ps1` | **new**: build-level checks (§6.2) |
 | `.github/workflows/template-selftest.yml` | run the new script when the DevAssets files change |
 | `docs/dev-assets.md` | **new**: what you see, how it works, opting out |
@@ -196,7 +196,7 @@ A cosmetic badge must never break a build.
 
 ## 6. Testing
 
-### 6.1 Unit tests (TDD, `AppTemplate.Core.Tests/DevAssets/`)
+### 6.1 Unit tests (TDD, `tests/Template.SelfTests/DevAssets/`)
 
 Written first. They cover:
 
@@ -265,3 +265,28 @@ All four were run against real builds of this repo (Uno.Sdk 6.7.0-dev.64, Uno.Re
 - **At 16–24px the word "DEV" is illegible.** The gold corner still marks the build as Dev, the way a notification dot would. That's accepted,
   not a defect.
 - **A badged hand-made Dev icon.** If an app sets its own Dev `UnoIconForegroundFile` without opting out, it gets badged too (§2.3).
+
+---
+
+## 9. Implementation notes (2026-09-22)
+
+How the build differed from §1–§8 and the plan:
+
+- **Bigger badge.** Review raised the height from 24% to **28%**. Padding, corner radius and text size are now derived from the in-app
+  badge's proportions (`HeightRatio * 4 / 17.3`, etc.) rather than stored as rounded constants, so they scale together.
+- **Centre fallback for the pull.** At 28% the badge is half the icon wide, and along the diagonal alone it can't clear the Android
+  splash circle at `Scale` 1.0 (the value you get by dropping the template's `UnoSplashScreenScale`). §3.3 now describes the fallback.
+- **Second Resizetizer staleness bug.** `AndroidAdaptiveIconGenerator` skips work when its output is newer than the foreground **file**,
+  ignoring `UnoImage.inputs`. Switching to an older foreground (Dev → Prod, or back to a reused hash folder) kept the old icon. The new
+  `InvalidateStaleAndroidAppIcons` target records `ForegroundFile|ForegroundScale|AndroidForegroundScale` and, when that changes, clears
+  `unoresizetizer/AppIcons/` and `UnoImage.stamp`. It runs on every channel. Verified by D5's switch-back check. `AppleIconAssetsGenerator`
+  has the same pattern and is unverified.
+- **Template-only test project.** The unit tests live in `tests/Template.SelfTests`, not `AppTemplate.Core.Tests`: apps copy the latter
+  and delete the former. `.claude/rules/testing.md` now says so.
+- **`Microsoft.Build.Utilities.Core` 18.9.6**, not 18.10.1: 18.10 dropped `net10.0` (it ships `net11.0` only). Referenced from `net10.0`,
+  it resolved to a reference-only assembly and test discovery failed with `FileNotFoundException`.
+- **Desktop splash path.** The desktop head writes the splash to `unoresizetizer/r/`, not `sp/` like the Windows head. The verify
+  script picks the path per TFM.
+- **Verify script clean start.** Deleting `unoresizetizer/` alone left `UnoImage.stamp` / `Unosplash.stamp`, so Resizetizer rendered
+  nothing. The script removes the stamps too.
+
