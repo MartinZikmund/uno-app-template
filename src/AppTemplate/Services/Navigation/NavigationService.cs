@@ -14,7 +14,9 @@ public sealed class NavigationService : INavigationService
     private readonly IWindowShellProvider _shellProvider;
     private readonly Dictionary<Type, Type> _viewModelToViewMap = new();
     private bool _initialized;
+#if HAS_UNO
     private bool _backRequestedSubscribed;
+#endif
 
     public NavigationService(IWindowShellProvider shellProvider)
     {
@@ -136,13 +138,21 @@ public sealed class NavigationService : INavigationService
             NavigationTransition.DrillIn => new DrillInNavigationTransitionInfo(),
             NavigationTransition.Entrance => new EntranceNavigationTransitionInfo(),
             NavigationTransition.Suppress => new SuppressNavigationTransitionInfo(),
-            _ => new SlideNavigationTransitionInfo
-            {
-                Effect = isForward
-                    ? SlideNavigationTransitionEffect.FromRight
-                    : SlideNavigationTransitionEffect.FromLeft,
-            },
+            _ => CreateSlideTransition(isForward),
         };
+    }
+
+    private static SlideNavigationTransitionInfo CreateSlideTransition(bool isForward)
+    {
+        var info = new SlideNavigationTransitionInfo();
+#if !HAS_UNO
+        // SlideNavigationTransitionInfo.Effect is a no-op outside WinUI (Uno0001), so only the
+        // WinAppSDK head sets it; Uno heads fall back to the default slide.
+        info.Effect = isForward
+            ? SlideNavigationTransitionEffect.FromRight
+            : SlideNavigationTransitionEffect.FromLeft;
+#endif
+        return info;
     }
 
 #if HAS_UNO

@@ -56,6 +56,14 @@
         <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
     </ItemGroup>
 
+    <PropertyGroup Condition="'$(IsWinAppSdk)' == 'true'">
+        <!-- NETSDK1198: the packaged build resolves a per-Platform publish profile (win-$(Platform)).
+             A plain `dotnet build` uses Platform=AnyCPU, for which there is no win-AnyCPU.pubxml; this
+             is harmless when not publishing. Concrete arch profiles (win-x64/x86/arm64) exist under
+             Properties/PublishProfiles for actual MSIX publish. -->
+        <NoWarn>$(NoWarn);NETSDK1198</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup Condition="'$(IsWinAppSdk)' == 'true'">
         <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" PrivateAssets="all" />
     </ItemGroup>
