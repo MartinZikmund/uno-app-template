@@ -3,7 +3,11 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace AppTemplate.Build;
 
@@ -67,6 +71,8 @@ public static class DevBadge
     const double TextAdvance = 3892;
     const string TextPath = "M172 -1433H671Q1034 -1433 1219 -1261Q1404 -1089 1404 -734Q1404 -510 1311 -344Q1218 -179 1048 -90Q879 0 656 0L172 2ZM658 -225Q808 -225 914 -284Q1021 -343 1076 -456Q1132 -568 1132 -728Q1132 -971 1014 -1090Q897 -1210 667 -1209L437 -1207V-225ZM1657 -1434H2452V-1215H1922V-837H2390V-616H1922V-219H2484V0H1657ZM2569 -1433H2857L3191 -380Q3215 -308 3221 -253H3225Q3229 -281 3238 -316Q3248 -350 3259 -383L3603 -1434L3881 -1433L3373 1H3070Z";
 
+    static readonly XNamespace Svg = "http://www.w3.org/2000/svg";
+
     /// <summary>
     /// Returns the badge in viewBox units: flush top-right, then pulled towards the centre until the mask shows all of it.
     /// </summary>
@@ -101,6 +107,114 @@ public static class DevBadge
         fits = false;
         return badge;
     }
+
+    /// <summary>Returns <paramref name="svg"/> with the badge drawn on top; the original drawing is nested unchanged.</summary>
+    /// <exception cref="FormatException">The root isn't &lt;svg&gt; or has no usable viewBox, width or height.</exception>
+    /// <exception cref="XmlException">The SVG isn't well-formed.</exception>
+    public static string Compose(string svg, DevBadgeMask mask, double scale, out bool fits)
+    {
+        XElement original = Load(svg);
+        double[] viewBox = ReadViewBox(original);
+        double x = viewBox[0];
+        double y = viewBox[1];
+        double width = viewBox[2];
+        double height = viewBox[3];
+        BadgeBox badge = Place(x, y, width, height, mask, scale, out fits);
+
+        XElement wrapper = new(Svg + "svg", new XAttribute("viewBox", string.Join(" ", viewBox.Select(v => Format(v)))));
+        foreach (string size in new[] { "width", "height" })
+        {
+            if (original.Attribute(size) is { } attribute)
+            {
+                wrapper.SetAttributeValue(size, attribute.Value);
+            }
+        }
+
+        // With an identical viewBox the original maps 1:1 and keeps its own namespaces, defs and ids.
+        original.SetAttributeValue("x", Format(x));
+        original.SetAttributeValue("y", Format(y));
+        original.SetAttributeValue("width", Format(width));
+        original.SetAttributeValue("height", Format(height));
+        wrapper.Add(original);
+        wrapper.Add(BadgeElement(badge, Math.Min(width, height)));
+        return wrapper.ToString(SaveOptions.DisableFormatting);
+    }
+
+    static XElement BadgeElement(BadgeBox badge, double side)
+    {
+        double glyphScale = TextSizeRatio * side / UnitsPerEm;
+        double textX = badge.X + (badge.Width - TextAdvance * glyphScale) / 2;
+        double baseline = badge.Y + (badge.Height + CapHeight * glyphScale) / 2;
+        return new XElement(Svg + "g",
+            new XAttribute("id", "dev-badge"),
+            new XElement(Svg + "rect",
+                new XAttribute("x", Format(badge.X)),
+                new XAttribute("y", Format(badge.Y)),
+                new XAttribute("width", Format(badge.Width)),
+                new XAttribute("height", Format(badge.Height)),
+                new XAttribute("rx", Format(badge.Radius)),
+                new XAttribute("fill", Fill)),
+            new XElement(Svg + "path",
+                new XAttribute("transform", $"translate({Format(textX)} {Format(baseline)}) scale({Format(glyphScale, "0.#########")})"),
+                new XAttribute("fill", TextFill),
+                new XAttribute("d", TextPath)));
+    }
+
+    static XElement Load(string svg)
+    {
+        XmlReaderSettings settings = new() { DtdProcessing = DtdProcessing.Ignore, XmlResolver = null };
+        using XmlReader reader = XmlReader.Create(new StringReader(svg), settings);
+        XElement root = XDocument.Load(reader).Root ?? throw new FormatException("The SVG has no root element.");
+        if (root.Name.LocalName != "svg")
+        {
+            throw new FormatException($"The root element is <{root.Name.LocalName}>, not <svg>.");
+        }
+
+        // Without this, a nested SVG that omits xmlns serialises as xmlns="" and renderers skip it.
+        foreach (XElement element in root.DescendantsAndSelf().Where(e => e.Name.Namespace == XNamespace.None).ToList())
+        {
+            element.Name = Svg + element.Name.LocalName;
+        }
+
+        return root;
+    }
+
+    static double[] ReadViewBox(XElement root)
+    {
+        string? viewBox = (string?)root.Attribute("viewBox");
+        if (!string.IsNullOrWhiteSpace(viewBox))
+        {
+            double[] parts = viewBox!.Split(new[] { ' ', ',', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(ParseNumber).ToArray();
+            if (parts.Length == 4 && parts[2] > 0 && parts[3] > 0)
+            {
+                return parts;
+            }
+
+            throw new FormatException($"The viewBox '{viewBox}' is not four numbers with a positive size.");
+        }
+
+        return [0, 0, ReadLength(root, "width"), ReadLength(root, "height")];
+    }
+
+    static double ReadLength(XElement root, string name)
+    {
+        string raw = ((string?)root.Attribute(name) ?? "").Trim();
+        if (raw.EndsWith("px", StringComparison.Ordinal))
+        {
+            raw = raw.Substring(0, raw.Length - 2);
+        }
+
+        if (double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) && value > 0)
+        {
+            return value;
+        }
+
+        throw new FormatException($"The SVG has no viewBox and its {name} '{raw}' is not a plain number.");
+    }
+
+    static double ParseNumber(string text) => double.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture);
+
+    static string Format(double value, string pattern = "0.####") => value.ToString(pattern, CultureInfo.InvariantCulture);
 
     /// <summary>Whether a badge, in frame units (0..1), is fully visible through the mask.</summary>
     public static bool IsVisible(BadgeBox badge, DevBadgeMask mask, double scale) => mask switch
