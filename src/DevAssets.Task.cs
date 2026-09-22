@@ -48,6 +48,35 @@ public sealed class BadgeBox(double x, double y, double width, double height, do
         new((X - originX) / size, (Y - originY) / size, Width / size, Height / size, Radius / size);
 }
 
+/// <summary>The badge's text, drawn as outlines, and its colours.</summary>
+public sealed class BadgeLabel(string text, string outline, double advance, string fill, string textFill)
+{
+    // Outlines from Selawik Semibold 1.01 (© Microsoft, SIL Open Font License 1.1), so the badge never depends on the build
+    // machine's fonts. Font units (2048 per em), baseline at y = 0, y pointing down.
+    public static readonly BadgeLabel Dev = new("DEV", "M172 -1433H671Q1034 -1433 1219 -1261Q1404 -1089 1404 -734Q1404 -510 1311 -344Q1218 -179 1048 -90Q879 0 656 0L172 2ZM658 -225Q808 -225 914 -284Q1021 -343 1076 -456Q1132 -568 1132 -728Q1132 -971 1014 -1090Q897 -1210 667 -1209L437 -1207V-225ZM1657 -1434H2452V-1215H1922V-837H2390V-616H1922V-219H2484V0H1657ZM2569 -1433H2857L3191 -380Q3215 -308 3221 -253H3225Q3229 -281 3238 -316Q3248 -350 3259 -383L3603 -1434L3881 -1433L3373 1H3070Z", 3892, "#FFB900", "#141414");
+
+    // CI builds (a staging deployment, say) are labelled in blue so they're never mistaken for a local build.
+    public static readonly BadgeLabel CI = new("CI", "M80 -713Q80 -949 170 -1117Q260 -1285 432 -1372Q604 -1460 846 -1460Q996 -1460 1170 -1416L1101 -1173Q1054 -1189 976 -1199Q897 -1209 832 -1209Q682 -1209 576 -1151Q469 -1093 414 -984Q358 -874 358 -721Q358 -567 406 -457Q455 -347 548 -290Q642 -232 773 -232Q911 -232 1125 -301L1187 -58Q1089 -20 974 0Q860 20 750 20Q538 20 388 -66Q237 -152 158 -316Q80 -481 80 -713ZM1450 -1434H1714V0H1450Z", 1889, "#0078D4", "#FFFFFF");
+
+    public string Text { get; } = text;
+
+    public string Outline { get; } = outline;
+
+    public double Advance { get; } = advance;
+
+    public string Fill { get; } = fill;
+
+    public string TextFill { get; } = textFill;
+
+    /// <summary>"DEV" or "CI" in any case; null for anything else.</summary>
+    public static BadgeLabel? Parse(string? text) => text?.Trim().ToUpperInvariant() switch
+    {
+        "DEV" => Dev,
+        "CI" => CI,
+        _ => null,
+    };
+}
+
 /// <summary>Stamps the Dev-channel badge onto an SVG.</summary>
 public static class DevBadge
 {
@@ -58,8 +87,6 @@ public static class DevBadge
     public const double PaddingRatio = HeightRatio * 6 / InAppHeight;
     public const double TextSizeRatio = HeightRatio * 10 / InAppHeight;
     const double InAppHeight = 17.3;
-    public const string Fill = "#FFB900";
-    public const string TextFill = "#141414";
 
     // Visible regions in frame units: the square the image is fitted into, before ForegroundScale / Scale.
     const double AndroidAdaptiveSafeRadius = 33.0 / 108.0; // 66dp safe zone of the 108dp adaptive layer
@@ -67,25 +94,22 @@ public static class DevBadge
     const double IosCornerRatio = 0.2237;
     const double Margin = 0.01;
     const double PullStep = 0.0025;
-    const double MaxDiagonalPull = 0.5;
 
-    // "DEV" in Selawik Semibold 1.01 (© Microsoft, SIL Open Font License 1.1), as outlines so the badge never depends
-    // on the build machine's fonts. Font units, baseline at y = 0, y pointing down.
+    // Selawik Semibold metrics shared by every BadgeLabel.
     const double UnitsPerEm = 2048;
     const double CapHeight = 1434;
-    const double TextAdvance = 3892;
-    const string TextPath = "M172 -1433H671Q1034 -1433 1219 -1261Q1404 -1089 1404 -734Q1404 -510 1311 -344Q1218 -179 1048 -90Q879 0 656 0L172 2ZM658 -225Q808 -225 914 -284Q1021 -343 1076 -456Q1132 -568 1132 -728Q1132 -971 1014 -1090Q897 -1210 667 -1209L437 -1207V-225ZM1657 -1434H2452V-1215H1922V-837H2390V-616H1922V-219H2484V0H1657ZM2569 -1433H2857L3191 -380Q3215 -308 3221 -253H3225Q3229 -281 3238 -316Q3248 -350 3259 -383L3603 -1434L3881 -1433L3373 1H3070Z";
 
     static readonly XNamespace Svg = "http://www.w3.org/2000/svg";
 
     /// <summary>
-    /// Returns the badge in viewBox units: flush top-right, then pulled towards the centre until the mask shows all of it.
+    /// Returns the badge in viewBox units: flush bottom-centre, then lifted towards the centre until the mask shows all of it.
     /// </summary>
-    public static BadgeBox Place(double viewBoxX, double viewBoxY, double viewBoxWidth, double viewBoxHeight, DevBadgeMask mask, double scale, out bool fits)
+    public static BadgeBox Place(double viewBoxX, double viewBoxY, double viewBoxWidth, double viewBoxHeight, DevBadgeMask mask, double scale, BadgeLabel label, out bool fits)
     {
         double side = Math.Min(viewBoxWidth, viewBoxHeight);
-        double width = (TextSizeRatio * TextAdvance / UnitsPerEm + 2 * PaddingRatio) * side;
-        BadgeBox flush = new(viewBoxX + viewBoxWidth - width, viewBoxY, width, HeightRatio * side, CornerRadiusRatio * side);
+        double width = (TextSizeRatio * label.Advance / UnitsPerEm + 2 * PaddingRatio) * side;
+        double height = HeightRatio * side;
+        BadgeBox flush = new(viewBoxX + (viewBoxWidth - width) / 2, viewBoxY + viewBoxHeight - height, width, height, CornerRadiusRatio * side);
 
         // Resizetizer fits the image into a square canvas and scales it about the centre, so masks live on that square.
         double frame = Math.Max(viewBoxWidth, viewBoxHeight);
@@ -94,13 +118,10 @@ public static class DevBadge
 
         bool Visible(BadgeBox b) => IsVisible(b.Normalize(frameX, frameY, frame), mask, scale);
 
-        // Pull diagonally first, which keeps the badge in its corner. If that never clears the mask, head straight for the
-        // centre: a symmetric badge centred in a convex mask fits wherever it can fit at all.
+        // Centred on the axis, so heading for the centre is a straight lift, and a convex mask holds it wherever it can at all.
         double toCentreX = frameX + frame / 2 - (flush.X + flush.Right) / 2;
         double toCentreY = frameY + frame / 2 - (flush.Y + flush.Bottom) / 2;
-        BadgeBox? placed =
-            Pull(flush, Math.Sign(Math.Round(toCentreX, 9)), Math.Sign(Math.Round(toCentreY, 9)), MaxDiagonalPull * frame, PullStep * frame, Visible)
-            ?? Pull(flush, toCentreX, toCentreY, Distance(toCentreX, toCentreY), PullStep * frame, Visible);
+        BadgeBox? placed = Pull(flush, toCentreX, toCentreY, Distance(toCentreX, toCentreY), PullStep * frame, Visible);
 
         fits = placed is not null;
         return placed ?? flush.Offset(toCentreX, toCentreY);
@@ -131,7 +152,7 @@ public static class DevBadge
     /// <summary>Returns <paramref name="svg"/> with the badge drawn on top; the original drawing is nested unchanged.</summary>
     /// <exception cref="FormatException">The root isn't &lt;svg&gt; or has no usable viewBox, width or height.</exception>
     /// <exception cref="XmlException">The SVG isn't well-formed.</exception>
-    public static string Compose(string svg, DevBadgeMask mask, double scale, out bool fits)
+    public static string Compose(string svg, DevBadgeMask mask, double scale, BadgeLabel label, out bool fits)
     {
         XElement original = Load(svg);
         double[] viewBox = ReadViewBox(original);
@@ -139,7 +160,7 @@ public static class DevBadge
         double y = viewBox[1];
         double width = viewBox[2];
         double height = viewBox[3];
-        BadgeBox badge = Place(x, y, width, height, mask, scale, out fits);
+        BadgeBox badge = Place(x, y, width, height, mask, scale, label, out fits);
 
         XElement wrapper = new(Svg + "svg", new XAttribute("viewBox", string.Join(" ", viewBox.Select(v => Format(v)))));
         foreach (string size in new[] { "width", "height" })
@@ -156,14 +177,14 @@ public static class DevBadge
         original.SetAttributeValue("width", Format(width));
         original.SetAttributeValue("height", Format(height));
         wrapper.Add(original);
-        wrapper.Add(BadgeElement(badge, Math.Min(width, height)));
+        wrapper.Add(BadgeElement(badge, Math.Min(width, height), label));
         return wrapper.ToString(SaveOptions.DisableFormatting);
     }
 
-    static XElement BadgeElement(BadgeBox badge, double side)
+    static XElement BadgeElement(BadgeBox badge, double side, BadgeLabel label)
     {
         double glyphScale = TextSizeRatio * side / UnitsPerEm;
-        double textX = badge.X + (badge.Width - TextAdvance * glyphScale) / 2;
+        double textX = badge.X + (badge.Width - label.Advance * glyphScale) / 2;
         double baseline = badge.Y + (badge.Height + CapHeight * glyphScale) / 2;
         return new XElement(Svg + "g",
             new XAttribute("id", "dev-badge"),
@@ -173,11 +194,11 @@ public static class DevBadge
                 new XAttribute("width", Format(badge.Width)),
                 new XAttribute("height", Format(badge.Height)),
                 new XAttribute("rx", Format(badge.Radius)),
-                new XAttribute("fill", Fill)),
+                new XAttribute("fill", label.Fill)),
             new XElement(Svg + "path",
                 new XAttribute("transform", $"translate({Format(textX)} {Format(baseline)}) scale({Format(glyphScale, "0.#########")})"),
-                new XAttribute("fill", TextFill),
-                new XAttribute("d", TextPath)));
+                new XAttribute("fill", label.TextFill),
+                new XAttribute("d", label.Outline)));
     }
 
     static XElement Load(string svg)
@@ -336,6 +357,9 @@ public sealed class ComposeDevAsset : Microsoft.Build.Utilities.Task
     [Required]
     public string OutputRoot { get; set; } = "";
 
+    /// <summary>"DEV" (default) or "CI".</summary>
+    public string Label { get; set; } = "DEV";
+
     [Output]
     public ITaskItem[] Result { get; set; } = [];
 
@@ -343,11 +367,18 @@ public sealed class ComposeDevAsset : Microsoft.Build.Utilities.Task
     {
         bool isIcon = string.Equals(Kind, "Icon", StringComparison.OrdinalIgnoreCase);
         string root = Path.GetFullPath(Path.Combine(ProjectDirectory, OutputRoot));
-        Result = Assets.Select(asset => Compose(asset, isIcon, root)).ToArray();
+        BadgeLabel? label = BadgeLabel.Parse(Label);
+        if (label is null)
+        {
+            Log.LogWarning(null, "DEVASSETS003", null, null, 0, 0, 0, 0, "Unknown Dev badge label '{0}'; use DEV or CI. Drawing DEV.", Label);
+            label = BadgeLabel.Dev;
+        }
+
+        Result = Assets.Select(asset => Compose(asset, isIcon, root, label)).ToArray();
         return !Log.HasLoggedErrors;
     }
 
-    ITaskItem Compose(ITaskItem asset, bool isIcon, string root)
+    ITaskItem Compose(ITaskItem asset, bool isIcon, string root, BadgeLabel label)
     {
         string file = isIcon ? asset.GetMetadata("ForegroundFile") : asset.ItemSpec;
         if (file.Length == 0)
@@ -366,7 +397,7 @@ public sealed class ComposeDevAsset : Microsoft.Build.Utilities.Task
         bool fits;
         try
         {
-            composed = DevBadge.Compose(File.ReadAllText(source), placement.Mask, placement.Scale, out fits);
+            composed = DevBadge.Compose(File.ReadAllText(source), placement.Mask, placement.Scale, label, out fits);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or XmlException or FormatException)
         {

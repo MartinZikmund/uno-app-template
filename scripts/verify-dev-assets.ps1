@@ -25,10 +25,17 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 Push-Location $repoRoot
 Add-Type -AssemblyName System.Drawing
 
+# MSBuild reads environment variables as properties, so a runner's ambient CI=true would give every build the CI badge.
+# D7 passes it explicitly instead.
+foreach ($name in 'CI', 'ContinuousIntegrationBuild') {
+    [Environment]::SetEnvironmentVariable($name, $null)
+}
+
 $script:failures = 0
 $projectDir = Split-Path -Parent (Join-Path $repoRoot $Project)
 $snapshots = Join-Path ([IO.Path]::GetTempPath()) "verify-dev-assets-$PID"
-$badgeColor = 'FFB900'
+$devColor = 'FFB900'
+$ciColor = '0078D4'
 
 function Get-ObjDir([string]$Tfm) {
     Join-Path $projectDir "obj/Debug/$Tfm"
@@ -62,7 +69,7 @@ function Get-Render {
     [pscustomobject]@{ Files = $copies; Names = $names }
 }
 
-# Pixels that differ between two renders: how many, whether their centroid is top-right, and their commonest colour.
+# Pixels that differ between two renders: how many, whether their centroid is bottom-centre, and their commonest colour.
 function Compare-Render {
     param([string]$Badged, [string]$Plain)
 
@@ -92,9 +99,9 @@ function Compare-Render {
         }
 
         [pscustomobject]@{
-            Changed  = $count
-            TopRight = $count -gt 0 -and ($sumX / $count) -gt ($a.Width / 2) -and ($sumY / $count) -lt ($a.Height / 2)
-            Dominant = $dominant
+            Changed      = $count
+            BottomCentre = $count -gt 0 -and [Math]::Abs($sumX / $count - $a.Width / 2) -lt ($a.Width * 0.1) -and ($sumY / $count) -gt ($a.Height / 2)
+            Dominant     = $dominant
         }
     }
     finally {
@@ -122,8 +129,8 @@ function Test-SameBytes([string]$Left, [string]$Right) {
     (Get-FileHash $Left).Hash -eq (Get-FileHash $Right).Hash
 }
 
-function Test-Badged($Diff) {
-    $Diff.Changed -gt 0 -and $Diff.TopRight -and $Diff.Dominant -eq $badgeColor
+function Test-Badged($Diff, [string]$Color = $devColor) {
+    $Diff.Changed -gt 0 -and $Diff.BottomCentre -and $Diff.Dominant -eq $Color
 }
 
 try {
@@ -146,7 +153,7 @@ try {
 
     foreach ($file in $files) {
         $diff = Compare-Render -Badged $dev.Files[$file] -Plain $plain.Files[$file]
-        Assert-That "D1  Dev badges $file top-right" (Test-Badged $diff) "changed=$($diff.Changed) topRight=$($diff.TopRight) dominant=$($diff.Dominant)"
+        Assert-That "D1  Dev badges $file bottom-centre" (Test-Badged $diff) "changed=$($diff.Changed) bottomCentre=$($diff.BottomCentre) dominant=$($diff.Dominant)"
     }
 
     Assert-That 'D2  Prod writes nothing under devassets' (-not (Test-Path (Join-Path $obj 'devassets')))
@@ -157,6 +164,10 @@ try {
     foreach ($file in $files) {
         Assert-That "D6  GenerateDevAssets=false renders $file exactly like Prod" (Test-SameBytes $plain.Files[$file] $prod.Files[$file])
     }
+
+    $ci = Get-Render -Label 'ci' -Tfm $TargetFramework -MSBuildArgs @('-p:AppChannel=Dev', '-p:CI=true') -Files @($icon)
+    $diff = Compare-Render -Badged $ci.Files[$icon] -Plain $plain.Files[$icon]
+    Assert-That 'D7  A CI build draws the blue CI badge' (Test-Badged $diff $ciColor) "changed=$($diff.Changed) bottomCentre=$($diff.BottomCentre) dominant=$($diff.Dominant)"
 
     # D3: change the foreground in place (a half-transparent veil over everything); an incremental build must re-render.
     New-Item -ItemType Directory -Force $snapshots | Out-Null
@@ -179,7 +190,7 @@ try {
         $androidBack = Get-Render -Label 'android-optout-again' -Tfm 'net10.0-android' -MSBuildArgs @('-p:AppChannel=Dev', '-p:GenerateDevAssets=false') -Files @($foregroundPng)
         $diff = Compare-Render -Badged $androidDev.Files[$foregroundPng] -Plain $androidPlain.Files[$foregroundPng]
         $keepsSplash = (Get-Content -Raw $androidDev.Files[$splashXml]).Contains('@drawable/splash_screen')
-        Assert-That 'D5  Android badges the adaptive icon and keeps @drawable/splash_screen' ((Test-Badged $diff) -and $keepsSplash) "changed=$($diff.Changed) topRight=$($diff.TopRight) dominant=$($diff.Dominant) keepsSplash=$keepsSplash"
+        Assert-That 'D5  Android badges the adaptive icon and keeps @drawable/splash_screen' ((Test-Badged $diff) -and $keepsSplash) "changed=$($diff.Changed) bottomCentre=$($diff.BottomCentre) dominant=$($diff.Dominant) keepsSplash=$keepsSplash"
 
         # Resizetizer's adaptive-icon generator ignores a switch to an older file; InvalidateStaleAndroidAppIcons covers it.
         Assert-That 'D5  Switching Android back to the prod artwork re-renders the plain icon' (Test-SameBytes $androidPlain.Files[$foregroundPng] $androidBack.Files[$foregroundPng])

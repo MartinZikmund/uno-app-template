@@ -7,6 +7,13 @@
         Full documentation: docs/dev-assets.md
     -->
 
+    <!-- CI builds (a staging deployment, say) read "CI" in blue instead of "DEV" in gold, so they're never mistaken for a
+         local build. Preview either locally with -p:DevBadgeLabel=CI or DEV. -->
+    <PropertyGroup>
+        <DevBadgeLabel Condition="'$(DevBadgeLabel)' == '' and ('$(CI)' == 'true' or '$(ContinuousIntegrationBuild)' == 'true')">CI</DevBadgeLabel>
+        <DevBadgeLabel Condition="'$(DevBadgeLabel)' == ''">DEV</DevBadgeLabel>
+    </PropertyGroup>
+
     <UsingTask TaskName="ComposeDevAsset"
                TaskFactory="RoslynCodeTaskFactory"
                AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
@@ -30,6 +37,7 @@
         <ComposeDevAsset Condition="'@(UnoIcon)' != ''"
                          Assets="@(UnoIcon)"
                          Kind="Icon"
+                         Label="$(DevBadgeLabel)"
                          TargetPlatform="$(TargetPlatformIdentifier)"
                          ProjectDirectory="$(MSBuildProjectDirectory)"
                          OutputRoot="$(IntermediateOutputPath)devassets">
@@ -39,6 +47,7 @@
         <ComposeDevAsset Condition="'@(UnoSplashScreen)' != ''"
                          Assets="@(UnoSplashScreen)"
                          Kind="Splash"
+                         Label="$(DevBadgeLabel)"
                          TargetPlatform="$(TargetPlatformIdentifier)"
                          ProjectDirectory="$(MSBuildProjectDirectory)"
                          OutputRoot="$(IntermediateOutputPath)devassets">

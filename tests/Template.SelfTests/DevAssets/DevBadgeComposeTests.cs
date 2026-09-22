@@ -22,7 +22,7 @@ public sealed class DevBadgeComposeTests
     [TestMethod]
     public void Compose_Logo_NestsOriginalWithSameViewBox()
     {
-        XElement result = XElement.Parse(DevBadge.Compose(Logo, DevBadgeMask.None, 1, out _));
+        XElement result = XElement.Parse(DevBadge.Compose(Logo, DevBadgeMask.None, 1, BadgeLabel.Dev, out _));
 
         result.Attribute("viewBox")!.Value.Should().Be("0 0 50 50");
         result.Attribute("width")!.Value.Should().Be("450");
@@ -34,25 +34,36 @@ public sealed class DevBadgeComposeTests
     }
 
     [TestMethod]
-    public void Compose_Logo_DrawsBadgeTopRightInViewBoxUnits()
+    public void Compose_Logo_DrawsBadgeBottomCentreInViewBoxUnits()
     {
-        XElement rect = Badge(DevBadge.Compose(Logo, DevBadgeMask.None, 1, out _)).Element(Svg + "rect")!;
+        XElement rect = Badge(DevBadge.Compose(Logo, DevBadgeMask.None, 1, BadgeLabel.Dev, out _)).Element(Svg + "rect")!;
 
-        (Number(rect, "x") + Number(rect, "width")).Should().BeApproximately(50, 1e-3);
-        Number(rect, "y").Should().Be(0);
+        (Number(rect, "x") + Number(rect, "width") / 2).Should().BeApproximately(25, 1e-3);
+        (Number(rect, "y") + Number(rect, "height")).Should().BeApproximately(50, 1e-3);
         Number(rect, "height").Should().BeApproximately(14, 1e-3);
-        rect.Attribute("fill")!.Value.Should().Be(DevBadge.Fill);
+        rect.Attribute("fill")!.Value.Should().Be(BadgeLabel.Dev.Fill);
     }
 
     [TestMethod]
     public void Compose_Logo_DrawsDevAsOutlinesNotText()
     {
-        XElement badge = Badge(DevBadge.Compose(Logo, DevBadgeMask.None, 1, out _));
+        XElement badge = Badge(DevBadge.Compose(Logo, DevBadgeMask.None, 1, BadgeLabel.Dev, out _));
 
         badge.Descendants(Svg + "text").Should().BeEmpty();
         XElement path = badge.Element(Svg + "path")!;
-        path.Attribute("fill")!.Value.Should().Be(DevBadge.TextFill);
+        path.Attribute("fill")!.Value.Should().Be(BadgeLabel.Dev.TextFill);
         path.Attribute("d")!.Value.Should().StartWith("M172 -1433");
+    }
+
+    [TestMethod]
+    public void Compose_CiLabel_DrawsBlueBadgeWithCiOutlines()
+    {
+        XElement badge = Badge(DevBadge.Compose(Logo, DevBadgeMask.None, 1, BadgeLabel.CI, out _));
+
+        badge.Element(Svg + "rect")!.Attribute("fill")!.Value.Should().Be("#0078D4");
+        XElement path = badge.Element(Svg + "path")!;
+        path.Attribute("fill")!.Value.Should().Be("#FFFFFF");
+        path.Attribute("d")!.Value.Should().StartWith("M80 -713");
     }
 
     [TestMethod]
@@ -60,7 +71,7 @@ public sealed class DevBadgeComposeTests
     {
         const string svg = """<svg xmlns="http://www.w3.org/2000/svg" width="200px" height="100"><rect width="10" height="10" /></svg>""";
 
-        XElement result = XElement.Parse(DevBadge.Compose(svg, DevBadgeMask.None, 1, out _));
+        XElement result = XElement.Parse(DevBadge.Compose(svg, DevBadgeMask.None, 1, BadgeLabel.Dev, out _));
 
         result.Attribute("viewBox")!.Value.Should().Be("0 0 200 100");
         Number(Badge(result).Element(Svg + "rect")!, "height").Should().BeApproximately(28, 1e-3);
@@ -74,7 +85,7 @@ public sealed class DevBadgeComposeTests
     [DataRow("""<html />""")]
     public void Compose_NoUsableSvg_ThrowsFormatException(string svg)
     {
-        Action compose = () => DevBadge.Compose(svg, DevBadgeMask.None, 1, out _);
+        Action compose = () => DevBadge.Compose(svg, DevBadgeMask.None, 1, BadgeLabel.Dev, out _);
 
         compose.Should().Throw<FormatException>();
     }
@@ -82,7 +93,7 @@ public sealed class DevBadgeComposeTests
     [TestMethod]
     public void Compose_MalformedXml_ThrowsXmlException()
     {
-        Action compose = () => DevBadge.Compose("<svg", DevBadgeMask.None, 1, out _);
+        Action compose = () => DevBadge.Compose("<svg", DevBadgeMask.None, 1, BadgeLabel.Dev, out _);
 
         compose.Should().Throw<XmlException>();
     }
@@ -92,7 +103,7 @@ public sealed class DevBadgeComposeTests
     {
         const string svg = """<svg viewBox="0 0 10 10"><rect width="5" height="5" /></svg>""";
 
-        XElement result = XElement.Parse(DevBadge.Compose(svg, DevBadgeMask.None, 1, out _));
+        XElement result = XElement.Parse(DevBadge.Compose(svg, DevBadgeMask.None, 1, BadgeLabel.Dev, out _));
 
         result.DescendantsAndSelf().Should().OnlyContain(e => e.Name.Namespace == Svg);
     }
@@ -102,7 +113,7 @@ public sealed class DevBadgeComposeTests
     {
         const string svg = """<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" />""";
 
-        Action compose = () => DevBadge.Compose(svg, DevBadgeMask.None, 1, out _);
+        Action compose = () => DevBadge.Compose(svg, DevBadgeMask.None, 1, BadgeLabel.Dev, out _);
 
         compose.Should().NotThrow();
     }
@@ -110,8 +121,8 @@ public sealed class DevBadgeComposeTests
     [TestMethod]
     public void Compose_SameInputUnderDifferentCultures_IsIdentical()
     {
-        string english = WithCulture("en-US", () => DevBadge.Compose(Logo, DevBadgeMask.AndroidAdaptive, 0.6, out _));
-        string czech = WithCulture("cs-CZ", () => DevBadge.Compose(Logo, DevBadgeMask.AndroidAdaptive, 0.6, out _));
+        string english = WithCulture("en-US", () => DevBadge.Compose(Logo, DevBadgeMask.AndroidAdaptive, 0.6, BadgeLabel.Dev, out _));
+        string czech = WithCulture("cs-CZ", () => DevBadge.Compose(Logo, DevBadgeMask.AndroidAdaptive, 0.6, BadgeLabel.Dev, out _));
 
         czech.Should().Be(english);
     }
@@ -121,7 +132,7 @@ public sealed class DevBadgeComposeTests
     [DataRow(3.0, false)]
     public void Compose_AndroidAdaptive_ReportsWhetherBadgeFits(double scale, bool expected)
     {
-        DevBadge.Compose(Logo, DevBadgeMask.AndroidAdaptive, scale, out bool fits);
+        DevBadge.Compose(Logo, DevBadgeMask.AndroidAdaptive, scale, BadgeLabel.Dev, out bool fits);
 
         fits.Should().Be(expected);
     }

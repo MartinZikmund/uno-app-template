@@ -1,8 +1,8 @@
 using AppTemplate.Build;
-using Template.SelfTests.Fakes;
 using FluentAssertions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Template.SelfTests.Fakes;
 
 namespace Template.SelfTests.DevAssets;
 
@@ -137,7 +137,37 @@ public sealed class ComposeDevAssetTests
         _engine.Warnings.Should().ContainSingle(w => w.Code == "DEVASSETS002");
     }
 
-    ITaskItem[] Run(string kind, string platform, params ITaskItem[] assets)
+    [TestMethod]
+    public void Execute_NoLabel_DrawsDevBadge()
+    {
+        string badged = Run("Splash", "windows", new TaskItem("Assets/splash_screen.svg")).Single().ItemSpec;
+
+        File.ReadAllText(badged).Should().Contain(BadgeLabel.Dev.Fill);
+    }
+
+    [TestMethod]
+    [DataRow("CI")]
+    [DataRow("ci")]
+    public void Execute_CiLabel_DrawsCiBadge(string label)
+    {
+        string badged = Run("Splash", "windows", label, new TaskItem("Assets/splash_screen.svg")).Single().ItemSpec;
+
+        File.ReadAllText(badged).Should().Contain(BadgeLabel.CI.Fill);
+        _engine.Warnings.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void Execute_UnknownLabel_WarnsAndDrawsDevBadge()
+    {
+        string badged = Run("Splash", "windows", "BETA", new TaskItem("Assets/splash_screen.svg")).Single().ItemSpec;
+
+        _engine.Warnings.Should().ContainSingle(w => w.Code == "DEVASSETS003");
+        File.ReadAllText(badged).Should().Contain(BadgeLabel.Dev.Fill);
+    }
+
+    ITaskItem[] Run(string kind, string platform, params ITaskItem[] assets) => Run(kind, platform, null, assets);
+
+    ITaskItem[] Run(string kind, string platform, string? label, params ITaskItem[] assets)
     {
         ComposeDevAsset task = new()
         {
@@ -148,6 +178,10 @@ public sealed class ComposeDevAssetTests
             ProjectDirectory = _project,
             OutputRoot = Path.Combine("obj", "devassets"),
         };
+        if (label is not null)
+        {
+            task.Label = label;
+        }
 
         task.Execute().Should().BeTrue();
         return task.Result;
