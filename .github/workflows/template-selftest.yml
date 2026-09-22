@@ -88,7 +88,10 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
+      # Full history: the self-tests build AppTemplate.Core, and Nerdbank.GitVersioning needs it to compute the version.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
