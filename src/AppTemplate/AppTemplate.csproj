@@ -60,6 +60,13 @@
         <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" PrivateAssets="all" />
     </ItemGroup>
 
+    <PropertyGroup Condition="'$(IsWinAppSdk)' == 'true'">
+        <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+
+        <!-- Full trimming strips what XAML reaches through WinRT: the Localize extension, converters and {Binding} sources. -->
+        <TrimMode>partial</TrimMode>
+    </PropertyGroup>
+
     <ItemGroup>
       <Page Update="Resources\DataTemplates.xaml">
         <Generator>MSBuild:Compile</Generator>
