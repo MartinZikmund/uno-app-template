@@ -93,9 +93,10 @@ from worktree identity, which is local-only.
 One C# file, `src/DevAssets.Task.cs`, holds a pure composer plus a thin MSBuild task wrapper. `src/DevAssets.targets` loads it through
 `RoslynCodeTaskFactory` (`<Code Type="Class" Source="DevAssets.Task.cs" />`). The test project compiles the same file (§6).
 
-`RoslynCodeTaskFactory` compiles against `netstandard2.0` under Visual Studio's .NET Framework MSBuild, so this file is **conservative C#**:
-no file-scoped namespace, no collection expressions, no records. That's a deliberate exception to `.claude/rules/code-style.md`, noted in a
-one-line comment at the top of the file.
+`RoslynCodeTaskFactory` has no implicit usings and compiles against `netstandard2.0` under Visual Studio's .NET Framework MSBuild. Modern
+*syntax* (file-scoped namespace, primary constructors, collection expressions, patterns) was verified to compile under both the .NET SDK and
+Visual Studio 18 MSBuild, so the file follows `.claude/rules/code-style.md`. What it can't use is **runtime** surface: explicit usings only,
+`netstandard2.0` APIs only (no `Math.Clamp`, ranges, `SHA256.HashData`), and no records or `init` accessors (`IsExternalInit`).
 
 ### 3.1 The badge
 
@@ -217,11 +218,14 @@ Written in the same style as `verify-worktree-identity.ps1`. It checks:
 | # | Guarantee |
 |---|---|
 | D1 | A Dev build of the Windows head produces badged icon and splash PNGs (pixel sample in the top-right is `#FFB900`) |
-| D2 | A Prod build creates no `devassets` folder, and its icon and splash PNGs are byte-identical to a Dev build with `GenerateDevAssets=false` (the artwork is untouched; only identity differs) |
+| D2 | A Prod build writes nothing under `devassets` |
 | D3 | Editing the prod `icon_foreground.svg` regenerates the Dev icon on an **incremental** build |
 | D4 | The generated resource names match a `GenerateDevAssets=false` build (no renamed PNGs, manifest entries unchanged) |
 | D5 | The Android head builds and still resolves `@mipmap/icon` and `@drawable/uno_splash_image` |
-| D6 | `-p:GenerateDevAssets=false` on the Dev channel yields the prod artwork |
+| D6 | `-p:GenerateDevAssets=false` on the Dev channel renders PNGs byte-identical to a Prod build |
+
+D1–D4 and D6 run on the `net10.0-desktop` head (no workload, so they run in CI). It emits the same `icon_transparentLogo.*` and
+`sp/splash_screen.*` outputs as the Windows head. D5 is opt-in (`-IncludeAndroid`).
 
 ### 6.3 Seeing it
 
@@ -240,6 +244,17 @@ These are risks that can't be settled by reading. They go first in the plan, as 
 3. **Hash-folder invalidation**: does a new `<hash>` folder re-run `UnoResizetizeImages` on an incremental build? (This also settles whether the
    suspected upstream issue in §2.1 is real.)
 4. **Android splash geometry**: how Resizetizer applies `UnoSplashScreenScale` to `uno_splash_image`, so the `AndroidSplash` circle maps correctly.
+
+### 7.1 Spike results (2026-09-22)
+
+All four were run against real builds of this repo (Uno.Sdk 6.7.0-dev.64, Uno.Resizetizer 1.13.0-dev.17) with a temporary target.
+
+| # | Result |
+|---|---|
+| 1 | **Nested `<svg>` renders correctly** on Windows and Android: logo intact, badge top-right. The §3.2 fallback is not needed. |
+| 2 | **The item rewrite is respected.** An `<UnoIcon><ForegroundFile>` modification and a transform-replaced `UnoSplashScreen` reach the output. Names are unchanged: `icon_transparentLogo.*`, `sp/splash_screen.*`, `@mipmap/icon`, `@drawable/splash_screen`. On Android the target ran in **three** project instances, each evaluated fresh, so the task must publish atomically and must never badge a file it already generated. |
+| 3 | **A new hash folder re-renders on an incremental build; an in-place edit does not.** This confirms the suspected upstream issue: `UnoResizetizeImages` doesn't track a foreground outside the `Assets` glob. The hash folder is required. |
+| 4 | **Android splash geometry (read from the Resizetizer source):** `uno_splash_image` (v31) is a 108dp item with the bitmap at `gravity=fill`, and the SVG is drawn at `Scale` about the centre. Android shows the middle 72dp as a circle, so in frame units the circle radius is `(36/108) / Scale`. Resizetizer lets platform metadata override the shared value (`AndroidForegroundScale` over `ForegroundScale`, `AndroidScale` over `Scale`, etc.), and the task mirrors that. |
 
 ---
 
