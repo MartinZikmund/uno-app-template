@@ -9,6 +9,12 @@ on:
     paths:
       - "src/WorktreeIdentity.props"
       - "src/WorktreeIdentity.targets"
+      - "src/DevAssets.targets"
+      - "src/DevAssets.Task.cs"
+      - "src/AppTemplate/Assets/Icons/**"
+      - "src/AppTemplate/Assets/Splash/**"
+      - "tests/AppTemplate.Core.Tests/DevAssets/**"
+      - "scripts/verify-dev-assets.ps1"
       - "src/Directory.Build.props"
       - "src/Directory.Build.targets"
       - "src/AppTemplate/AppTemplate.csproj"
@@ -23,6 +29,12 @@ on:
     paths:
       - "src/WorktreeIdentity.props"
       - "src/WorktreeIdentity.targets"
+      - "src/DevAssets.targets"
+      - "src/DevAssets.Task.cs"
+      - "src/AppTemplate/Assets/Icons/**"
+      - "src/AppTemplate/Assets/Splash/**"
+      - "tests/AppTemplate.Core.Tests/DevAssets/**"
+      - "scripts/verify-dev-assets.ps1"
       - "src/Directory.Build.props"
       - "src/Directory.Build.targets"
       - "src/AppTemplate/AppTemplate.csproj"
@@ -67,3 +79,27 @@ jobs:
           $wt = Join-Path $env:RUNNER_TEMP 'selftest-wt'
           git worktree add --detach $wt
           & (Join-Path $wt 'scripts/verify-worktree-identity.ps1')
+
+  dev_assets:
+    name: Dev icon and splash badge
+    if: github.repository == 'MartinZikmund/uno-app-template'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Unit tests
+        shell: pwsh
+        run: dotnet test tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj --filter "FullyQualifiedName~DevAssets"
+
+      # Desktop head only: it needs no workload and renders the same icon and splash outputs as the Windows head.
+      - name: Verify rendered assets
+        shell: pwsh
+        run: ./scripts/verify-dev-assets.ps1
