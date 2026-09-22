@@ -17,7 +17,7 @@ Copy it, rename it, delete what you don't need.
 | **DI with the guardrails on** | Scope validation enabled, so a captive dependency fails at startup instead of in production. Per-window scopes for window-bound services. |
 | **Services already wired** | Theming, preferences, dialogs and confirmations, app rating, share, launcher, display-request, and app-update checks. |
 | **Localization from the start** | `{markup:Localize Key=...}` in XAML, `IStringLocalizer` in code, English and Czech resources included. |
-| **Side-by-side Dev builds** | Nerdbank.GitVersioning with Dev and Prod channels that install alongside each other, distinct icons included. See [docs/versioning.md](./docs/versioning.md). Each git worktree gets its own identity too, so two can run at once — see [docs/worktree-identity.md](./docs/worktree-identity.md). |
+| **Side-by-side Dev builds** | Nerdbank.GitVersioning with Dev and Prod channels that install alongside each other, with a DEV badge generated onto your icon and splash ([docs/dev-assets.md](./docs/dev-assets.md)). See [docs/versioning.md](./docs/versioning.md). Each git worktree gets its own identity too, so two can run at once — see [docs/worktree-identity.md](./docs/worktree-identity.md). |
 | **CI that packages** | Build and smoke-test workflows plus Windows, Android, iOS packaging and WebAssembly deployment. XAML formatting is enforced on every PR — see [docs/xaml-styler.md](./docs/xaml-styler.md). |
 | **Written for coding agents** | [`AGENTS.md`](./AGENTS.md) and [`.claude/rules/`](./.claude/rules/) carry the conventions an agent needs before it writes a line. |
 
@@ -54,6 +54,8 @@ clearer than debugging a script that half-worked.
    `src/AppTemplate/Assets/Splash`. Keep `icon_transparent.svg` and `icon.svg` as the background
    filenames unless you also update the `UnoIcon*` properties — the generated Android
    `@mipmap/icon` resource name is derived from them.
+   Dev builds badge them automatically, so there's no Dev variant to draw. See
+   [docs/dev-assets.md](./docs/dev-assets.md).
 
 5. **Reset the version.** `version.json` starts at `0.1`. Set it to whatever your first release
    should be; git height supplies the rest.
