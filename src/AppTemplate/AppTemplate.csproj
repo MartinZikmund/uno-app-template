@@ -16,6 +16,13 @@
         <Description>AppTemplate by Martin Zikmund</Description>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <!-- App Store ITMS-90068: uploads need MinimumOSVersion 15.0+. Drop on Uno.Sdk 7 (new default). -->
+        <SupportedOSPlatformVersion Condition="'$(IsIOS)' == 'true'">15.0</SupportedOSPlatformVersion>
+        <!-- Google Play automatic protection needs API 24+. Drop on Uno.Sdk 7 (new default). -->
+        <SupportedOSPlatformVersion Condition="'$(IsAndroid)' == 'true'">24.0</SupportedOSPlatformVersion>
+    </PropertyGroup>
+
     <!-- Channel-specific identity. See docs/versioning.md. -->
     <PropertyGroup Condition="'$(AppChannel)' == 'Prod'">
         <ApplicationTitle>App Template</ApplicationTitle>
