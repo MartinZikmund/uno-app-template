@@ -12,6 +12,7 @@ One page per topic. Keep it that way — see [`.claude/rules/docs.md`](../.claud
 ## Architecture
 
 - [json-aot-serialization.md](./json-aot-serialization.md) — `JsonSerializerContext` conventions for AOT-safe, trim-safe JSON serialization.
+- [theming.md](./theming.md) — colour tokens (Light/Dark/HighContrast), the accent override, the type ramp and the bundled font.
 - [views.md](./views.md) — `ViewBase<TViewModel>`, `IViewBase`, and how views resolve their view models.
 
 ## Release

@@ -8,6 +8,7 @@ Detailed, auto-loaded conventions live in **`.claude/rules/`** — read them bef
 `code-style.md` (language, naming, `WarningsAsErrors`, Central Package Management),
 `architecture.md` (Core/head split, MVVM, DI, navigation, localization, "how to add a page"),
 `testing.md` (MSTest/MTP, run command, fakes + FluentAssertions), `git.md` (commits, branches, versioning),
+`theming.md` (no hardcoded colours - theme tokens, HighContrast, type ramp),
 and `docs.md` (feature docs go in `docs/<topic>.md` — **never** appended to `README.md`).
 
 ## Skills & external resources
