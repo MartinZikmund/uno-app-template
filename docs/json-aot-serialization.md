@@ -78,3 +78,13 @@ JsonSerializerOptions options = new()
     TypeInfoResolver = AppTemplateJsonContext.Default,
 };
 ```
+
+## Catching reflection-based JSON in tests
+
+`tests/AppTemplate.Core.Tests` sets
+`<JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>`,
+so it behaves like a trimmed app: a `JsonSerializer` call without a context from
+`AppTemplateJsonContext` throws `InvalidOperationException` in the unit tests instead of
+shipping broken. If a test fails with that message, route the call through the context
+(see above) rather than turning the switch back on. CI runs these tests on every PR; see
+[building.md](./building.md).
