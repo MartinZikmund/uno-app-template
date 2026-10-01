@@ -1,15 +1,77 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--
+        Colour tokens. Re-skin the app here; views only ever reference the App* brushes
+        below (or stock WinUI theme brushes), never colour literals. See docs/theming.md.
+    -->
+
+    <!--  Brand ramp: the one place to change the palette. Dark1 must clear 4.5:1 on white, Light2 on black.  -->
+    <Color x:Key="AppBrandColor">#0078D4</Color>
+    <Color x:Key="AppBrandColorLight1">#0093F9</Color>
+    <Color x:Key="AppBrandColorLight2">#60CCFE</Color>
+    <Color x:Key="AppBrandColorLight3">#98ECFE</Color>
+    <Color x:Key="AppBrandColorDark1">#005EB7</Color>
+    <Color x:Key="AppBrandColorDark2">#003D92</Color>
+    <Color x:Key="AppBrandColorDark3">#001968</Color>
+
+    <!--
+        Replacing the user's accent with the brand ramp lets stock controls (buttons, toggles,
+        selection indicators, focus) pick up the palette without restyling each one.
+        Delete this block to follow the user's Windows accent colour instead.
+    -->
+    <StaticResource x:Key="SystemAccentColor" ResourceKey="AppBrandColor" />
+    <StaticResource x:Key="SystemAccentColorLight1" ResourceKey="AppBrandColorLight1" />
+    <StaticResource x:Key="SystemAccentColorLight2" ResourceKey="AppBrandColorLight2" />
+    <StaticResource x:Key="SystemAccentColorLight3" ResourceKey="AppBrandColorLight3" />
+    <StaticResource x:Key="SystemAccentColorDark1" ResourceKey="AppBrandColorDark1" />
+    <StaticResource x:Key="SystemAccentColorDark2" ResourceKey="AppBrandColorDark2" />
+    <StaticResource x:Key="SystemAccentColorDark3" ResourceKey="AppBrandColorDark3" />
+
+    <!--  Keep the keys and their order identical across all three dictionaries.  -->
     <ResourceDictionary.ThemeDictionaries>
-        <ResourceDictionary x:Key="Default">
-            <Color x:Key="BrandColor">#005FB8</Color>
-            <SolidColorBrush x:Key="BrandBrush" Color="{StaticResource BrandColor}" />
-            <SolidColorBrush x:Key="AppOverlayBackgroundBrush" Color="#44000000" />
-        </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
-            <Color x:Key="BrandColor">#005FB8</Color>
-            <SolidColorBrush x:Key="BrandBrush" Color="{StaticResource BrandColor}" />
+            <!--  Brand fill (icons, highlights) and text drawn on top of it  -->
+            <SolidColorBrush x:Key="AppBrandBrush" Color="{StaticResource AppBrandColorDark1}" />
+            <StaticResource x:Key="AppOnBrandBrush" ResourceKey="TextOnAccentFillColorPrimaryBrush" />
+            <!--  Brand-coloured text on the page background  -->
+            <SolidColorBrush x:Key="AppBrandTextBrush" Color="{StaticResource AppBrandColorDark2}" />
+
+            <StaticResource x:Key="AppSurfaceBrush" ResourceKey="CardBackgroundFillColorDefaultBrush" />
+            <StaticResource x:Key="AppSurfaceStrokeBrush" ResourceKey="CardStrokeColorDefaultBrush" />
+            <StaticResource x:Key="AppTextSecondaryBrush" ResourceKey="TextFillColorSecondaryBrush" />
             <SolidColorBrush x:Key="AppOverlayBackgroundBrush" Color="#44FFFFFF" />
+
+            <Thickness x:Key="AppSurfaceBorderThickness">1</Thickness>
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="AppBrandBrush" Color="{StaticResource AppBrandColorLight2}" />
+            <StaticResource x:Key="AppOnBrandBrush" ResourceKey="TextOnAccentFillColorPrimaryBrush" />
+            <SolidColorBrush x:Key="AppBrandTextBrush" Color="{StaticResource AppBrandColorLight3}" />
+
+            <StaticResource x:Key="AppSurfaceBrush" ResourceKey="CardBackgroundFillColorDefaultBrush" />
+            <StaticResource x:Key="AppSurfaceStrokeBrush" ResourceKey="CardStrokeColorDefaultBrush" />
+            <StaticResource x:Key="AppTextSecondaryBrush" ResourceKey="TextFillColorSecondaryBrush" />
+            <SolidColorBrush x:Key="AppOverlayBackgroundBrush" Color="#44000000" />
+
+            <Thickness x:Key="AppSurfaceBorderThickness">1</Thickness>
+        </ResourceDictionary>
+
+        <!--
+            Contrast themes: only the user's SystemColor* brushes, used in their documented pairs.
+            No brand colours, no accent, no opacity.
+        -->
+        <ResourceDictionary x:Key="HighContrast">
+            <SolidColorBrush x:Key="AppBrandBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="AppOnBrandBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="AppBrandTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+
+            <SolidColorBrush x:Key="AppSurfaceBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="AppSurfaceStrokeBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="AppOverlayBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+
+            <Thickness x:Key="AppSurfaceBorderThickness">2</Thickness>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
