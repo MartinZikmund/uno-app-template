@@ -42,6 +42,8 @@ public sealed partial class WindowShell : Page, IWindowShell
 
         InnerFrame.Navigated += InnerFrame_Navigated;
         Loading += WindowShell_Loading;
+        Loaded += (_, _) => UpdateStatusBarForeground();
+        ActualThemeChanged += (_, _) => UpdateStatusBarForeground();
 
         UpdateWindowTitle();
     }
@@ -125,6 +127,15 @@ public sealed partial class WindowShell : Page, IWindowShell
             _currentPageViewModel.PropertyChanged -= PageViewModel_PropertyChanged;
             _currentPageViewModel = null;
         }
+    }
+
+    // The Android theme asks for dark status bar icons, which vanish against the dark theme.
+    private void UpdateStatusBarForeground()
+    {
+#if __ANDROID__
+        Windows.UI.ViewManagement.StatusBar.GetForCurrentView().ForegroundColor =
+            ActualTheme == ElementTheme.Dark ? Microsoft.UI.Colors.White : Microsoft.UI.Colors.Black;
+#endif
     }
 
     private void WindowShell_Loading(FrameworkElement sender, object args)
