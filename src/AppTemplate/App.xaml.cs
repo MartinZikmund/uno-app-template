@@ -1,5 +1,6 @@
 using AppTemplate.Core.Infrastructure;
 using AppTemplate.Core.Services;
+using AppTemplate.Core.Services.Tips;
 using AppTemplate.Core.ViewModels;
 using AppTemplate.Infrastructure;
 using AppTemplate.Services.Dialogs;
@@ -97,6 +98,7 @@ public partial class App : Application, IApplication
         services.AddSingleton<IApplication>(sp => Current);
         services.AddSingleton<MZikmund.Toolkit.WinUI.Services.IPreferences, Preferences>();
         services.AddSingleton<IAppPreferences, AppPreferences>();
+        services.AddSingleton<ITipService, TipService>();
         services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
         services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();
         services.AddScoped<IAppRatingService, AppRatingService>();
