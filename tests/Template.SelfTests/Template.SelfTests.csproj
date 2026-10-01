@@ -1,0 +1,40 @@
+<Project Sdk="MSTest.Sdk">
+
+  <!--
+    Tests for the TEMPLATE's own dev tooling (Dev assets, worktree identity), not for the app. Apps created from the
+    template delete this project along with .github/workflows/template-selftest.yml. App tests belong in
+    AppTemplate.Core.Tests.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- The worktree label on the About page (SettingsViewModel.WorktreeLabel). -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AppTemplate.Core\AppTemplate.Core.csproj" />
+  </ItemGroup>
+
+  <!-- The Dev-asset composer is an MSBuild inline task (src/DevAssets.targets); compile the same source to test it. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\DevAssets.Task.cs" Link="DevAssets\DevAssets.Task.cs" />
+  </ItemGroup>
+
+  <!-- Versions match tests/AppTemplate.Core.Tests (tests live outside the CPM scope). -->
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="8.7.1" />
+    <!-- 18.9.x: the last MSBuild line that ships a net10.0 build (18.10 moved to net11.0). -->
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.9.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="Microsoft.Testing.Extensions.CodeCoverage" Version="18.7.0" />
+    <PackageReference Update="Microsoft.Testing.Extensions.TrxReport" Version="2.2.3" />
+    <PackageReference Update="MSTest.TestAdapter" Version="4.2.3" />
+    <PackageReference Update="MSTest.TestFramework" Version="4.2.3" />
+  </ItemGroup>
+
+</Project>

@@ -1,8 +1,8 @@
-using AppTemplate.Core.Tests.Fakes;
+using Template.SelfTests.Fakes;
 using AppTemplate.Core.ViewModels;
 using FluentAssertions;
 
-namespace AppTemplate.Core.Tests.ViewModels;
+namespace Template.SelfTests.WorktreeIdentity;
 
 [TestClass]
 public class SettingsViewModelTests
