@@ -85,3 +85,13 @@ The runner is MSTest on Microsoft.Testing.Platform, not VSTest — VSTest-only f
 A `dotnet build` or `dotnet test` that stops producing output while MSBuild processes linger is
 usually the local node-reuse deadlock. Re-run with `MSBUILDDISABLENODEREUSE=1` set. Don't pass
 `-nodeReuse:false` to `dotnet test` — it silently runs zero tests.
+
+## Android: Debug builds hide a missing INTERNET permission
+
+.NET adds `INTERNET` to **Debug** Android builds so the debugger can connect. Networking therefore
+works while you develop and fails only in Release, with
+`java.lang.SecurityException: Permission denied (missing INTERNET permission?)`.
+
+The template declares it in `src/AppTemplate/Platforms/Android/AndroidManifest.xml` (it ships
+`HttpRefit` and `AppUpdater`), and a test in `AppTemplate.Core.Tests` keeps it there. A fully
+offline app can remove both the permission and the test.
