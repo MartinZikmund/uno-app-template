@@ -23,7 +23,7 @@
                 <!--  Page header  -->
                 <TextBlock
                     Margin="0,0,0,16"
-                    Style="{ThemeResource TitleLargeTextBlockStyle}"
+                    Style="{StaticResource AppTitleLargeTextBlockStyle}"
                     Text="{x:Bind ViewModel.PageTitle, Mode=OneWay}" />
 
                 <!--  General section  -->
@@ -53,8 +53,7 @@
                         <TextBlock HorizontalAlignment="Right" Text="{x:Bind ViewModel.AppVersion}" />
                         <TextBlock
                             HorizontalAlignment="Right"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Style="{StaticResource AppCaptionTextBlockStyle}"
                             Text="{x:Bind ViewModel.WorktreeLabel}"
                             Visibility="{x:Bind ViewModel.WorktreeLabel, Converter={StaticResource StringVisibilityConverter}}" />
                     </StackPanel>
