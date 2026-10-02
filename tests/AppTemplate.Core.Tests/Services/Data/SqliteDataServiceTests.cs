@@ -51,6 +51,20 @@ public class SqliteDataServiceTests
     }
 
     [TestMethod]
+    [DataRow("", 1.0)]
+    [DataRow("  ", 1.0)]
+    [DataRow("t", -1.0)]
+    [DataRow("t", double.NaN)]
+    [DataRow("t", double.PositiveInfinity)]
+    public async Task SaveEntryAsync_InvalidEntry_Throws(string title, double mass)
+    {
+        Func<Task> act = () => _service.SaveEntryAsync(new() { Date = new(2026, 1, 1), Title = title, MassKilograms = mass });
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        (await _service.GetEntriesAsync()).Should().BeEmpty();
+    }
+
+    [TestMethod]
     public async Task DeleteEntryAsync_RemovesOnlyThatEntry()
     {
         int keep = await _service.SaveEntryAsync(new() { Date = new(2026, 1, 1), Title = "Keep" });

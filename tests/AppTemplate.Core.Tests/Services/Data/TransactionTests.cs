@@ -71,7 +71,7 @@ public class TransactionTests
 
         await bodyStarted.Task;
         // A write from another flow, e.g. the UI saving while an import is running.
-        Task unrelated = Task.Run(() => _service.SaveEntryAsync(Entry("unrelated")));
+        Task unrelated = _service.SaveEntryAsync(Entry("unrelated"));
         await Task.Delay(100);
         unrelated.IsCompleted.Should().BeFalse("it must wait for the transaction instead of joining it");
 

@@ -104,6 +104,7 @@ public class BackupServiceTests
     [DataRow("not json")]
     [DataRow("null")]
     [DataRow("[]")]
+    [DataRow("""{ "version": 1 }""")]
     public async Task ImportAsync_Malformed_FailsAsInvalidFormat(string json) =>
         (await CreateService().ImportAsync(json)).Error.Should().Be(BackupImportError.InvalidFormat);
 
