@@ -48,6 +48,9 @@
 
         <UnoIconForegroundScale>1</UnoIconForegroundScale>
         <UnoIconForegroundScale Condition="'$(IsAndroid)' == 'true'">0.6</UnoIconForegroundScale>
+        <!-- The App Store rejects a transparent icon (ITMS-90717), so iOS sits on the opaque plate. 0.8 leaves
+             a clear margin of it, so it reads as a tile rather than a stray rim. See docs/app-icon.md. -->
+        <UnoIconForegroundScale Condition="'$(IsIOS)' == 'true'">0.8</UnoIconForegroundScale>
         <UnoSplashScreenScale>0.85</UnoSplashScreenScale>
     </PropertyGroup>
 
@@ -72,4 +75,6 @@
         <Generator>MSBuild:Compile</Generator>
       </Page>
     </ItemGroup>
+
+    <Import Project="Platforms\Windows\PackageAssets.targets" />
 </Project>

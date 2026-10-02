@@ -9,7 +9,6 @@
    inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
@@ -31,21 +30,6 @@
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="g149" />
-  <defs
-     id="defs105">
-    <path
-       id="aj28a0fd1a"
-       d="M 1.738,0.156 3.927,2.323 2.347,3.919 0.101,1.81 Z" />
-    <path
-       id="fdje57jgic"
-       d="M 2.201,0.066 3.855,1.703 1.69,3.894 0.093,2.311 Z" />
-    <path
-       id="6bg72xwlze"
-       d="M 2.398,0.044 3.994,1.624 1.886,3.869 0.232,2.232 Z" />
-    <path
-       id="eaqjnja8wg"
-       d="M 1.736,0.023 3.981,2.132 2.344,3.786 0.156,1.619 Z" />
-  </defs>
   <g
      fill="none"
      fill-rule="evenodd"
@@ -71,66 +55,6 @@
            fill="#67e5ad"
            d="m 26.32,49.827 c -1.925,0 -4.114,-0.886 -6.557,-3.33 l -3.588,-3.54 C 9.167,35.949 9.151,32.546 16.086,25.61 l 6.802,-6.872 2.193,2.162 -6.812,6.882 c -3.076,3.076 -4.273,4.877 -4.276,6.427 -0.003,1.568 1.258,3.47 4.352,6.563 l 3.588,3.541 c 3.646,3.647 5.858,2.816 8.666,0.008 l 0.034,-0.033 c 1.654,-1.555 3.5,-3.46 4.593,-5.437 1.661,-0.14 2.9,-0.841 3.835,-1.438 -0.8,3.537 -3.738,6.69 -6.302,9.102 -1.62,1.618 -3.777,3.312 -6.439,3.312"
            id="path113" />
-        <g
-           transform="translate(21.154,18.577)"
-           id="g120">
-          <mask
-             id="8jptpqrneb"
-             fill="#ffffff">
-            <use
-               xlink:href="#aj28a0fd1a"
-               id="use115" />
-          </mask>
-          <path
-             d="M 0.101,1.81 1.738,0.156 3.927,2.323 2.347,3.919 Z"
-             mask="url(#8jptpqrneb)"
-             id="path118" />
-        </g>
-        <g
-           transform="translate(27.404,20.981)"
-           id="g127">
-          <mask
-             id="b2iljpfwbd"
-             fill="#ffffff">
-            <use
-               xlink:href="#fdje57jgic"
-               id="use122" />
-          </mask>
-          <path
-             d="M 2.201,0.066 3.855,1.703 1.69,3.894 0.093,2.311 Z"
-             mask="url(#b2iljpfwbd)"
-             id="path125" />
-        </g>
-        <g
-           transform="translate(18.99,24.587)"
-           id="g134">
-          <mask
-             id="gj70tyfpnf"
-             fill="#ffffff">
-            <use
-               xlink:href="#6bg72xwlze"
-               id="use129" />
-          </mask>
-          <path
-             d="M 1.886,3.869 0.232,2.232 2.398,0.044 3.994,1.624 Z"
-             mask="url(#gj70tyfpnf)"
-             id="path132" />
-        </g>
-        <g
-           transform="translate(25.24,26.99)"
-           id="g141">
-          <mask
-             id="z7vhvduckh"
-             fill="#ffffff">
-            <use
-               xlink:href="#eaqjnja8wg"
-               id="use136" />
-          </mask>
-          <path
-             d="M 3.981,2.132 2.344,3.786 0.156,1.619 1.736,0.023 Z"
-             mask="url(#z7vhvduckh)"
-             id="path139" />
-        </g>
       </g>
     </g>
   </g>
