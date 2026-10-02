@@ -13,6 +13,9 @@ on:
       - "src/Directory.Build.targets"
       - "src/AppTemplate/AppTemplate.csproj"
       - "scripts/verify-worktree-identity.ps1"
+      - "scripts/verify-windows-package-assets.ps1"
+      - "src/AppTemplate/Platforms/Windows/**"
+      - "assets/app-icon/**"
       - "version.json"
       - "global.json"
       - ".github/workflows/template-selftest.yml"
@@ -27,6 +30,9 @@ on:
       - "src/Directory.Build.targets"
       - "src/AppTemplate/AppTemplate.csproj"
       - "scripts/verify-worktree-identity.ps1"
+      - "scripts/verify-windows-package-assets.ps1"
+      - "src/AppTemplate/Platforms/Windows/**"
+      - "assets/app-icon/**"
       - "version.json"
       - "global.json"
       - ".github/workflows/template-selftest.yml"
@@ -67,3 +73,22 @@ jobs:
           $wt = Join-Path $env:RUNNER_TEMP 'selftest-wt'
           git worktree add --detach $wt
           & (Join-Path $wt 'scripts/verify-worktree-identity.ps1')
+
+  windows_package_assets:
+    name: Windows package assets per channel
+    if: github.repository == 'MartinZikmund/uno-app-template'
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Verify Prod/Dev defaults and overrides
+        shell: pwsh
+        run: ./scripts/verify-windows-package-assets.ps1
