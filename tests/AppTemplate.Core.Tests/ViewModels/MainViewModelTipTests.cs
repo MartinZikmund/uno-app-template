@@ -92,7 +92,7 @@ public class MainViewModelTipTests
     {
         var viewModel = CreateViewModel();
         viewModel.EvaluateTips();
-        viewModel.TipNextCommand.Execute(null);
+        viewModel.TipNextCommand.Execute(TipId.HomeWelcome);
 
         viewModel.EvaluateTips();
 
@@ -105,10 +105,23 @@ public class MainViewModelTipTests
         var viewModel = CreateViewModel();
         viewModel.EvaluateTips();
 
-        viewModel.TipNextCommand.Execute(null);
+        viewModel.TipNextCommand.Execute(TipId.HomeWelcome);
 
         viewModel.ActiveTip.Should().Be(TipId.HomeSampleAction);
         _tips.ShouldShow(TipId.HomeWelcome).Should().BeFalse();
+        _tips.ShouldShow(TipId.HomeSampleAction).Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void TipNext_ForATipThatIsNoLongerActive_IsIgnored()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.EvaluateTips();
+        viewModel.TipNextCommand.Execute(TipId.HomeWelcome);
+
+        viewModel.TipNextCommand.Execute(TipId.HomeWelcome);
+
+        viewModel.ActiveTip.Should().Be(TipId.HomeSampleAction);
         _tips.ShouldShow(TipId.HomeSampleAction).Should().BeTrue();
     }
 
@@ -119,7 +132,7 @@ public class MainViewModelTipTests
         viewModel.EvaluateTips();
         _anchors.MissingAnchors.Add(TipId.HomeSampleAction);
 
-        viewModel.TipNextCommand.Execute(null);
+        viewModel.TipNextCommand.Execute(TipId.HomeWelcome);
 
         viewModel.ActiveTip.Should().BeNull();
         _tips.ShouldShow(TipId.HomeWelcome).Should().BeFalse();
@@ -154,7 +167,7 @@ public class MainViewModelTipTests
     {
         var viewModel = CreateViewModel();
         viewModel.EvaluateTips();
-        viewModel.TipNextCommand.Execute(null);
+        viewModel.TipNextCommand.Execute(TipId.HomeWelcome);
 
         viewModel.DismissTipCommand.Execute(TipId.HomeSampleAction);
 
@@ -167,7 +180,7 @@ public class MainViewModelTipTests
     {
         var viewModel = CreateViewModel();
         viewModel.EvaluateTips();
-        viewModel.TipNextCommand.Execute(null);
+        viewModel.TipNextCommand.Execute(TipId.HomeWelcome);
 
         // The first tip's Closed event arrives after the VM has already moved on.
         viewModel.DismissTipCommand.Execute(TipId.HomeWelcome);
