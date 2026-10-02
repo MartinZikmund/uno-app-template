@@ -16,6 +16,7 @@ param(
     [string]$Name,
 
     # Opaque plate behind the art on Android and iOS. The App Store rejects transparent icons (ITMS-90717).
+    [ValidatePattern('^#[0-9A-Fa-f]{6}$')]
     [string]$PlateColor = '#FFFFFF'
 )
 
