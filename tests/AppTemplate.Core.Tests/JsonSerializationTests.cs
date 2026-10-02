@@ -8,13 +8,13 @@ namespace AppTemplate.Core.Tests;
 public class JsonSerializationTests
 {
     [TestMethod]
-    public void ReflectionSerialization_IsDisabledInTests()
+    public void IsReflectionEnabledByDefault_TestHost_IsFalse()
     {
         JsonSerializer.IsReflectionEnabledByDefault.Should().BeFalse();
     }
 
     [TestMethod]
-    public void Serialize_ReflectionOverload_Throws()
+    public void Serialize_ReflectionOverload_ThrowsInvalidOperationException()
     {
         Action act = () => JsonSerializer.Serialize(new ExampleModel());
 
@@ -22,13 +22,13 @@ public class JsonSerializationTests
     }
 
     [TestMethod]
-    public void RoundTrip_ThroughSourceGeneratedContext_Works()
+    public void RoundTrip_SourceGeneratedContext_PreservesMembers()
     {
-        ExampleModel model = new();
+        ExampleModel model = new() { Id = 42, Name = "Example" };
 
         string json = JsonSerializer.Serialize(model, AppTemplateJsonContext.Default.ExampleModel);
         ExampleModel? result = JsonSerializer.Deserialize(json, AppTemplateJsonContext.Default.ExampleModel);
 
-        result.Should().NotBeNull();
+        result.Should().Be(model);
     }
 }
