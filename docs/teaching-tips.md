@@ -11,11 +11,11 @@ Settings → **Show tips again** replays everything.
 
 | Type | Where | Job |
 |------|-------|-----|
-| `TipId` + `TipIdExtensions` | `AppTemplate.Core/Services/Tips/TipId.cs` | The tips, their stable storage ids, and the tour order (`TourSteps`). |
-| `ITipService` / `TipService` | `AppTemplate.Core/Services/Tips/` | `ShouldShow`, `MarkSeen`, `Reset`, persisted in one preference. |
-| `ITipAnchorHost` | `AppTemplate.Core/Services/Tips/ITipAnchorHost.cs` | Implemented by the view, so the view model can ask "is this tip's target on screen?" |
-| `MainViewModel` | `AppTemplate.Core/ViewModels/MainViewModel.cs` | Owns sequencing through `ActiveTip`. |
-| `MainView.xaml` | `AppTemplate/Views/` | One `TeachingTip` per tip, `IsOpen` bound one way. |
+| `TipId` + `TipIdExtensions` | `src/AppTemplate.Core/Services/Tips/TipId.cs` | The tips, their stable storage ids, and the tour order (`TourSteps`). |
+| `ITipService` / `TipService` | `src/AppTemplate.Core/Services/Tips/` | `ShouldShow`, `MarkSeen`, `Reset`, persisted in one preference. |
+| `ITipAnchorHost` | `src/AppTemplate.Core/Services/Tips/ITipAnchorHost.cs` | Implemented by the view, so the view model can ask "is this tip's target on screen?" |
+| `MainViewModel` | `src/AppTemplate.Core/ViewModels/MainViewModel.cs` | Owns sequencing through `ActiveTip`. |
+| `MainView.xaml` | `src/AppTemplate/Views/` | One `TeachingTip` per tip, `IsOpen` bound one way. |
 
 ## How it fits together
 
@@ -27,7 +27,7 @@ Settings → **Show tips again** replays everything.
   open. Each tip gets a bool like `IsWelcomeTipOpen` that XAML binds with
   `IsOpen="{x:Bind ..., Mode=OneWay}"`. The whole flow is unit tested without a visual tree — see
   `MainViewModelTipTests`.
-- **Closing goes back to the view model.** The action button binds to `TipNextCommand`. Every
+- **Closing goes back to the view model.** The action button binds to `TipNextCommand` and passes its own `TipId`, so a repeated or late activation is ignored. Every
   other close (close button, X) raises `Closed`, which the view forwards to `DismissTipCommand`
   unless the reason is `Programmatic` (the view model moving on, or the page unloading).
 - **Skip ends the tour only.** Closing a tour step marks every tour step seen; contextual tips
