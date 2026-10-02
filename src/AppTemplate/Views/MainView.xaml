@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:AppTemplate.Views"
     xmlns:markup="using:AppTemplate.Markup"
+    xmlns:tips="using:AppTemplate.Core.Services.Tips"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid Padding="24">
@@ -48,6 +49,7 @@
             x:Name="WelcomeTip"
             Title="{markup:Localize Key=Tip_Welcome_Title}"
             ActionButtonCommand="{x:Bind ViewModel.TipNextCommand}"
+            ActionButtonCommandParameter="{x:Bind tips:TipId.HomeWelcome}"
             ActionButtonContent="{markup:Localize Key=Tip_Next}"
             CloseButtonContent="{markup:Localize Key=Tip_Skip}"
             Closed="Tip_Closed"

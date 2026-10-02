@@ -77,9 +77,9 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void TipNext()
+    private void TipNext(TipId tip)
     {
-        if (ActiveTip is not { } tip)
+        if (ActiveTip != tip)
         {
             return;
         }
