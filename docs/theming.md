@@ -75,8 +75,9 @@ pattern. To swap it:
 2. Point `AppDisplayFontFamily` at it: `ms-appx:///Assets/Fonts/MyFont.ttf#My Font Family`. The part after
    `#` is the family name inside the font file, not the file name.
 3. If it's a **variable** font, add a `MyFont.ttf.manifest` listing a static file per weight you use (see
-   `Outfit.ttf.manifest`). Windows, Android and WebAssembly read the variable axes; the Skia desktop and iOS
-   heads can't yet and would otherwise render the font's default instance - for Outfit that's Thin. See
+   `Outfit.ttf.manifest`). Windows, Android and WebAssembly read the variable axes; the Skia desktop head can't
+   yet (and iOS only partly supports them), so without a manifest it would render the font's default instance -
+   for Outfit that's Thin. See
    [Uno custom fonts](https://platform.uno/docs/articles/features/custom-fonts.html#variable-fonts-and-font-manifest).
 
 Not bundling a font at all? Delete the `Assets/Fonts` folder and redirect the key the same way `AppBodyFontFamily`

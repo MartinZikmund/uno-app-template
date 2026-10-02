@@ -21,5 +21,6 @@
 ## Typography
 - Text styles come from `src/AppTemplate/Resources/Typography.xaml` (`AppTitleTextBlockStyle`, …) or the
   stock WinUI ramp. Don't set raw `FontSize`/`FontFamily` on individual TextBlocks.
+  The one exception is the 10px `DevChannelBadge` label, which is smaller than anything on the ramp.
 
 See [docs/theming.md](../../docs/theming.md) for where to change what.
