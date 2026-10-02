@@ -3,6 +3,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:AppTemplate.Views"
+    xmlns:markup="using:AppTemplate.Markup"
+    xmlns:tips="using:AppTemplate.Core.Services.Tips"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid Padding="24">
@@ -11,6 +13,7 @@
             VerticalAlignment="Center"
             Spacing="16">
             <FontIcon
+                x:Name="HeroIcon"
                 HorizontalAlignment="Center"
                 FontSize="64"
                 Foreground="{ThemeResource AccentFillColorDefaultBrush}"
@@ -20,6 +23,74 @@
                 AutomationProperties.AutomationId="HelloTextBlock"
                 Style="{ThemeResource TitleLargeTextBlockStyle}"
                 Text="Hello Uno Platform!" />
+            <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="12">
+                <Button
+                    x:Name="SampleActionButton"
+                    AutomationProperties.AutomationId="SampleActionButton"
+                    Command="{x:Bind ViewModel.SampleActionCommand}"
+                    Content="{markup:Localize Key=SampleAction}"
+                    Style="{StaticResource AccentButtonStyle}" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    AutomationProperties.AutomationId="SampleActionCountText"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="{x:Bind ViewModel.SampleActionCountText, Mode=OneWay}" />
+            </StackPanel>
         </StackPanel>
+
+        <!--
+            Coach marks. The view model owns the order; IsOpen is bound one way and every close
+            is routed back through Tip_Closed. Light dismiss is off so a stray click can't spend a tip.
+        -->
+        <TeachingTip
+            x:Name="WelcomeTip"
+            Title="{markup:Localize Key=Tip_Welcome_Title}"
+            ActionButtonCommand="{x:Bind ViewModel.TipNextCommand}"
+            ActionButtonCommandParameter="{x:Bind tips:TipId.HomeWelcome}"
+            ActionButtonContent="{markup:Localize Key=Tip_Next}"
+            CloseButtonContent="{markup:Localize Key=Tip_Skip}"
+            Closed="Tip_Closed"
+            IsLightDismissEnabled="False"
+            IsOpen="{x:Bind ViewModel.IsWelcomeTipOpen, Mode=OneWay}"
+            PreferredPlacement="Top"
+            Subtitle="{markup:Localize Key=Tip_Welcome_Subtitle}"
+            Target="{x:Bind HeroIcon}">
+            <TeachingTip.IconSource>
+                <SymbolIconSource Symbol="Home" />
+            </TeachingTip.IconSource>
+        </TeachingTip>
+
+        <TeachingTip
+            x:Name="SampleActionTip"
+            Title="{markup:Localize Key=Tip_SampleAction_Title}"
+            CloseButtonContent="{markup:Localize Key=Tip_GotIt}"
+            Closed="Tip_Closed"
+            IsLightDismissEnabled="False"
+            IsOpen="{x:Bind ViewModel.IsSampleActionTipOpen, Mode=OneWay}"
+            PreferredPlacement="Bottom"
+            Subtitle="{markup:Localize Key=Tip_SampleAction_Subtitle}"
+            Target="{x:Bind SampleActionButton}">
+            <TeachingTip.IconSource>
+                <SymbolIconSource Symbol="TouchPointer" />
+            </TeachingTip.IconSource>
+        </TeachingTip>
+
+        <TeachingTip
+            x:Name="CounterTip"
+            Title="{markup:Localize Key=Tip_Counter_Title}"
+            CloseButtonContent="{markup:Localize Key=Tip_GotIt}"
+            Closed="Tip_Closed"
+            IsLightDismissEnabled="False"
+            IsOpen="{x:Bind ViewModel.IsCounterTipOpen, Mode=OneWay}"
+            PreferredPlacement="Bottom"
+            Subtitle="{markup:Localize Key=Tip_Counter_Subtitle}"
+            Target="{x:Bind SampleActionButton}">
+            <TeachingTip.IconSource>
+                <SymbolIconSource Symbol="Like" />
+            </TeachingTip.IconSource>
+        </TeachingTip>
     </Grid>
 </local:MainViewBase>

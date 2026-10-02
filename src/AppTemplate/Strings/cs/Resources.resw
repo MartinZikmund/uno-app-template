@@ -175,4 +175,47 @@
   <data name="RateAppMessage" xml:space="preserve">
     <value>Pokud r&#225;di pou&#382;&#237;v&#225;te tuto aplikaci, nev&#225;hejte ji ohodnotit. Va&#353;e zp&#283;tn&#225; vazba n&#225;m pom&#225;h&#225;!</value>
   </data>
+  <data name="SampleAction" xml:space="preserve">
+    <value>Vyzkoušejte mě</value>
+  </data>
+  <data name="SampleActionCountFormat" xml:space="preserve">
+    <value>Kliknutí: {0}</value>
+    <comment>{0} is the number of clicks</comment>
+  </data>
+  <data name="Tip_Welcome_Title" xml:space="preserve">
+    <value>Vítejte na palubě</value>
+  </data>
+  <data name="Tip_Welcome_Subtitle" xml:space="preserve">
+    <value>Toto je vaše domovská stránka. Nahraďte tento úvod tím, co vaše aplikace umí nejlépe.</value>
+  </data>
+  <data name="Tip_SampleAction_Title" xml:space="preserve">
+    <value>Vyzkoušejte ukázkovou akci</value>
+  </data>
+  <data name="Tip_SampleAction_Subtitle" xml:space="preserve">
+    <value>Toto tlačítko spouští příkaz view modelu, takže jeho chování je otestované bez jakéhokoli UI.</value>
+  </data>
+  <data name="Tip_Counter_Title" xml:space="preserve">
+    <value>Jde vám to</value>
+  </data>
+  <data name="Tip_Counter_Subtitle" xml:space="preserve">
+    <value>Tipy jako tento čekají na správnou chvíli, místo aby vyskočily všechny hned při prvním spuštění.</value>
+  </data>
+  <data name="Tip_Next" xml:space="preserve">
+    <value>Další</value>
+  </data>
+  <data name="Tip_Skip" xml:space="preserve">
+    <value>Přeskočit</value>
+  </data>
+  <data name="Tip_GotIt" xml:space="preserve">
+    <value>Rozumím</value>
+  </data>
+  <data name="ShowTipsAgain" xml:space="preserve">
+    <value>Znovu zobrazit tipy</value>
+  </data>
+  <data name="ShowTipsAgainDescription" xml:space="preserve">
+    <value>Prohlídka domovské stránky se přehraje při jejím příštím otevření.</value>
+  </data>
+  <data name="ShowTipsAgainAction" xml:space="preserve">
+    <value>Obnovit tipy</value>
+  </data>
 </root>
