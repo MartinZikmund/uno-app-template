@@ -91,6 +91,6 @@ that live content isn't available, instead of showing a spinner forever. Source:
 
 Debug builds on Android add the `INTERNET` permission for you (for the debugger), so a manifest that
 forgot it works fine until a Release build can't reach the network. Test network features in Release
-too. The template declares the permission in its manifest: see
+too. Declaring the permission in the template's manifest is tracked in
 [#102](https://github.com/MartinZikmund/uno-app-template/issues/102) /
-[#115](https://github.com/MartinZikmund/uno-app-template/pull/115).
+[#115](https://github.com/MartinZikmund/uno-app-template/pull/115); until that lands, add it yourself.
