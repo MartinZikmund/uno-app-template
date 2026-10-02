@@ -153,10 +153,7 @@ public partial class App : Application, IApplication
                 e.IsTerminating);
 
         TaskScheduler.UnobservedTaskException += (_, e) =>
-        {
             Log.LogError(e.Exception, "Unobserved task exception");
-            e.SetObserved();
-        };
 
 #if __ANDROID__
         Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (_, e) =>

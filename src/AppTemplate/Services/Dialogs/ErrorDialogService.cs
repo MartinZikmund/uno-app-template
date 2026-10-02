@@ -47,10 +47,10 @@ public sealed class ErrorDialogService(
 
     private async void OnOpenLogsFolderClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
-        // Keep the dialog open: its message is what the user will be asked to quote.
-        args.Cancel = true;
         try
         {
+            // Keep the dialog open: its message is what the user will be asked to quote.
+            args.Cancel = true;
             await folderLauncher.OpenAsync(logFolder.FolderPath);
         }
         catch (Exception ex)
