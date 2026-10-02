@@ -119,15 +119,13 @@ public sealed class BackupService(IDataService dataService, IAppPreferences pref
     {
         entry = null;
         if (!IsoDate.TryParse(row.Date, out DateOnly date)
-            || string.IsNullOrWhiteSpace(row.Title)
-            || !double.IsFinite(row.MassKilograms)
-            || row.MassKilograms < 0
+            || !ExampleEntryRules.IsValid(row.Title, row.MassKilograms)
             || !IsoDate.TryParseTimestamp(row.CreatedAt, out DateTime createdAt))
         {
             return false;
         }
 
-        entry = new() { Date = date, Title = row.Title, MassKilograms = row.MassKilograms, CreatedAt = createdAt };
+        entry = new() { Date = date, Title = row.Title!, MassKilograms = row.MassKilograms, CreatedAt = createdAt };
         return true;
     }
 }

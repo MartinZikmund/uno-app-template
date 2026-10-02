@@ -125,20 +125,28 @@ public sealed class SqliteDataService : IDataService, IAsyncDisposable
         return [.. rows.Select(ToModel)];
     }
 
-    public Task<int> SaveEntryAsync(ExampleEntry entry) => WriteAsync(async () =>
+    public Task<int> SaveEntryAsync(ExampleEntry entry)
     {
-        ExampleEntryEntity row = ToEntity(entry);
-        if (row.Id == 0)
+        if (!ExampleEntryRules.IsValid(entry.Title, entry.MassKilograms))
         {
-            await _connection.InsertAsync(row);
-        }
-        else
-        {
-            await _connection.UpdateAsync(row);
+            throw new ArgumentException("The entry needs a title and a finite, non-negative mass.", nameof(entry));
         }
 
-        return row.Id;
-    });
+        return WriteAsync(async () =>
+        {
+            ExampleEntryEntity row = ToEntity(entry);
+            if (row.Id == 0)
+            {
+                await _connection.InsertAsync(row);
+            }
+            else
+            {
+                await _connection.UpdateAsync(row);
+            }
+
+            return row.Id;
+        });
+    }
 
     public Task DeleteEntryAsync(int id) =>
         WriteAsync(() => _connection.ExecuteAsync("DELETE FROM ExampleEntries WHERE Id = ?", id));

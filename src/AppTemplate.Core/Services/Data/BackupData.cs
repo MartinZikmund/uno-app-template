@@ -23,7 +23,8 @@ public sealed class BackupData
     /// <summary>Null leaves the importing device's settings alone.</summary>
     public BackupSettings? Settings { get; set; }
 
-    public List<BackupEntry> Entries { get; set; } = [];
+    /// <summary>Null when the file has no <c>entries</c>; import rejects that rather than treating it as empty.</summary>
+    public List<BackupEntry>? Entries { get; set; }
 }
 
 public sealed class BackupSettings
