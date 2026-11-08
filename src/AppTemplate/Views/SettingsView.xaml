@@ -42,6 +42,16 @@
                     </ComboBox>
                 </toolkit:SettingsCard>
 
+                <toolkit:SettingsCard Description="{markup:Localize Key=ShowTipsAgainDescription}" Header="{markup:Localize Key=ShowTipsAgain}">
+                    <toolkit:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE82F;" />
+                    </toolkit:SettingsCard.HeaderIcon>
+                    <Button
+                        AutomationProperties.AutomationId="ShowTipsAgainButton"
+                        Command="{x:Bind ViewModel.ShowTipsAgainCommand}"
+                        Content="{markup:Localize Key=ShowTipsAgainAction}" />
+                </toolkit:SettingsCard>
+
                 <!--  About section  -->
                 <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="{markup:Localize Key=About}" />
 

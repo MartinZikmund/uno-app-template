@@ -1,4 +1,5 @@
 using AppTemplate.Core.Infrastructure;
+using AppTemplate.Core.Services.Tips;
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
 using MZikmund.Toolkit.WinUI.Services;
@@ -12,6 +13,7 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly IThemeManager _themeManager;
     private readonly IPreferences _preferences;
     private readonly IApplication _application;
+    private readonly ITipService _tipService;
     private bool _isInitializing;
 
     public SettingsViewModel(
@@ -19,8 +21,10 @@ public partial class SettingsViewModel : ViewModelBase
         IAppPreferences appPreferences,
         IThemeManager themeManager,
         IPreferences preferences,
-        IApplication application)
+        IApplication application,
+        ITipService tipService)
     {
+        _tipService = tipService;
         _localizer = localizer;
         _appPreferences = appPreferences;
         _themeManager = themeManager;
@@ -77,6 +81,9 @@ public partial class SettingsViewModel : ViewModelBase
 #else
         false;
 #endif
+
+    [RelayCommand]
+    private void ShowTipsAgain() => _tipService.Reset();
 
     [RelayCommand]
     private void ClearPreferences()
