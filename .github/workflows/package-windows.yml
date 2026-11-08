@@ -84,9 +84,10 @@ jobs:
 
     # Restore the application to populate the obj folder with RuntimeIdentifiers
     - name: Restore the application
-      run: msbuild $env:SOLUTION_FILE /t:Restore /p:Configuration=$env:Configuration /p:TargetFramework=$env:WINDOWS_TARGET_FRAMEWORK /p:PublishReadyToRun=true /p:AppChannel=${{ steps.channel.outputs.value }}
+      run: msbuild $env:PROJECT_FILE /t:Restore /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:TargetFramework=$env:WINDOWS_TARGET_FRAMEWORK /p:PublishReadyToRun=true /p:AppChannel=${{ steps.channel.outputs.value }}
       env:
         Configuration: ${{ matrix.configuration }}
+        Platform: ${{ matrix.platform }}
 
     # Decode the base 64 encoded pfx and save the Signing_Certificate
     - name: Decode the pfx
@@ -101,9 +102,9 @@ jobs:
         $certificatePath = "GitHubActionsWorkflow.pfx"
         [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
 
-    # Create the app package by building and packaging the project
+    # Build the project, not the solution: the solution only has Debug/Release|Any CPU, so Platform=x64 is invalid there.
     - name: Create the app package
-      run: msbuild $env:SOLUTION_FILE /p:TargetFramework=$env:WINDOWS_TARGET_FRAMEWORK /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true /p:AppChannel=${{ steps.channel.outputs.value }}
+      run: msbuild $env:PROJECT_FILE /p:TargetFramework=$env:WINDOWS_TARGET_FRAMEWORK /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true /p:AppChannel=${{ steps.channel.outputs.value }}
       env:
         Appx_Bundle: Never
         Appx_Package_Build_Mode: CI
