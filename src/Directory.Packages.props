@@ -13,6 +13,10 @@
     <PackageVersion Include="CommunityToolkit.WinUI.Controls.Primitives" Version="8.1.240916" />
     <PackageVersion Include="CommunityToolkit.WinUI.Converters" Version="8.2.251219" />
     <PackageVersion Include="CommunityToolkit.WinUI.Helpers" Version="8.1.240916" />
+    <!-- API server + typed client -->
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
+    <PackageVersion Include="Refit" Version="10.1.6" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="10.1.6" />
     <!-- Test packages -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageVersion Include="MSTest.TestAdapter" Version="3.7.0" />

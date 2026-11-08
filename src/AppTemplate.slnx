@@ -6,6 +6,11 @@
       <Deploy Solution="Debug|*" />
     </Project>
   </Folder>
+  <Folder Name="/Api/">
+    <Project Path="AppTemplate.Api/AppTemplate.Api.csproj" />
+    <Project Path="AppTemplate.Api.Client/AppTemplate.Api.Client.csproj" />
+    <Project Path="AppTemplate.Api.Contracts/AppTemplate.Api.Contracts.csproj" />
+  </Folder>
   <Folder Name="/Solution Items/" />
   <Folder Name="/Solution Items/Agents/">
     <File Path="../CLAUDE.md" />
