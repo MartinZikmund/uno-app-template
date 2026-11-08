@@ -1,0 +1,5 @@
+<Project>
+
+  <!-- Present so MSBuild stops here rather than importing a Directory.Build.targets from above the repository. -->
+
+</Project>
