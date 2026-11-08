@@ -113,8 +113,14 @@ no secrets at all gets:
   a signed, provisioned archive, so there is no unsigned equivalent
 - a self-signed, sideloadable Windows package plus its `.cer`
 - desktop zips and a WASM site
-- green checkmarks throughout — the gated jobs still request approval, and skip green with a
-  warning once approved rather than failing on the missing credential
+- green checkmarks throughout — a gated job runs only if its test track really received this
+  commit, so with nothing uploaded it skips without asking for approval. If the test track did
+  receive it and only the gated environment lacks the credential, the job asks for approval
+  and then skips green with a warning.
+
+A skip leaves no mark on the commit. `publish-once` records a publish as a commit status
+(`publish-once/<environment>`) only after a real upload, so adding the missing secret and
+re-running the job publishes for real.
 
 ## Switching heads off
 

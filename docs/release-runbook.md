@@ -88,10 +88,11 @@ misunderstood fact in mobile releases, and it is why halting comes before fixing
 
 1. **Re-run failed jobs** on the release run. The successful jobs' artifacts are still
    there, so nothing recompiles and only the failed store retries.
-2. If a publish already succeeded, `publish-once` makes a re-run a no-op. That guard
-   records that a *job* finished — **not** that a store *accepted* the submission. For an
-   asynchronous certification failure hours later, use `store-ops.yml → republish`, which
-   does not consult that guard at all.
+2. If a publish already reached its store, `publish-once` makes a re-run a no-op. That guard
+   records that a store *received* the upload — **not** that it *accepted* the submission. A
+   job that skipped for a missing secret records nothing, so re-running it after adding the
+   secret publishes. For an asynchronous certification failure hours later, use
+   `store-ops.yml → republish` with `force=true`.
 3. Past the 30-day re-run window, see *break glass* below. Release artifacts are retained
    **90 days** specifically so that lever stays usable.
 

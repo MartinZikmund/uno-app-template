@@ -36,6 +36,7 @@ concurrency:
 permissions:
   contents: write
   deployments: write
+  statuses: write
   actions: read
   pull-requests: write
 
@@ -138,6 +139,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment: play-internal
+    outputs:
+      # True once this commit reached the store, in this attempt or an earlier one. The gated
+      # job keys off this, not off this job's result: it also succeeds when it skipped.
+      published: ${{ steps.once.outputs.skip == 'true' || steps.upload.outcome == 'success' }}
     env:
       HAS_PLAY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' }}
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
@@ -161,6 +166,7 @@ jobs:
           path: pkg
 
       - name: Upload to Play (internal)
+        id: upload
         if: steps.once.outputs.skip != 'true' && env.HAS_PLAY == 'true' && env.HAS_KEYSTORE == 'true'
         uses: r0adkll/upload-google-play@v1
         with:
@@ -174,11 +180,24 @@ jobs:
           status: completed
           releaseName: ${{ needs.version.outputs.simple }}
 
+      - name: Record the publish
+        if: steps.upload.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: play-internal
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
   publish-testflight:
     needs: [version, build-ios]
     runs-on: ubuntu-24.04          # the appstore-api backend needs no macOS minutes
     timeout-minutes: 90
     environment: testflight
+    outputs:
+      # True once this commit reached the store, in this attempt or an earlier one. The gated
+      # job keys off this, not off this job's result: it also succeeds when it skipped.
+      published: ${{ steps.once.outputs.skip == 'true' || steps.upload.outcome == 'success' }}
     env:
       HAS_ASC: ${{ secrets.APPSTORE_API_PRIVATE_KEY != '' }}
     steps:
@@ -215,6 +234,7 @@ jobs:
           fi
 
       - name: Upload to TestFlight
+        id: upload
         if: steps.once.outputs.skip != 'true' && env.HAS_ASC == 'true' && steps.ipa.outputs.found == 'true'
         uses: Apple-Actions/upload-testflight-build@v5
         with:
@@ -228,11 +248,24 @@ jobs:
           uses-non-exempt-encryption: 'false'
           wait-for-processing: 'true'
 
+      - name: Record the publish
+        if: steps.upload.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: testflight
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
   publish-msstore-draft:
     needs: [version, build-windows]
     runs-on: windows-2025
     timeout-minutes: 30
     environment: ms-store-draft
+    outputs:
+      # True once this commit reached the store, in this attempt or an earlier one. The gated
+      # job keys off this, not off this job's result: it also succeeds when it skipped.
+      published: ${{ steps.once.outputs.skip == 'true' || steps.upload.outcome == 'success' }}
     env:
       HAS_MSSTORE: ${{ secrets.MS_STORE_CLIENT_SECRET != '' }}
     steps:
@@ -259,6 +292,7 @@ jobs:
         if: steps.once.outputs.skip != 'true' && env.HAS_MSSTORE == 'true'
 
       - name: Stage a draft submission
+        id: upload
         if: steps.once.outputs.skip != 'true' && env.HAS_MSSTORE == 'true'
         shell: pwsh
         run: |
@@ -290,6 +324,15 @@ jobs:
           # blob upload immediately.
           msstore publish $pkg.FullName -id ${{ vars.MS_STORE_PRODUCT_ID }} --noCommit --uploadTimeout 900
 
+      - name: Record the publish
+        if: steps.upload.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: ms-store-draft
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
   publish-web:
     needs: [version, build-wasm]
     runs-on: ubuntu-24.04
@@ -317,6 +360,7 @@ jobs:
           path: wwwroot
 
       - name: Deploy to Azure Static Web Apps
+        id: upload
         if: steps.once.outputs.skip != 'true' && env.HAS_SWA == 'true'
         uses: Azure/static-web-apps-deploy@v1
         with:
@@ -329,6 +373,15 @@ jobs:
           # means a MALFORMED token fails loudly instead of silently no-op'ing a
           # production release.
           skip_deploy_on_missing_secrets: false
+
+      - name: Record the publish
+        if: steps.upload.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: web-production
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   # ------------------------------------------------------------ tag + release page
   # `tag` needs every build and every automatic publish, because a failed build only makes
@@ -426,7 +479,7 @@ jobs:
 
   promote-play-production:
     needs: [version, build-android, publish-play-internal]
-    if: always() && needs.publish-play-internal.result == 'success'
+    if: needs.publish-play-internal.outputs.published == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment: play-production      # REQUIRED REVIEWER + branch policy release/v*
@@ -453,6 +506,7 @@ jobs:
       # rejects an already-consumed versionCode with HTTP 400. This promotes the existing
       # versionCode between tracks without touching the binary.
       - name: Promote to production at 10%
+        id: upload
         if: steps.once.outputs.skip != 'true' && env.HAS_PLAY == 'true'
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
@@ -464,9 +518,18 @@ jobs:
             --track production \
             --user-fraction 0.10
 
+      - name: Record the publish
+        if: steps.upload.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: play-production
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
   submit-appstore:
     needs: [version, publish-testflight]
-    if: always() && needs.publish-testflight.result == 'success'
+    if: needs.publish-testflight.outputs.published == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     environment: appstore-production  # REQUIRED REVIEWER
@@ -501,12 +564,22 @@ jobs:
         run: python .github/scripts/asc_op.py guard
 
       - name: Submit for review
+        id: upload
         if: steps.once.outputs.skip != 'true' && env.HAS_ASC == 'true'
         run: python .github/scripts/asc_op.py submit --version "${{ needs.version.outputs.simple }}"
 
+      - name: Record the publish
+        if: steps.upload.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: appstore-production
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
   commit-msstore:
     needs: [version, publish-msstore-draft]
-    if: always() && needs.publish-msstore-draft.result == 'success'
+    if: needs.publish-msstore-draft.outputs.published == 'true'
     runs-on: windows-2025
     timeout-minutes: 30
     environment: ms-store-production  # REQUIRED REVIEWER
@@ -527,6 +600,7 @@ jobs:
       - uses: microsoft/microsoft-store-apppublisher@v1.4
         if: steps.once.outputs.skip != 'true' && env.HAS_MSSTORE == 'true'
       - name: Commit the submission at 10% rollout
+        id: upload
         if: steps.once.outputs.skip != 'true' && env.HAS_MSSTORE == 'true'
         shell: pwsh
         run: |
@@ -546,3 +620,12 @@ jobs:
           msstore submission publish ${{ vars.MS_STORE_PRODUCT_ID }}
           # Deliberately NO `msstore submission poll` - certification runs for hours to
           # days and a hosted job caps at 6. store-health.yml watches instead.
+
+      - name: Record the publish
+        if: steps.upload.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: ms-store-production
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
