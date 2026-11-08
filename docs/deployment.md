@@ -3,7 +3,7 @@
 The WebAssembly head is hosted on **Cloudflare Workers static assets** as an assets-only
 Worker named `app-template`.
 
-| | Trigger | URL |
+| Environment | Trigger | URL |
 |---|---|---|
 | **Production** (Prod channel) | push to `release/v**` → `release.yml` | <https://app-template.mzikmund.workers.dev> |
 | **PR preview** (Dev channel) | PR to `main`, public repo only → `wasm-pr-preview.yml` | `https://pr-<number>-app-template.mzikmund.workers.dev` |
@@ -35,8 +35,8 @@ stable `pr-<number>` alias. The workflow deliberately scrapes the alias — the 
    gh secret set CLOUDFLARE_ACCOUNT_ID   # Workers & Pages → Account ID
    ```
 
-   Without them both deploy steps skip themselves and the workflows still pass, so forks stay
-   green.
+   Unless both are set, both deploy steps skip themselves (with a warning) and the workflows
+   still pass, so forks stay green.
 4. Run `npx wrangler deploy` once (or merge a release) to **create** the Worker —
    `versions upload` uploads into an existing Worker and fails if there isn't one.
 
