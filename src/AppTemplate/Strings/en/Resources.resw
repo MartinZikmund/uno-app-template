@@ -175,4 +175,21 @@
   <data name="RateAppMessage" xml:space="preserve">
     <value>If you enjoy using this app, would you mind taking a moment to rate it? Your feedback helps us improve!</value>
   </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="OpenLogsFolder" xml:space="preserve">
+    <value>Open logs folder</value>
+  </data>
+  <data name="OpenLogsFolderDescription" xml:space="preserve">
+    <value>Log files help diagnose problems. Attach them when you report a bug.</value>
+  </data>
+  <data name="OpenLogsFolderFailedFormat" xml:space="preserve">
+    <value>The logs folder could not be opened. You can find it at:&#10;{0}</value>
+    <comment>{0} is the full path of the logs folder.</comment>
+  </data>
+  <data name="ErrorDialogLogHintFormat" xml:space="preserve">
+    <value>If this keeps happening, please report it and attach the log files from:&#10;{0}</value>
+    <comment>{0} is the full path of the logs folder.</comment>
+  </data>
 </root>

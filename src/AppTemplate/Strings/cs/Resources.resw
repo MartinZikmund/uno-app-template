@@ -175,4 +175,21 @@
   <data name="RateAppMessage" xml:space="preserve">
     <value>Pokud r&#225;di pou&#382;&#237;v&#225;te tuto aplikaci, nev&#225;hejte ji ohodnotit. Va&#353;e zp&#283;tn&#225; vazba n&#225;m pom&#225;h&#225;!</value>
   </data>
+  <data name="Close" xml:space="preserve">
+    <value>Zav&#345;&#237;t</value>
+  </data>
+  <data name="OpenLogsFolder" xml:space="preserve">
+    <value>Otev&#345;&#237;t slo&#382;ku s logy</value>
+  </data>
+  <data name="OpenLogsFolderDescription" xml:space="preserve">
+    <value>Soubory log&#367; pom&#225;haj&#237; odhalit probl&#233;my. P&#345;ilo&#382;te je k hl&#225;&#353;en&#237; chyby.</value>
+  </data>
+  <data name="OpenLogsFolderFailedFormat" xml:space="preserve">
+    <value>Slo&#382;ku s logy se nepoda&#345;ilo otev&#345;&#237;t. Najdete ji zde:&#10;{0}</value>
+    <comment>{0} is the full path of the logs folder.</comment>
+  </data>
+  <data name="ErrorDialogLogHintFormat" xml:space="preserve">
+    <value>Pokud se to bude opakovat, nahlaste pros&#237;m chybu a p&#345;ilo&#382;te soubory log&#367; ze slo&#382;ky:&#10;{0}</value>
+    <comment>{0} is the full path of the logs folder.</comment>
+  </data>
 </root>

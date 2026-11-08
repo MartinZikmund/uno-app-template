@@ -60,6 +60,21 @@
                     </StackPanel>
                 </toolkit:SettingsCard>
 
+                <toolkit:SettingsCard
+                    AutomationProperties.AutomationId="OpenLogsFolderCard"
+                    Command="{x:Bind ViewModel.OpenLogsFolderCommand}"
+                    Description="{markup:Localize Key=OpenLogsFolderDescription}"
+                    Header="{markup:Localize Key=OpenLogsFolder}"
+                    IsClickEnabled="True"
+                    Visibility="{x:Bind ViewModel.CanOpenLogsFolder}">
+                    <toolkit:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE838;" />
+                    </toolkit:SettingsCard.HeaderIcon>
+                    <toolkit:SettingsCard.ActionIcon>
+                        <FontIcon Glyph="&#xE8A7;" />
+                    </toolkit:SettingsCard.ActionIcon>
+                </toolkit:SettingsCard>
+
                 <!--  Debug section  -->
                 <StackPanel Visibility="{x:Bind ViewModel.IsDebug}">
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="{markup:Localize Key=Debugging}" />
