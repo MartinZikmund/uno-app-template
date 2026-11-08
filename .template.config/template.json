@@ -1,0 +1,590 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Martin Zikmund",
+  "classifications": [ "Uno Platform", "WinUI", "Android", "iOS", "Windows", "Desktop", "WebAssembly", "Cross-platform", "MVVM" ],
+  "identity": "MZikmund.UnoApp.Templates",
+  "groupIdentity": "MZikmund.UnoApp.Templates",
+  "name": "Uno App (MVVM, production-shaped)",
+  "description": "A production-shaped cross-platform Uno Platform app: plain WinUI/XAML with CommunityToolkit.Mvvm, navigation, DI, theming, localization, versioning and release pipelines. Pick only the features you want.",
+  "shortName": "mzuno-app",
+  "sourceName": "AppTemplate",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "primaryOutputs": [
+    { "path": "src/AppTemplate.slnx" }
+  ],
+  "symbols": {
+    "platforms": {
+      "type": "parameter",
+      "datatype": "choice",
+      "allowMultipleValues": true,
+      "enableQuotelessLiterals": true,
+      "displayName": "Platforms",
+      "description": "The platform heads to include.",
+      "defaultValue": "android|ios|windows|desktop|wasm",
+      "replaces": "__opt_platforms__",
+      "choices": [
+        { "choice": "android", "displayName": "Android", "description": "Android phones and tablets. Needs the android workload." },
+        { "choice": "ios", "displayName": "iOS", "description": "iPhone and iPad. Needs the ios workload and a Mac to build against." },
+        { "choice": "windows", "displayName": "Windows (WinAppSDK)", "description": "Native WinUI on Windows with MSIX packaging." },
+        { "choice": "desktop", "displayName": "Desktop (Skia)", "description": "Windows, macOS and Linux from one Skia-rendered head. The fastest head to build." },
+        { "choice": "wasm", "displayName": "WebAssembly", "description": "Runs in the browser, with a static-site deployment workflow." }
+      ]
+    },
+    "hasAndroid": { "type": "computed", "value": "(platforms == android)" },
+    "hasIos": { "type": "computed", "value": "(platforms == ios)" },
+    "hasWindows": { "type": "computed", "value": "(platforms == windows)" },
+    "hasDesktop": { "type": "computed", "value": "(platforms == desktop)" },
+    "hasWasm": { "type": "computed", "value": "(platforms == wasm)" },
+
+    "title": {
+      "type": "parameter",
+      "datatype": "string",
+      "displayName": "Display name",
+      "description": "The name people see. Defaults to the project name.",
+      "defaultValue": ""
+    },
+    "titleResolved": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": { "sourceVariableName": "title", "fallbackVariableName": "name" },
+      "replaces": "App Template"
+    },
+    "appId": {
+      "type": "parameter",
+      "datatype": "string",
+      "displayName": "Application id",
+      "description": "Reverse-DNS package id, such as com.contoso.myapp. Defaults to com.example.<name>. The Dev channel appends .dev.",
+      "defaultValue": ""
+    },
+    "nameLowerAlnum": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "lowerAlnum"
+    },
+    "appIdDefault": {
+      "type": "generated",
+      "generator": "join",
+      "parameters": {
+        "symbols": [
+          { "type": "const", "value": "com.example" },
+          { "type": "ref", "value": "nameLowerAlnum" }
+        ],
+        "separator": "."
+      }
+    },
+    "appIdResolved": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": { "sourceVariableName": "appId", "fallbackVariableName": "appIdDefault" },
+      "replaces": "dev.mzikmund.apptemplate"
+    },
+    "iosShortName": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "firstSeven",
+      "replaces": "AppTmpl"
+    },
+    "publisher": {
+      "type": "parameter",
+      "datatype": "string",
+      "displayName": "Publisher",
+      "description": "Your name or company. It must match the subject of your Windows signing certificate.",
+      "defaultValue": "Your Name",
+      "replaces": "Martin Zikmund"
+    },
+    "githubRepo": {
+      "type": "parameter",
+      "datatype": "string",
+      "displayName": "GitHub repository",
+      "description": "owner/repo, used by the issue template links.",
+      "defaultValue": "your-org/your-repo",
+      "replaces": "__opt_githubRepo__"
+    },
+    "githubDiscussions": {
+      "type": "generated",
+      "generator": "join",
+      "parameters": {
+        "symbols": [
+          { "type": "ref", "value": "githubRepo" },
+          { "type": "const", "value": "discussions" }
+        ],
+        "separator": "/"
+      },
+      "replaces": "MartinZikmund/uno-app-template/discussions"
+    },
+
+    "http": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "HTTP and Refit",
+      "description": "UseHttp, Refit, a debug request logger and the Android INTERNET permission.",
+      "defaultValue": "true",
+      "replaces": "__opt_http__"
+    },
+    "sqlite": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "SQLite packages",
+      "description": "sqlite-net and the SQLite native bundle.",
+      "defaultValue": "true",
+      "replaces": "__opt_sqlite__"
+    },
+    "dialogs": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Dialog services",
+      "description": "IDialogService and IConfirmationDialogService over a queueing coordinator.",
+      "defaultValue": "true",
+      "replaces": "__opt_dialogs__"
+    },
+    "launcher": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Launcher service",
+      "description": "ILauncherService for opening URIs.",
+      "defaultValue": "true",
+      "replaces": "__opt_launcher__"
+    },
+    "rating": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "App rating prompt",
+      "description": "Asks for a store review after a few launches. Includes dialogs and launcher.",
+      "defaultValue": "true",
+      "replaces": "__opt_rating__"
+    },
+    "share": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Share service",
+      "description": "IShareService over the system share sheet.",
+      "defaultValue": "true",
+      "replaces": "__opt_share__"
+    },
+    "displayRequest": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Keep-screen-on service",
+      "description": "IDisplayRequestManager for keeping the display awake.",
+      "defaultValue": "true",
+      "replaces": "__opt_displayRequest__"
+    },
+    "czech": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Czech sample language",
+      "description": "A second language next to English, showing how each platform localizes.",
+      "defaultValue": "true",
+      "replaces": "__opt_czech__"
+    },
+    "devAssets": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Dev icon badge",
+      "description": "Badges the icon and splash screen of Dev builds at build time.",
+      "defaultValue": "true",
+      "replaces": "__opt_devAssets__"
+    },
+    "worktreeIdentity": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Per-worktree identity",
+      "description": "Gives each git worktree its own package identity, so two can run side by side.",
+      "defaultValue": "true",
+      "replaces": "__opt_worktreeIdentity__"
+    },
+    "xamlStyler": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "XAML Styler",
+      "description": "The XAML formatter as a local tool, enforced on pull requests when CI is included.",
+      "defaultValue": "true",
+      "replaces": "__opt_xamlStyler__"
+    },
+    "tests": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Unit tests",
+      "description": "An MSTest project for the Core library.",
+      "defaultValue": "true",
+      "replaces": "__opt_tests__"
+    },
+    "ci": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "CI workflows",
+      "description": "GitHub Actions for build, test and pull request checks, plus Dependabot.",
+      "defaultValue": "true",
+      "replaces": "__opt_ci__"
+    },
+    "packaging": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Release workflows",
+      "description": "GitHub Actions that package each selected platform and cut releases.",
+      "defaultValue": "true",
+      "replaces": "__opt_packaging__"
+    },
+    "agents": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Coding agent guidance",
+      "description": "AGENTS.md, CLAUDE.md, .claude rules and skills.",
+      "defaultValue": "true",
+      "replaces": "__opt_agents__"
+    },
+    "specKit": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Spec Kit",
+      "description": "The spec-driven development workflow. Includes coding agent guidance.",
+      "defaultValue": "true",
+      "replaces": "__opt_specKit__"
+    },
+    "community": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "GitHub community files",
+      "description": "Issue, discussion and pull request templates.",
+      "defaultValue": "true",
+      "replaces": "__opt_community__"
+    },
+
+    "useDialogs": { "type": "computed", "value": "(dialogs || rating)" },
+    "useLauncher": { "type": "computed", "value": "(launcher || rating)" },
+    "useAgents": { "type": "computed", "value": "(agents || specKit)" },
+    "useXamlStyleCi": { "type": "computed", "value": "(ci && xamlStyler)" },
+    "useAndroidInternetTest": { "type": "computed", "value": "(tests && hasAndroid && http)" }
+  },
+  "forms": {
+    "alnum": { "identifier": "replace", "pattern": "[^A-Za-z0-9]", "replacement": "" },
+    "lower": { "identifier": "lowerCase" },
+    "lowerAlnum": { "identifier": "chain", "steps": [ "alnum", "lower" ] },
+    "firstSeven": { "identifier": "replace", "pattern": "^(.{7}).*$", "replacement": "$1" }
+  },
+  "SpecialCustomOperations": {
+    "**/*.cs": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "actionableIf": [ "//#if" ],
+            "actionableElse": [ "//#else" ],
+            "actionableElseif": [ "//#elseif" ],
+            "endif": [ "//#endif" ],
+            "trim": "true",
+            "wholeLine": "true"
+          }
+        }
+      ]
+    },
+    "**/*.xaml": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "actionableIf": [ "<!--  #if" ],
+            "actionableElse": [ "<!--  #else" ],
+            "actionableElseif": [ "<!--  #elseif" ],
+            "endif": [ "<!--  #endif" ],
+            "trim": "true",
+            "wholeLine": "true"
+          }
+        }
+      ]
+    },
+    "**/*.resw": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "actionableIf": [ "<!--#if" ],
+            "actionableElse": [ "<!--#else" ],
+            "actionableElseif": [ "<!--#elseif" ],
+            "endif": [ "<!--#endif" ],
+            "trim": "true",
+            "wholeLine": "true"
+          }
+        }
+      ]
+    },
+    "**/*.plist": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "actionableIf": [ "<!--#if" ],
+            "actionableElse": [ "<!--#else" ],
+            "actionableElseif": [ "<!--#elseif" ],
+            "endif": [ "<!--#endif" ],
+            "trim": "true",
+            "wholeLine": "true"
+          }
+        }
+      ]
+    },
+    "**/*.slnx": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "actionableIf": [ "<!--#if" ],
+            "actionableElse": [ "<!--#else" ],
+            "actionableElseif": [ "<!--#elseif" ],
+            "endif": [ "<!--#endif" ],
+            "trim": "true",
+            "wholeLine": "true"
+          }
+        }
+      ]
+    },
+    "**/*.md": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "actionableIf": [ "<!--#if" ],
+            "actionableElse": [ "<!--#else" ],
+            "actionableElseif": [ "<!--#elseif" ],
+            "endif": [ "<!--#endif" ],
+            "trim": "true",
+            "wholeLine": "true"
+          }
+        }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "source": "./",
+      "target": "./",
+      "exclude": [
+        ".template.config/**",
+        "template/**",
+        "tools/**",
+        "tests/Template.*/**",
+        "docs/superpowers/**",
+        "docs/upgrades/**",
+        "docs/template-authoring.md",
+        "docs/template-wizard.md",
+        "docs/versioning-migration.md",
+        "scripts/**",
+        ".github/workflows/template-*.yml",
+        ".github/FUNDING.yml",
+        ".claude/rules/template-*.md",
+        ".claude/skills/template-*/**",
+        ".claude/worktrees/**",
+        ".claude/settings.local.json",
+        "README.md",
+        "LICENSE",
+        ".git",
+        "**/.git/**",
+        ".vs/**",
+        "**/[Bb]in/**",
+        "**/[Oo]bj/**",
+        "**/*.user",
+        "artifacts/**",
+        "TestResults/**",
+        ".screenshots/**",
+        ".playwright-mcp/**"
+      ],
+      "copyOnly": [
+        "**/*.png",
+        "**/*.svg",
+        "**/*.ico",
+        "**/*.ttf"
+      ],
+      "modifiers": [
+        {
+          "condition": "(!hasAndroid)",
+          "exclude": [
+            "src/AppTemplate/Platforms/Android/**",
+            ".github/workflows/package-android.yml"
+          ]
+        },
+        {
+          "condition": "(!hasIos)",
+          "exclude": [
+            "src/AppTemplate/Platforms/iOS/**",
+            ".github/workflows/package-ios.yml"
+          ]
+        },
+        {
+          "condition": "(!hasWindows)",
+          "exclude": [
+            "src/AppTemplate/Platforms/Windows/**",
+            "src/AppTemplate/Properties/PublishProfiles/**",
+            ".github/Install-WindowsSdkISO.ps1",
+            ".github/workflows/package-windows.yml",
+            ".github/workflows/validate-manifest-version.yml",
+            ".claude/skills/run-winui-app/**"
+          ]
+        },
+        {
+          "condition": "(!hasDesktop)",
+          "exclude": [
+            "src/AppTemplate/Platforms/Desktop/**"
+          ]
+        },
+        {
+          "condition": "(!hasWasm)",
+          "exclude": [
+            "src/AppTemplate/Platforms/WebAssembly/**",
+            ".github/workflows/static-web-apps-deploy.yml"
+          ]
+        },
+        {
+          "condition": "(!http)",
+          "exclude": [
+            "src/AppTemplate/Services/Http/**"
+          ]
+        },
+        {
+          "condition": "(!useDialogs)",
+          "exclude": [
+            "src/AppTemplate/Services/Dialogs/**"
+          ]
+        },
+        {
+          "condition": "(!useLauncher)",
+          "exclude": [
+            "src/AppTemplate/Services/ILauncherService.cs",
+            "src/AppTemplate/Services/LauncherService.cs"
+          ]
+        },
+        {
+          "condition": "(!rating)",
+          "exclude": [
+            "src/AppTemplate/Services/Rating/**"
+          ]
+        },
+        {
+          "condition": "(!share)",
+          "exclude": [
+            "src/AppTemplate/Services/IShareService.cs",
+            "src/AppTemplate/Services/ShareService.cs"
+          ]
+        },
+        {
+          "condition": "(!displayRequest)",
+          "exclude": [
+            "src/AppTemplate/Services/IDisplayRequestManager.cs",
+            "src/AppTemplate/Services/DisplayRequestManager.cs"
+          ]
+        },
+        {
+          "condition": "(!czech)",
+          "exclude": [
+            "src/AppTemplate/Strings/cs/**",
+            "src/AppTemplate/Platforms/Android/Resources/values-cs/**",
+            "src/AppTemplate/Platforms/iOS/Resources/cs.lproj/**"
+          ]
+        },
+        {
+          "condition": "(!devAssets)",
+          "exclude": [
+            "src/DevAssets.targets",
+            "src/DevAssets.Task.cs",
+            "docs/dev-assets.md"
+          ]
+        },
+        {
+          "condition": "(!worktreeIdentity)",
+          "exclude": [
+            "src/WorktreeIdentity.props",
+            "src/WorktreeIdentity.targets",
+            "docs/worktree-identity.md"
+          ]
+        },
+        {
+          "condition": "(!xamlStyler)",
+          "exclude": [
+            ".config/dotnet-tools.json",
+            "Settings.XamlStyler",
+            "docs/xaml-styler.md"
+          ]
+        },
+        {
+          "condition": "(!useXamlStyleCi)",
+          "exclude": [
+            ".github/workflows/xaml-style-apply.yml",
+            ".github/workflows/xaml-style-check.yml"
+          ]
+        },
+        {
+          "condition": "(!tests)",
+          "exclude": [
+            "tests/**"
+          ]
+        },
+        {
+          "condition": "(!useAndroidInternetTest)",
+          "exclude": [
+            "tests/AppTemplate.Core.Tests/Packaging/**"
+          ]
+        },
+        {
+          "condition": "(!ci)",
+          "exclude": [
+            ".github/workflows/ci.yml",
+            ".github/workflows/todo.yml",
+            ".github/workflows/validate-manifest-version.yml",
+            ".github/dependabot.yml"
+          ]
+        },
+        {
+          "condition": "(!packaging)",
+          "exclude": [
+            ".github/workflows/package-*.yml",
+            ".github/workflows/prepare-release.yml",
+            ".github/workflows/tag-release.yml",
+            ".github/workflows/static-web-apps-deploy.yml",
+            ".github/Install-WindowsSdkISO.ps1",
+            ".github/steps/**"
+          ]
+        },
+        {
+          "condition": "(!hasWindows && !hasAndroid && !hasIos)",
+          "exclude": [
+            ".github/workflows/tag-release.yml"
+          ]
+        },
+        {
+          "condition": "(!useAgents)",
+          "exclude": [
+            "AGENTS.md",
+            "CLAUDE.md",
+            ".claude/**",
+            ".github/copilot-instructions.md"
+          ]
+        },
+        {
+          "condition": "(!specKit)",
+          "exclude": [
+            ".specify/**",
+            ".claude/skills/speckit-*/**",
+            "docs/spec-kit.md"
+          ]
+        },
+        {
+          "condition": "(!community)",
+          "exclude": [
+            ".github/ISSUE_TEMPLATE/**",
+            ".github/DISCUSSION_TEMPLATE/**",
+            ".github/PULL_REQUEST_TEMPLATE.md"
+          ]
+        }
+      ]
+    },
+    {
+      "source": "./template/overlay/",
+      "target": "./",
+      "copyOnly": [ "docs/TEMPLATE-LICENSE.txt" ]
+    }
+  ],
+  "postActions": []
+}

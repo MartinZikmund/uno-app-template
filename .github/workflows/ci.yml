@@ -35,6 +35,7 @@ jobs:
         with:
           version-code-offset: ${{ vars.VERSION_CODE_OFFSET }}
 
+  #if (tests)
   test:
     if: github.event.repository.private == false || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
@@ -66,7 +67,9 @@ jobs:
           name: test-results
           path: TestResults/
           if-no-files-found: warn
+  #endif
 
+  #if (hasDesktop || hasWasm || hasAndroid || hasWindows)
   build:
     if: github.event.repository.private == false || github.event_name == 'workflow_dispatch'
     timeout-minutes: 60
@@ -74,12 +77,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          #if (hasDesktop)
           - { name: desktop, tfm: net10.0-desktop,           os: ubuntu-24.04 }
+          #endif
+          #if (hasWasm)
           - { name: wasm,    tfm: net10.0-browserwasm,       os: ubuntu-24.04 }
+          #endif
+          #if (hasAndroid)
           - { name: android, tfm: net10.0-android,           os: ubuntu-24.04 }
+          #endif
+          #if (hasWindows)
           - { name: windows, tfm: net10.0-windows10.0.26100, os: windows-2025 }
+          #endif
+          #if (hasTvos)
           # Compile only: bundling, AOT and the simulator smoke test need a Mac (build-main.yml).
           - { name: tvos,    tfm: net10.0-tvos,              os: windows-2025 }
+          #endif
           # iOS is deliberately absent: macOS runners bill at 10x and every push to main
           # already builds the iOS head in build-main.yml.
     runs-on: ${{ matrix.os }}
@@ -105,3 +118,4 @@ jobs:
       # not on a release branch.
       - name: Build ${{ matrix.name }}
         run: dotnet build src/AppTemplate/AppTemplate.csproj -c Release -f ${{ matrix.tfm }} -p:AppChannel=Dev
+  #endif

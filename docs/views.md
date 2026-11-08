@@ -51,4 +51,4 @@ services.AddTransient<SettingsViewModel>();
 
 Never `new` a view model or assign `DataContext` by hand — `ViewBase<TViewModel>` resolves it from
 the per-window scope. The full recipe, including where the view model belongs, is in
-[`.claude/rules/architecture.md`](../.claude/rules/architecture.md).
+`.claude/rules/architecture.md`.

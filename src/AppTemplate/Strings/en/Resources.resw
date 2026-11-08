@@ -135,10 +135,12 @@
   <data name="AboutAppDescription" xml:space="preserve">
     <value>An Uno Platform application</value>
   </data>
+  <!--#if (worktreeIdentity)-->
   <data name="WorktreeFormat" xml:space="preserve">
     <value>Worktree: {0}</value>
     <comment>{0} is the git worktree name; shown under the version in About for local worktree builds.</comment>
   </data>
+  <!--#endif-->
   <data name="Debugging" xml:space="preserve">
     <value>Debugging</value>
   </data>
@@ -148,6 +150,7 @@
   <data name="Clear" xml:space="preserve">
     <value>Clear</value>
   </data>
+  <!--#if (useDialogs)-->
   <data name="Ok" xml:space="preserve">
     <value>OK</value>
   </data>
@@ -157,6 +160,7 @@
   <data name="No" xml:space="preserve">
     <value>No</value>
   </data>
+  <!--#endif-->
   <data name="ElementTheme_Default" xml:space="preserve">
     <value>System default</value>
   </data>
@@ -169,10 +173,12 @@
   <data name="Home" xml:space="preserve">
     <value>Home</value>
   </data>
+  <!--#if (rating)-->
   <data name="RateAppTitle" xml:space="preserve">
     <value>Enjoying the app?</value>
   </data>
   <data name="RateAppMessage" xml:space="preserve">
     <value>If you enjoy using this app, would you mind taking a moment to rate it? Your feedback helps us improve!</value>
   </data>
+  <!--#endif-->
 </root>

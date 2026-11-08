@@ -2,9 +2,13 @@ using AppTemplate.Core.Infrastructure;
 using AppTemplate.Core.Services;
 using AppTemplate.Core.ViewModels;
 using AppTemplate.Infrastructure;
+//#if (useDialogs)
 using AppTemplate.Services.Dialogs;
+//#endif
 using AppTemplate.Services.Navigation;
+//#if (rating)
 using AppTemplate.Services.Rating;
+//#endif
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
 using Uno.Resizetizer;
@@ -26,9 +30,11 @@ public partial class App : Application, IApplication
         }
     }
 
+    //#if (worktreeIdentity)
     public string? WorktreeName =>
         string.IsNullOrEmpty(AppEnvironment.WorktreeName) ? null : AppEnvironment.WorktreeName;
 
+    //#endif
     public App()
     {
         this.InitializeComponent();
@@ -56,12 +62,14 @@ public partial class App : Application, IApplication
                     options.ValidateScopes = true;
                     options.ValidateOnBuild = true;
                 })
+                //#if (http)
                 .UseHttp((context, services) =>
                 {
 #if DEBUG
                     services.AddTransient<DelegatingHandler, DebugHttpHandler>();
 #endif
                 })
+                //#endif
                 .ConfigureServices(RegisterServices)
             );
 
@@ -97,9 +105,13 @@ public partial class App : Application, IApplication
         services.AddSingleton<IApplication>(sp => Current);
         services.AddSingleton<MZikmund.Toolkit.WinUI.Services.IPreferences, Preferences>();
         services.AddSingleton<IAppPreferences, AppPreferences>();
+        //#if (displayRequest)
         services.AddSingleton<IDisplayRequestManager, DisplayRequestManager>();
+        //#endif
         services.AddSingleton<IAppUpdater, Infrastructure.AppUpdater>();
+        //#if (rating)
         services.AddScoped<IAppRatingService, AppRatingService>();
+        //#endif
 
         // Per-window scoped services
         services.AddScoped<IThemeManager, ThemeManager>();
@@ -107,11 +119,17 @@ public partial class App : Application, IApplication
         services.AddScoped<IWindowShellProvider>(sp => sp.GetRequiredService<WindowShellProvider>());
         services.AddScoped<IXamlRootProvider>(sp => sp.GetRequiredService<WindowShellProvider>());
         services.AddScoped<IFrameProvider, FrameProvider>();
+        //#if (useDialogs)
         services.AddScoped<IDialogCoordinator, DialogCoordinator>();
         services.AddScoped<IDialogService, DialogService>();
         services.AddScoped<IConfirmationDialogService, ConfirmationDialogService>();
+        //#endif
+        //#if (useLauncher)
         services.AddScoped<ILauncherService, LauncherService>();
+        //#endif
+        //#if (share)
         services.AddScoped<IShareService, ShareService>();
+        //#endif
         services.AddScoped<INavigationService>(sp =>
         {
             var service = new NavigationService(sp.GetRequiredService<IFrameProvider>());

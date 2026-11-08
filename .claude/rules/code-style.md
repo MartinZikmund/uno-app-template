@@ -1,5 +1,5 @@
 ---
-description: C# language, naming, and dependency conventions for this Uno template
+description: C# language, naming, and dependency conventions for this Uno app
 ---
 
 # Code style

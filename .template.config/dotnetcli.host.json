@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/dotnetcli.host",
+  "symbolInfo": {
+    "platforms": { "longName": "platforms", "shortName": "" },
+    "title": { "longName": "title", "shortName": "" },
+    "appId": { "longName": "app-id", "shortName": "" },
+    "publisher": { "longName": "publisher", "shortName": "" },
+    "githubRepo": { "longName": "github-repo", "shortName": "" },
+    "http": { "longName": "http", "shortName": "" },
+    "sqlite": { "longName": "sqlite", "shortName": "" },
+    "dialogs": { "longName": "dialogs", "shortName": "" },
+    "launcher": { "longName": "launcher", "shortName": "" },
+    "rating": { "longName": "rating", "shortName": "" },
+    "share": { "longName": "share", "shortName": "" },
+    "displayRequest": { "longName": "display-request", "shortName": "" },
+    "czech": { "longName": "czech", "shortName": "" },
+    "devAssets": { "longName": "dev-assets", "shortName": "" },
+    "worktreeIdentity": { "longName": "worktree-identity", "shortName": "" },
+    "xamlStyler": { "longName": "xaml-styler", "shortName": "" },
+    "tests": { "longName": "tests", "shortName": "" },
+    "ci": { "longName": "ci", "shortName": "" },
+    "packaging": { "longName": "packaging", "shortName": "" },
+    "agents": { "longName": "agents", "shortName": "" },
+    "specKit": { "longName": "spec-kit", "shortName": "" },
+    "community": { "longName": "community", "shortName": "" }
+  },
+  "usageExamples": [
+    "--platforms windows --platforms desktop --rating false --spec-kit false"
+  ]
+}

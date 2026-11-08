@@ -1,12 +1,24 @@
 <Project Sdk="Uno.Sdk">
     <PropertyGroup>
         <TargetFrameworks>
+            <!--#if (hasAndroid)-->
             net10.0-android;
+            <!--#endif-->
+            <!--#if (hasIos)-->
             net10.0-ios;
+            <!--#endif-->
+            <!--#if (hasTvos)-->
             net10.0-tvos;
+            <!--#endif-->
+            <!--#if (hasWindows)-->
             net10.0-windows10.0.26100;
+            <!--#endif-->
+            <!--#if (hasDesktop)-->
             net10.0-desktop;
+            <!--#endif-->
+            <!--#if (hasWasm)-->
             net10.0-browserwasm;
+            <!--#endif-->
         </TargetFrameworks>
 
         <OutputType>Exe</OutputType>
@@ -44,8 +56,10 @@
         <UnoIconBackgroundFile>Assets/Icons/icon_transparent.svg</UnoIconBackgroundFile>
         <UnoIconBackgroundFile Condition="'$(IsIOS)' == 'true' or '$(IsTvOS)' == 'true' or '$(IsAndroid)' == 'true'">Assets/Icons/icon.svg</UnoIconBackgroundFile>
 
+        <!--#if (devAssets)-->
         <!-- Dev builds badge the icon and splash below at build time (src/DevAssets.targets). -->
 
+        <!--#endif-->
         <UnoIconForegroundScale>1</UnoIconForegroundScale>
         <UnoIconForegroundScale Condition="'$(IsAndroid)' == 'true'">0.6</UnoIconForegroundScale>
         <UnoSplashScreenScale>0.85</UnoSplashScreenScale>
@@ -55,11 +69,15 @@
         <PackageReference Include="MZikmund.Toolkit.WinUI" />
     </ItemGroup>
 
+    <!--#if (sqlite)-->
+    <!--#if (hasTvos)-->
     <!-- SourceGear.sqlite3 has no tvOS binary, so its P/Invokes would fail the native link. See docs/tvos.md. -->
+    <!--#endif-->
     <ItemGroup Condition="'$(IsTvOS)' != 'true'">
         <PackageReference Include="sqlite-net-e" />
         <PackageReference Include="SourceGear.sqlite3" />
     </ItemGroup>
+    <!--#endif-->
 
     <ItemGroup>
         <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />

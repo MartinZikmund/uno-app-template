@@ -5,8 +5,8 @@
 - **`docs/<topic>.md`** — one page per topic. Feature documentation goes here, always.
 - **`docs/README.md`** — the index. Add one line for every new page, under the right heading, in
   alphabetical order within that group.
-- **`README.md`** — the repository's front door: what the template is, a linked feature list, how
-  to adopt it, and a quickstart. It is **not** a manual.
+- **`README.md`** — the repository's front door: what this is, a linked feature list, and a
+  quickstart. It is **not** a manual.
 
 ## The rule
 

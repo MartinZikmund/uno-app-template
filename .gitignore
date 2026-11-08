@@ -505,3 +505,5 @@ solution-config.props
 
 # Local wrangler state from `wrangler dev` / `wrangler deploy` (see docs/deployment.md).
 .wrangler/
+# Playwright MCP output
+.playwright-mcp/

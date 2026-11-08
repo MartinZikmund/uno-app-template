@@ -1,0 +1,36 @@
+{
+  "groups": [
+    {
+      "id": "services",
+      "title": "App services",
+      "description": "Plumbing wired into dependency injection, ready to use.",
+      "icon": "",
+      "features": [ "http", "sqlite", "dialogs", "launcher", "rating", "share", "displayRequest", "czech" ]
+    },
+    {
+      "id": "devExperience",
+      "title": "Developer experience",
+      "description": "Build-time helpers for working on the app day to day.",
+      "icon": "",
+      "features": [ "devAssets", "worktreeIdentity", "xamlStyler", "tests" ]
+    },
+    {
+      "id": "automation",
+      "title": "CI and release",
+      "description": "GitHub Actions for the platforms you picked.",
+      "icon": "",
+      "features": [ "ci", "packaging" ]
+    },
+    {
+      "id": "repository",
+      "title": "Repository",
+      "description": "Guidance and templates that live next to the code.",
+      "icon": "",
+      "features": [ "agents", "specKit", "community" ]
+    }
+  ],
+  "requires": {
+    "rating": [ "dialogs", "launcher" ],
+    "specKit": [ "agents" ]
+  }
+}

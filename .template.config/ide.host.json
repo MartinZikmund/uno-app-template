@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/ide.host",
+  "order": 0,
+  "symbolInfo": [
+    { "id": "title", "isVisible": true },
+    { "id": "appId", "isVisible": true },
+    { "id": "publisher", "isVisible": true },
+    { "id": "githubRepo", "isVisible": true },
+    { "id": "platforms", "isVisible": true },
+    { "id": "http", "isVisible": true },
+    { "id": "sqlite", "isVisible": true },
+    { "id": "dialogs", "isVisible": true },
+    { "id": "launcher", "isVisible": true },
+    { "id": "rating", "isVisible": true },
+    { "id": "share", "isVisible": true },
+    { "id": "displayRequest", "isVisible": true },
+    { "id": "czech", "isVisible": true },
+    { "id": "devAssets", "isVisible": true },
+    { "id": "worktreeIdentity", "isVisible": true },
+    { "id": "xamlStyler", "isVisible": true },
+    { "id": "tests", "isVisible": true },
+    { "id": "ci", "isVisible": true },
+    { "id": "packaging", "isVisible": true },
+    { "id": "agents", "isVisible": true },
+    { "id": "specKit", "isVisible": true },
+    { "id": "community", "isVisible": true }
+  ]
+}

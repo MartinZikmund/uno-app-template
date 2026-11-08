@@ -52,8 +52,8 @@
         <_WtDisp>$([System.Text.RegularExpressions.Regex]::Replace($(_WtSan), '^(worktree|wt)[-_. ]+', ''))</_WtDisp>
         <_WtDisp Condition="'$(_WtDisp)' == ''">$(_WtSan)</_WtDisp>
 
-        <!-- Long tag, capped at 20. Load-bearing: MSIX uap:DefaultTile/@ShortName is limited to 40
-             chars (ST_ShortDisplayName) and "App Template Dev (" + ")" already costs 19. -->
+        <!-- Long tag, capped at 20 so it stays readable. WorktreeIdentity.targets trims it further
+             when the title would otherwise push MSIX uap:DefaultTile/@ShortName past 40 chars. -->
         <_WtLongTag Condition="$(_WtDisp.Length) &gt; 20">$(_WtDisp.Substring(0, 20))</_WtLongTag>
         <_WtLongTag Condition="'$(_WtLongTag)' == ''">$(_WtDisp)</_WtLongTag>
 

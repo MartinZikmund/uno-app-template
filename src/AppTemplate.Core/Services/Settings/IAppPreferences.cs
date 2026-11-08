@@ -8,7 +8,9 @@ public interface IAppPreferences
 
     int LaunchCount { get; set; }
 
+    //#if (rating)
     bool OfferUserRating { get; set; }
+    //#endif
 
     ElementTheme Theme { get; set; }
 }

@@ -123,8 +123,11 @@ What changes per channel:
   match the subject of whichever certificate signs the package. On Windows the *Store* identity is
   separate again — see [windows-packaging.md](./windows-packaging.md).
 - **Display name:** `App Template` vs `App Template Dev`.
-- **App icon and splash:** Dev builds stamp a DEV badge onto the prod artwork at build time, so there is no Dev artwork to maintain. See [dev-assets.md](./dev-assets.md).
-- **In-app banner:** a `DEV` corner badge appears when `AppEnvironment.IsDevChannel` is true (a blue `CI` one on Dev builds made on CI; see [dev-assets.md](./dev-assets.md)).
+- **App icon and splash:** Dev builds stamp a DEV badge onto the prod artwork at build time, so there is no Dev artwork to maintain.
+<!--#if (devAssets)-->
+  See [dev-assets.md](./dev-assets.md).
+<!--#endif-->
+- **In-app banner:** a `DEV` corner badge appears when `AppEnvironment.IsDevChannel` is true (a blue `CI` one on Dev builds made on CI).
 - **Compile constant:** `APP_CHANNEL_DEV` defined on Dev builds.
 - **Appsettings:** `appsettings.Dev.json` (overlay placeholder; wire up to your configuration host if you need separate sandbox keys).
 
@@ -147,4 +150,6 @@ NBGV does not enforce a major-bump policy.
 
 ## Worktree builds
 
+<!--#if (worktreeIdentity)-->
 There is a third axis on top of the channel: a Dev build made from a **linked git worktree** appends a per-worktree segment to `ApplicationId`, so two worktrees can be installed and run at the same time. It is automatic, never applies to `Prod`, and is a no-op in the main checkout and in CI. See [worktree-identity.md](./worktree-identity.md).
+<!--#endif-->

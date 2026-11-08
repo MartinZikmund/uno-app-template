@@ -1,6 +1,7 @@
 {
   "version": "2.0.0",
   "tasks": [
+    //#if (hasWasm)
     {
       "label": "build-wasm",
       "command": "dotnet",
@@ -27,6 +28,8 @@
       ],
       "problemMatcher": "$msCompile"
     },
+    //#endif
+    //#if (hasDesktop)
     {
       "label": "build-desktop",
       "command": "dotnet",
@@ -53,5 +56,6 @@
       ],
       "problemMatcher": "$msCompile"
     }
+    //#endif
   ]
 }

@@ -96,6 +96,7 @@ channel, CI and kill-switch guards all sit on the *application* step, not on det
 
 ## Guarantees
 
+<!--#if (false)-->
 These are asserted by [`scripts/verify-worktree-identity.ps1`](../scripts/verify-worktree-identity.ps1).
 On the template repository, [`template-selftest.yml`](../.github/workflows/template-selftest.yml)
 runs it whenever the identity files change, from the clone and from a throwaway linked worktree.
@@ -106,6 +107,7 @@ MSBuild file:
 pwsh scripts/verify-worktree-identity.ps1
 ```
 
+<!--#endif-->
 | # | Guarantee |
 |---|---|
 | I1 | `AppChannel=Prod` is never suffixed, whatever is passed on the command line or exported |
@@ -116,9 +118,9 @@ pwsh scripts/verify-worktree-identity.ps1
 | I6 | `ApplicationTitle` stays ≤ 40 chars |
 
 I5 and I6 are not decoration. MSIX caps `Identity/@Name` at 50 characters and
-`uap:DefaultTile/@ShortName` at 40 (`ST_ShortDisplayName`); `App Template Dev (` plus `)` already
-costs 19 of those 40, which is exactly why the long tag is capped at 20. iOS caps `CFBundleName`
-under 16, which is why the base abbreviates to `AppTmpl` there.
+`uap:DefaultTile/@ShortName` at 40 (`ST_ShortDisplayName`), so the tag gets whatever the title leaves
+and is dropped if nothing is left. iOS caps `CFBundleName` under 16, which is why the base abbreviates
+to `AppTmpl` there.
 
 ## Per platform
 
@@ -138,7 +140,7 @@ Czech. Instead the build regenerates **each locale's** resource file with the su
 `Main.Android.cs` still reads `Label = "@string/ApplicationName"`, and translators keep editing the
 tracked files.
 
-Two details worth knowing if you touch `ApplyMobileLabelAndroid`:
+Two details worth knowing if you touch `ApplyMobileLabelAndroid` in `src/MobileLabels.targets`:
 
 - The generated content is always derived from the **pristine tracked source**, never from a
   previously generated copy. That is what makes it idempotent across incremental builds — appending
@@ -168,8 +170,7 @@ dotnet run -f net10.0-browserwasm --urls http://localhost:5033
 
 The launch profiles in `Properties/launchSettings.json`, `.vscode/launch.json` and
 `.run/AppTemplate.run.xml` are deliberately **not** rewritten per worktree — they are tracked files,
-and editing them on every feature branch is exactly the recurring-merge-conflict pattern that
-[`.claude/rules/docs.md`](../.claude/rules/docs.md) exists to prevent.
+and editing them on every feature branch would conflict on every merge.
 
 ## Running two at once
 
@@ -208,8 +209,7 @@ Get-AppxPackage dev.mzikmund.apptemplate.dev.wt* | Select-Object Name, PackageFa
   a different package and the old install plus its data is orphaned. Uninstall before moving.
 - **`Get-Process AppTemplate` matches every worktree.** `AssemblyName` is deliberately unchanged —
   the launch configs, the WASM linker config and `--exe AppTemplate.exe` all depend on it.
-- **Icons are identical across worktrees.** Every Dev build gets the same generated DEV badge
-  ([dev-assets.md](./dev-assets.md)). A worktree name would be 1–3px tall at taskbar sizes, so it stays in the text labels.
+- **Icons are identical across worktrees.** A worktree name would be 1–3px tall at taskbar sizes, so it stays in the text labels.
 - **A local `-p:AppChannel=Prod` build from a worktree overwrites the real Prod app.** That is the
   safe direction — no worktree-suffixed id can ever ship — but it is worth knowing.
 - **The Desktop head's manifest version stays `1.0.0.1`**, because `SetNbgvVersionForUnoWindows` is
@@ -239,5 +239,7 @@ Three rules that are cheap to honour now and expensive to retrofit:
 
 - [versioning.md](./versioning.md) — the Dev/Prod `AppChannel` model this layers on top of.
 - [building.md](./building.md) — target frameworks and per-platform build commands.
+<!--#if (useAgents && hasWindows)-->
 - [`.claude/skills/run-winui-app/SKILL.md`](../.claude/skills/run-winui-app/SKILL.md) — the full
   build → launch → automate → clean up loop for the Windows head.
+<!--#endif-->

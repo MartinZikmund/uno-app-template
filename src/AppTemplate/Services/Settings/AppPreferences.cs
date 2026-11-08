@@ -32,6 +32,7 @@ public sealed class AppPreferences : IAppPreferences
         set => _preferences.Set(LaunchCountKey, value);
     }
 
+    //#if (rating)
     private const string OfferUserRatingKey = "OfferUserRating";
     public bool OfferUserRating
     {
@@ -39,6 +40,7 @@ public sealed class AppPreferences : IAppPreferences
         set => _preferences.Set(OfferUserRatingKey, value);
     }
 
+    //#endif
     private const string ThemeKey = "AppTheme";
     public ElementTheme Theme
     {

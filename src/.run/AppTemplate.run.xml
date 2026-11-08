@@ -1,4 +1,5 @@
 <component name="ProjectRunConfigurationManager">
+  <!--#if (hasDesktop)-->
   <configuration default="false" name="AppTemplate (Desktop)" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
     <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/AppTemplate/AppTemplate.csproj" />
     <option name="LAUNCH_PROFILE_TFM" value="net10.0-desktop" />
@@ -14,6 +15,8 @@
       <option name="Build" />
     </method>
   </configuration>
+  <!--#endif-->
+  <!--#if (hasWasm)-->
   <configuration default="false" name="AppTemplate (WebAssembly IIS Express)" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
     <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/AppTemplate/AppTemplate.csproj" />
     <option name="LAUNCH_PROFILE_TFM" value="net10.0-browserwasm" />
@@ -44,6 +47,8 @@
       <option name="Build" />
     </method>
   </configuration>
+  <!--#endif-->
+  <!--#if (hasWindows)-->
   <configuration default="false" name="AppTemplate (WinAppSDK Unpackaged)" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
     <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/AppTemplate/AppTemplate.csproj" />
     <option name="LAUNCH_PROFILE_TFM" value="net10.0-windows10.0.26100.0" />
@@ -59,4 +64,5 @@
       <option name="Build" />
     </method>
   </configuration>
+  <!--#endif-->
 </component>

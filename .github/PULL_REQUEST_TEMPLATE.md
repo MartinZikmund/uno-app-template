@@ -27,4 +27,8 @@ Closes #
 - [ ] Added or updated tests where it made sense
 - [ ] Updated localization strings if new UI text was added
 - [ ] Updated documentation if behavior changed
+<!--#if (false)-->
+- [ ] Added an upgrade note in `docs/upgrades/` if apps need to act on this, or an `Upgrade-Note: none - <reason>` line above
+- [ ] Made anything an app could reasonably not want an optional feature (`docs/template-authoring.md`)
+<!--#endif-->
 - [ ] No unrelated changes are included

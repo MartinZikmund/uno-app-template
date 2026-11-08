@@ -24,9 +24,12 @@ public static partial class AppEnvironment
 
     /// <summary>
     /// Text for the title-bar channel badge: the channel label, plus the worktree when this build
-    /// came from one (<c>DEV · identity</c>). <see cref="WorktreeName"/> is supplied by the
-    /// generated part of this class.
+    /// came from one (<c>DEV · identity</c>).
     /// </summary>
     public static string ChannelBadgeLabel =>
-        WorktreeName is { Length: > 0 } worktree ? $"{ChannelLabel} · {worktree}" : ChannelLabel;
+        //#if (worktreeIdentity)
+        // WorktreeName is supplied by the generated part of this class.
+        WorktreeName is { Length: > 0 } worktree ? $"{ChannelLabel} · {worktree}" :
+        //#endif
+        ChannelLabel;
 }

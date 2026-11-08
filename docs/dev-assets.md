@@ -32,7 +32,10 @@ mistaken for a local build. The in-app title-bar badge (`DevChannelBadge`) follo
 through `AppEnvironment.IsCiBuild`, which the build sets whenever the icon's label is CI. Prod builds get no badge either way.
 
 The worktree name is deliberately **not** on the icon: at taskbar sizes it would be 1–3px tall. Worktrees show their name
-as text instead. See [worktree-identity.md](./worktree-identity.md).
+as text instead.
+<!--#if (worktreeIdentity)-->
+See [worktree-identity.md](./worktree-identity.md).
+<!--#endif-->
 
 ## How it works
 
@@ -82,6 +85,7 @@ With generation left on, a Dev-specific foreground gets badged too.
 
 A cosmetic badge never fails the build.
 
+<!--#if (false)-->
 ## Verifying
 
 ```powershell
@@ -104,6 +108,7 @@ change. Apps created from the template delete both; `src/DevAssets.*` keeps work
 | D6 | `GenerateDevAssets=false` renders exactly what Prod renders |
 | D7 | A CI build (`CI=true`) draws the blue CI badge |
 
+<!--#endif-->
 ## Limitations
 
 - **iOS is covered by unit tests only.** The iOS head can't be built on Windows. Resizetizer's Apple icon generator appears
@@ -116,5 +121,9 @@ change. Apps created from the template delete both; `src/DevAssets.*` keeps work
 ## See also
 
 - [versioning.md](./versioning.md): the Dev/Prod `AppChannel` model this hooks into.
+<!--#if (worktreeIdentity)-->
 - [worktree-identity.md](./worktree-identity.md): why the worktree name stays out of the icon.
+<!--#endif-->
+<!--#if (false)-->
 - [Design spec](./superpowers/specs/2026-09-22-dev-assets-design.md): the decisions and the spike behind them.
+<!--#endif-->

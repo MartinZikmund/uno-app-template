@@ -3,12 +3,24 @@
     <PropertyGroup>
         <TargetFrameworks>
             net10.0;
+            <!--#if (hasAndroid)-->
             net10.0-android;
+            <!--#endif-->
+            <!--#if (hasIos)-->
             net10.0-ios;
+            <!--#endif-->
+            <!--#if (hasTvos)-->
             net10.0-tvos;
+            <!--#endif-->
+            <!--#if (hasWindows)-->
             net10.0-windows10.0.26100;
+            <!--#endif-->
+            <!--#if (hasDesktop)-->
             net10.0-desktop;
+            <!--#endif-->
+            <!--#if (hasWasm)-->
             net10.0-browserwasm;
+            <!--#endif-->
         </TargetFrameworks>
 
         <UnoSingleProject>true</UnoSingleProject>
@@ -23,10 +35,14 @@
         <PackageReference Include="MZikmund.Toolkit.WinUI" />
     </ItemGroup>
 
+    <!--#if (sqlite)-->
+    <!--#if (hasTvos)-->
     <!-- SourceGear.sqlite3 has no tvOS binary, so its P/Invokes would fail the native link. See docs/tvos.md. -->
+    <!--#endif-->
     <ItemGroup Condition="'$(IsTvOS)' != 'true'">
         <PackageReference Include="sqlite-net-e" />
         <PackageReference Include="SourceGear.sqlite3" />
     </ItemGroup>
+    <!--#endif-->
 
 </Project>

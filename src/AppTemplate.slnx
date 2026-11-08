@@ -1,20 +1,32 @@
 <Solution>
   <Folder Name="/App/">
+    <!--#if (tests)-->
     <Project Path="../tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj" Id="c0de6d3e-8f3b-43c5-967a-d5aae7c80674" />
+    <!--#endif-->
     <Project Path="AppTemplate.Core/AppTemplate.Core.csproj" />
     <Project Path="AppTemplate/AppTemplate.csproj">
       <Deploy Solution="Debug|*" />
     </Project>
   </Folder>
+  <!--#if (false)-->
   <Folder Name="/Template/">
+    <Project Path="../tests/Template.GenerationTests/Template.GenerationTests.csproj" />
     <Project Path="../tests/Template.SelfTests/Template.SelfTests.csproj" />
+    <Project Path="../tools/TemplatePack/MZikmund.UnoApp.Templates.csproj" />
+    <Project Path="../tools/Wizard.Cli/MZikmund.UnoApp.Cli.csproj" />
+    <Project Path="../tools/Wizard.Core/Wizard.Core.csproj" />
   </Folder>
+  <!--#endif-->
   <Folder Name="/Solution Items/" />
+  <!--#if (useAgents)-->
   <Folder Name="/Solution Items/Agents/">
     <File Path="../CLAUDE.md" />
   </Folder>
+  <!--#endif-->
   <Folder Name="/Solution Items/Documentation/">
+    <!--#if (false)-->
     <File Path="../LICENSE" />
+    <!--#endif-->
     <File Path="../README.md" />
   </Folder>
   <Folder Name="/Solution Items/dotfiles/">

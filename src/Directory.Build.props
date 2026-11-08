@@ -14,7 +14,9 @@
             Logging;
             Mvvm;
             Configuration;
+            <!--#if (http)-->
             HttpRefit;
+            <!--#endif-->
             Serialization;
             Localization;
         </UnoFeatures>
@@ -44,6 +46,8 @@
         <NBGV_SetMauiVersionProperties>false</NBGV_SetMauiVersionProperties>
     </PropertyGroup>
 
+    <!--#if (worktreeIdentity)-->
     <!-- Per-worktree app identity (detection + derivation). See docs/worktree-identity.md. -->
     <Import Project="$(MSBuildThisFileDirectory)WorktreeIdentity.props" />
+    <!--#endif-->
 </Project>

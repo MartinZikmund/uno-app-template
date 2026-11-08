@@ -8,6 +8,7 @@ public interface IApplication
 
     string AppVersion { get; }
 
+    //#if (worktreeIdentity)
     /// <summary>
     /// Name of the git worktree this build came from, or <see langword="null"/> for the main
     /// checkout. Dev-channel worktree builds carry their own package identity so they can run
@@ -15,5 +16,6 @@ public interface IApplication
     /// </summary>
     string? WorktreeName { get; }
 
+    //#endif
     void Exit();
 }
