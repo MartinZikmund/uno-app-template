@@ -7,6 +7,12 @@
       "commands": [
         "xstyler"
       ]
+    },
+    "nbgv": {
+      "version": "3.10.94",
+      "commands": [
+        "nbgv"
+      ]
     }
   }
 }
