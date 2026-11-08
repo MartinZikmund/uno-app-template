@@ -1,0 +1,9 @@
+<Project>
+  <!--
+    Stops any repo-level props (central package versions, Nerdbank.GitVersioning) from applying to
+    export-windows-assets.cs, so it can pin Svg.Skia itself - the version the Uno SDK renders SVGs with.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

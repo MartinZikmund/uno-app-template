@@ -1,0 +1,3 @@
+<Project>
+  <!-- Keeps export-windows-assets.cs out of central package management; see Directory.Build.props. -->
+</Project>

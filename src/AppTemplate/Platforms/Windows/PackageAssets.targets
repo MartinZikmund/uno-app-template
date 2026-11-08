@@ -1,0 +1,40 @@
+<Project>
+  <!--
+    Prod Windows packages use the padded images in Platforms/Windows (assets/app-icon/Set-AppIcon.ps1),
+    matching the Visual Studio asset generator. Resizetizer's own images fill each tile edge to edge.
+    Dev keeps Resizetizer's images, so the build-time Dev badge still shows. See docs/app-icon.md.
+  -->
+  <PropertyGroup>
+    <UseWindowsPackageAssets Condition="'$(UseWindowsPackageAssets)' == '' and '$(AppChannel)' == 'Prod'">true</UseWindowsPackageAssets>
+    <_UseWindowsPackageAssets Condition="'$(IsWinAppSdk)' == 'true' and '$(UseWindowsPackageAssets)' == 'true'">true</_UseWindowsPackageAssets>
+  </PropertyGroup>
+
+  <!-- Uno's default image glob skips the WinAppSDK head. -->
+  <ItemGroup Condition="'$(_UseWindowsPackageAssets)' == 'true'">
+    <Content Include="Platforms\Windows\*.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Runs on the manifest Resizetizer just generated, so the source Package.appxmanifest stays channel-neutral. -->
+  <Target Name="UseWindowsPackageAssetsInManifest"
+          AfterTargets="UnoGeneratePackageAppxManifest"
+          Condition="'$(_UseWindowsPackageAssets)' == 'true' and '@(AppxManifest)' != ''">
+    <PropertyGroup>
+      <_ManifestNamespaces>
+        &lt;Namespace Prefix="m" Uri="http://schemas.microsoft.com/appx/manifest/foundation/windows10" /&gt;
+        &lt;Namespace Prefix="uap" Uri="http://schemas.microsoft.com/appx/manifest/uap/windows10" /&gt;
+      </_ManifestNamespaces>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ManifestAsset Include="PackageLogo" Query="/m:Package/m:Properties/m:Logo" Value="Platforms\Windows\PackageLogo.png" />
+      <_ManifestAsset Include="AppIcon" Query="//uap:VisualElements/@Square44x44Logo" Value="Platforms\Windows\AppIcon.png" />
+      <_ManifestAsset Include="MediumTile" Query="//uap:VisualElements/@Square150x150Logo" Value="Platforms\Windows\MediumTile.png" />
+      <!-- Resizetizer writes #000000 for a transparent icon background. -->
+      <_ManifestAsset Include="BackgroundColor" Query="//uap:VisualElements/@BackgroundColor" Value="transparent" />
+      <_ManifestAsset Include="SmallTile" Query="//uap:DefaultTile/@Square71x71Logo" Value="Platforms\Windows\SmallTile.png" />
+      <_ManifestAsset Include="WideTile" Query="//uap:DefaultTile/@Wide310x150Logo" Value="Platforms\Windows\WideTile.png" />
+      <_ManifestAsset Include="LargeTile" Query="//uap:DefaultTile/@Square310x310Logo" Value="Platforms\Windows\LargeTile.png" />
+      <_ManifestAsset Include="SplashScreen" Query="//uap:SplashScreen/@Image" Value="Platforms\Windows\SplashScreen.png" />
+    </ItemGroup>
+    <XmlPoke XmlInputPath="@(AppxManifest)" Namespaces="$(_ManifestNamespaces)" Query="%(_ManifestAsset.Query)" Value="%(_ManifestAsset.Value)" />
+  </Target>
+</Project>

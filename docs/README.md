@@ -4,6 +4,7 @@ One page per topic. Keep it that way — see [`.claude/rules/docs.md`](../.claud
 
 ## Building & tooling
 
+- [app-icon.md](./app-icon.md) — swapping the app icon with one command, and the rules the artwork has to follow.
 - [building.md](./building.md) — target frameworks, per-platform prerequisites, build and run commands.
 - [spec-kit.md](./spec-kit.md) — the Spec Kit spec-driven development workflow (`/speckit-*` commands and the project constitution).
 - [worktree-identity.md](./worktree-identity.md) — per-worktree package identity, so two git worktrees can be installed and run side by side.
