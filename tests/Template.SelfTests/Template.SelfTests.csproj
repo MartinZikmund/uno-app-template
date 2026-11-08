@@ -20,6 +20,11 @@
     <ProjectReference Include="..\..\src\AppTemplate.Core\AppTemplate.Core.csproj" />
   </ItemGroup>
 
+  <!-- The wizard's shared logic (tools/Wizard.Core). -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\tools\Wizard.Core\Wizard.Core.csproj" />
+  </ItemGroup>
+
   <!-- The Dev-asset composer is an MSBuild inline task (src/DevAssets.targets); compile the same source to test it. -->
   <ItemGroup>
     <Compile Include="..\..\src\DevAssets.Task.cs" Link="DevAssets\DevAssets.Task.cs" />
