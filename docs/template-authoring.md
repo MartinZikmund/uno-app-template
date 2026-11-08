@@ -16,6 +16,7 @@ The agent-facing rules, including the marker syntax table, are in
 | `.template.config/ide.host.json` | What the Visual Studio dialog shows |
 | `.template.config/wizard.json` | How the wizards group features, and which features require others |
 | `template/overlay/` | Files only an app receives: its own `README.md`, `.template-state.json`, the license notice |
+| `template/variants/` | Whole-file replacements for one combination of options, when markers won't do. `dotnet-tools.json` is strict JSON that Dependabot parses, so comments are out |
 | `tools/TemplatePack/` | Packs the repository root as `MZikmund.UnoApp.Templates` and stamps the version into the state file |
 | `tools/Wizard.Core/` | Selection rules, manifest, state file and upgrade note parsing. Shared by CLI and UI |
 | `tools/Wizard.Cli/` | The `mzuno-app` tool, including the local server for the visual wizard |

@@ -59,6 +59,10 @@ directive**, which is why C# only recognises the `//#if` form.
 
 Rules that keep generation honest:
 
+- **`#if` nests in every file type**, but only because `template.json` defines each one's markers. The engine's built-in
+  YAML rules close a nested block early, so a new file type needs its own entry under `SpecialCustomOperations`.
+- **A marker can't be a file's last line.** The engine leaves that closing marker behind, so end the file with something
+  else, as the workflows that end in a block do.
 - **There's no `#else` for code.** The engine can't uncomment a branch, so shape the code to work without one, such
   as an optional prefix on an expression.
 - **`<!--#if (false)-->` hides text that's only about the template** from generated docs.

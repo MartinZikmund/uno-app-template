@@ -21,26 +21,34 @@ on:
         type: choice
         required: true
         options:
+          #if (hasAndroid)
           - play-status
           - play-bump
           - play-halt
           - play-finalize
+          #endif
+          #if (hasIos)
           - appstore-status
           - appstore-pause
           - appstore-resume
           - appstore-cancel-review
+          #endif
+          #if (hasWindows)
           - msstore-status
           - msstore-rollout-update
           - msstore-rollout-halt
           - msstore-rollout-finalize
           - msstore-delete-draft
+          #endif
+          #if (hasAndroid || hasWasm || hasWindows)
           - republish
+          #endif
       value:
         description: "Percent as a fraction (e.g. 0.25) for a bump, or the run id for republish"
         required: false
         default: ""
       republish_targets:
-        description: "republish only: comma-separated of play,msstore,web"
+        description: "republish only: comma-separated store targets. See docs/release-runbook.md"
         required: false
         default: ""
       force:
@@ -55,6 +63,7 @@ permissions:
   statuses: write
 
 jobs:
+  #if (hasAndroid)
   play:
     if: startsWith(inputs.action, 'play-')
     runs-on: ubuntu-24.04
@@ -91,7 +100,9 @@ jobs:
           args=(--package "$PACKAGE_NAME" --track production)
           if [ "$op" = "rollout" ]; then args+=(--user-fraction "$VALUE"); fi
           python .github/scripts/play_track_op.py "$op" "${args[@]}"
+  #endif
 
+  #if (hasIos)
   appstore:
     if: startsWith(inputs.action, 'appstore-')
     runs-on: ubuntu-24.04
@@ -119,7 +130,9 @@ jobs:
             *) echo "::error::unsupported appstore action"; exit 1 ;;
           esac
           python .github/scripts/asc_op.py "$op"
+  #endif
 
+  #if (hasWindows)
   msstore:
     if: startsWith(inputs.action, 'msstore-')
     runs-on: windows-2025
@@ -162,7 +175,9 @@ jobs:
             }
             default { throw "unsupported msstore action" }
           }
+  #endif
 
+  #if (hasAndroid || hasWasm || hasWindows)
   republish:
     if: inputs.action == 'republish'
     runs-on: ubuntu-24.04
@@ -181,12 +196,13 @@ jobs:
           case "$RUN_ID" in
             ''|*[!0-9]*) echo "::error::republish needs the source run id in 'value' (digits only)."; exit 1 ;;
           esac
-          [ -n "$TARGETS" ] || { echo "::error::republish needs 'republish_targets' (play,msstore,web)."; exit 1; }
+          [ -n "$TARGETS" ] || { echo "::error::republish needs 'republish_targets'. See docs/release-runbook.md."; exit 1; }
           sha="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq .head_sha)"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
 
       # This workflow has no reviewers, so overwriting what a store already has takes an explicit
       # force=true. Checked before anything moves, so a mistaken dispatch changes nothing.
+      #if (hasAndroid)
       - id: once-play
         if: contains(inputs.republish_targets, 'play')
         uses: ./.github/actions/publish-once
@@ -195,7 +211,9 @@ jobs:
           sha: ${{ steps.source.outputs.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           force: ${{ inputs.force }}
+      #endif
 
+      #if (hasWasm)
       - id: once-web
         if: contains(inputs.republish_targets, 'web')
         uses: ./.github/actions/publish-once
@@ -204,6 +222,7 @@ jobs:
           sha: ${{ steps.source.outputs.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           force: ${{ inputs.force }}
+      #endif
 
       - name: Refuse to re-push without force
         if: steps.once-play.outputs.skip == 'true' || steps.once-web.outputs.skip == 'true'
@@ -217,6 +236,7 @@ jobs:
       # site root.
       # Release artifacts are retained 90 days precisely so this lever stays usable after
       # GitHub's 30-day "re-run failed jobs" window closes.
+      #if (hasAndroid)
       - uses: actions/download-artifact@v8
         if: contains(inputs.republish_targets, 'play')
         with:
@@ -224,7 +244,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           name: release-android
           path: pkg-android
+      #endif
 
+      #if (hasWasm)
       # The site lands in the path wrangler.jsonc points `assets.directory` at, so the
       # re-deploy is the same `wrangler deploy` release.yml runs, with no override.
       - uses: actions/download-artifact@v8
@@ -234,7 +256,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           name: release-wasm
           path: src/AppTemplate/bin/Release/net10.0-browserwasm/publish/wwwroot
+      #endif
 
+      #if (hasWindows)
       - uses: actions/download-artifact@v8
         if: contains(inputs.republish_targets, 'msstore')
         with:
@@ -242,10 +266,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           name: release-windows
           path: pkg-windows
+      #endif
 
       - name: Show what was recovered
         run: find pkg-android pkg-windows src/AppTemplate/bin/Release/net10.0-browserwasm/publish/wwwroot -type f 2>/dev/null | head -50 || true
 
+      #if (hasAndroid)
       - name: Re-upload to Play (internal)
         id: upload-play
         if: contains(inputs.republish_targets, 'play')
@@ -265,7 +291,9 @@ jobs:
           environment: play-internal
           sha: ${{ steps.source.outputs.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      #endif
 
+      #if (hasWasm)
       - name: Re-deploy the web build
         id: upload-web
         if: contains(inputs.republish_targets, 'web')
@@ -283,7 +311,9 @@ jobs:
           environment: web-production
           sha: ${{ steps.source.outputs.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      #endif
 
+      #if (hasWindows)
       - name: Note the Microsoft Store path
         if: contains(inputs.republish_targets, 'msstore')
         env:
@@ -291,3 +321,7 @@ jobs:
         run: |
           echo "::notice::The .msixbundle from run $RUN_ID is in this job's 'pkg-windows' directory."
           echo "::notice::Microsoft Store re-submission runs on Windows - re-run the release run's publish-msstore-draft job, or upload pkg-windows/*.msixbundle manually in Partner Center."
+      #endif
+  #endif
+
+# Keep this line last: the template engine can't close a block on a file's final line.

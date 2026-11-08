@@ -30,9 +30,13 @@ One page per topic. Keep it that way.
 
 ## Release
 
+<!--#if (packaging && hasWasm)-->
 - [deployment.md](./deployment.md) — hosting the WebAssembly head on Cloudflare Workers: production, PR previews, one-time setup.
+<!--#endif-->
+<!--#if (packaging)-->
 - [release-pipeline.md](./release-pipeline.md) — what each workflow builds and publishes, environments, secrets, fork behaviour.
 - [release-runbook.md](./release-runbook.md) — cutting a release, shipping a patch, halting a bad rollout.
+<!--#endif-->
 - [versioning.md](./versioning.md) — the Dev/Prod channel model, git-height versions, side-by-side identity.
 <!--#if (false)-->
 - [versioning-migration.md](./versioning-migration.md) — applying that model to an existing app.

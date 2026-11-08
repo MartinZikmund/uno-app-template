@@ -225,7 +225,7 @@
       "type": "parameter",
       "datatype": "bool",
       "displayName": "Release workflows",
-      "description": "GitHub Actions that package each selected platform and cut releases.",
+      "description": "GitHub Actions that package each selected platform and publish to its store from release branches.",
       "defaultValue": "true",
       "replaces": "__opt_packaging__"
     },
@@ -306,6 +306,21 @@
             "actionableElse": [ "<!--#else" ],
             "actionableElseif": [ "<!--#elseif" ],
             "endif": [ "<!--#endif" ],
+            "trim": "true",
+            "wholeLine": "true"
+          }
+        }
+      ]
+    },
+    "**/*.yml": {
+      "operations": [
+        {
+          "type": "conditional",
+          "configuration": {
+            "actionableIf": [ "#if" ],
+            "actionableElse": [ "#else" ],
+            "actionableElseif": [ "#elseif" ],
+            "endif": [ "#endif" ],
             "trim": "true",
             "wholeLine": "true"
           }
@@ -403,14 +418,16 @@
           "condition": "(!hasAndroid)",
           "exclude": [
             "src/AppTemplate/Platforms/Android/**",
-            ".github/workflows/package-android.yml"
+            ".github/workflows/_build-android.yml",
+            ".github/scripts/play_track_op.py"
           ]
         },
         {
           "condition": "(!hasIos)",
           "exclude": [
             "src/AppTemplate/Platforms/iOS/**",
-            ".github/workflows/package-ios.yml"
+            ".github/workflows/_build-ios.yml",
+            ".github/scripts/asc_op.py"
           ]
         },
         {
@@ -418,22 +435,25 @@
           "exclude": [
             "src/AppTemplate/Platforms/Windows/**",
             "src/AppTemplate/Properties/PublishProfiles/**",
-            ".github/Install-WindowsSdkISO.ps1",
-            ".github/workflows/package-windows.yml",
+            ".github/workflows/_build-windows.yml",
+            "docs/windows-packaging.md",
+            "tests/AppTemplate.Core.Tests/Packaging/StoreWorkflowTests.cs",
             ".claude/skills/run-winui-app/**"
           ]
         },
         {
           "condition": "(!hasDesktop)",
           "exclude": [
-            "src/AppTemplate/Platforms/Desktop/**"
+            "src/AppTemplate/Platforms/Desktop/**",
+            ".github/workflows/_build-desktop.yml"
           ]
         },
         {
           "condition": "(!hasWasm)",
           "exclude": [
             "src/AppTemplate/Platforms/WebAssembly/**",
-            ".github/workflows/static-web-apps-deploy.yml"
+            ".github/workflows/_build-wasm.yml",
+            ".github/workflows/wasm-pr-preview.yml"
           ]
         },
         {
@@ -537,18 +557,31 @@
         {
           "condition": "(!packaging)",
           "exclude": [
-            ".github/workflows/package-*.yml",
+            ".github/workflows/_build-*.yml",
+            ".github/workflows/build-main.yml",
+            ".github/workflows/release.yml",
             ".github/workflows/prepare-release.yml",
-            ".github/workflows/tag-release.yml",
-            ".github/workflows/static-web-apps-deploy.yml",
-            ".github/Install-WindowsSdkISO.ps1",
-            ".github/steps/**"
+            ".github/workflows/forward-merge.yml",
+            ".github/workflows/store-ops.yml",
+            ".github/workflows/store-health.yml",
+            ".github/workflows/wasm-pr-preview.yml",
+            ".github/scripts/**",
+            ".github/actions/publish-once/**",
+            "docs/release-pipeline.md",
+            "docs/release-runbook.md",
+            "tests/AppTemplate.Core.Tests/Packaging/StoreWorkflowTests.cs"
           ]
         },
         {
-          "condition": "(!hasWindows && !hasAndroid && !hasIos)",
+          "condition": "(!hasAndroid && !hasIos && !hasWindows && !hasWasm)",
           "exclude": [
-            ".github/workflows/tag-release.yml"
+            ".github/workflows/store-ops.yml"
+          ]
+        },
+        {
+          "condition": "(!ci && !packaging)",
+          "exclude": [
+            ".github/actions/**"
           ]
         },
         {
@@ -582,6 +615,11 @@
       "source": "./template/overlay/",
       "target": "./",
       "copyOnly": [ "docs/TEMPLATE-LICENSE.txt" ]
+    },
+    {
+      "source": "./template/variants/nbgv-only/",
+      "target": "./",
+      "condition": "(!xamlStyler && (ci || packaging))"
     }
   ],
   "postActions": []

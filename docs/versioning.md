@@ -74,8 +74,10 @@ possible code on `release/v0.2` (`299 999`) can never reach the lowest on `relea
 
 Row 9 is the one honest caveat, and it is a store rule rather than a formula defect: once
 `0.3.62` is live, uploading `0.2.49` to the same track is rejected as lower. Patching an
-already-superseded train is a business decision — see
-[release-runbook.md](./release-runbook.md).
+already-superseded train is a business decision.
+<!--#if (packaging)-->
+See [release-runbook.md](./release-runbook.md).
+<!--#endif-->
 
 ### Never use `nbgv get-version -v Version` for a store
 
@@ -120,8 +122,10 @@ What changes per channel:
 - **Identity:** all native heads take their identity from a single `ApplicationId` property —
   Android `applicationId`, iOS `CFBundleIdentifier`, and the Windows MSIX `<Identity Name>` — which is
   `…apptemplate` vs `…apptemplate.dev`. The MSIX `Publisher` comes from `ApplicationPublisher` and must
-  match the subject of whichever certificate signs the package. On Windows the *Store* identity is
-  separate again — see [windows-packaging.md](./windows-packaging.md).
+  match the subject of whichever certificate signs the package.
+  <!--#if (hasWindows)-->
+  On Windows the *Store* identity is separate again — see [windows-packaging.md](./windows-packaging.md).
+  <!--#endif-->
 - **Display name:** `App Template` vs `App Template Dev`.
 - **App icon and splash:** Dev builds stamp a DEV badge onto the prod artwork at build time, so there is no Dev artwork to maintain.
 <!--#if (devAssets)-->
@@ -139,9 +143,11 @@ load-bearing, and `PackageManifestTests` in `AppTemplate.Core.Tests` fails if it
 
 ## Release lifecycle
 
+<!--#if (packaging)-->
 Cutting, patching, halting and the store-by-store constraints all live in
 [release-runbook.md](./release-runbook.md). The workflow map is in
 [release-pipeline.md](./release-pipeline.md).
+<!--#endif-->
 
 ### Major version bump
 

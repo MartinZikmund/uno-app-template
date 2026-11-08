@@ -216,6 +216,8 @@ StoreBroker — both drive the identical API.
 
 ## Related
 
+<!--#if (packaging)-->
 - [release-pipeline.md](./release-pipeline.md) — the workflow map and environments.
 - [release-runbook.md](./release-runbook.md) — rollouts, halting, stuck submissions.
+<!--#endif-->
 - [versioning.md](./versioning.md) — where the version number comes from.

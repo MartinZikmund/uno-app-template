@@ -119,3 +119,5 @@ jobs:
       - name: Build ${{ matrix.name }}
         run: dotnet build src/AppTemplate/AppTemplate.csproj -c Release -f ${{ matrix.tfm }} -p:AppChannel=Dev
   #endif
+
+# Keep this line last: the template engine can't close a block on a file's final line.

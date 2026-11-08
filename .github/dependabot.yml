@@ -5,7 +5,9 @@ updates:
     - "/"
     - "/.github/actions/setup-dotnet-build"
     - "/.github/actions/app-version"
+    #if (packaging)
     - "/.github/actions/publish-once"
+    #endif
   schedule:
     interval: weekly
     time: "01:00"

@@ -1,6 +1,6 @@
 name: Package (main)
 
-# Every push to main packages ALL SIX heads in the Dev channel and publishes nothing.
+# Every push to main packages EVERY head in the Dev channel and publishes nothing.
 # The artifacts are sideload-ready: install them to see what is on main without cutting
 # a release. Publishing lives exclusively in release.yml, on release/v* branches.
 
@@ -51,6 +51,7 @@ jobs:
             echo "Channel **${{ steps.v.outputs.channel }}** - nothing on this branch is published to any store."
           } >> "$GITHUB_STEP_SUMMARY"
 
+  #if (hasAndroid)
   build-android:
     needs: version
     if: vars.ENABLE_ANDROID != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'android'))
@@ -65,7 +66,9 @@ jobs:
       ANDROID_KEY_ALIAS:       ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD:    ${{ secrets.ANDROID_KEY_PASSWORD }}
       ANDROID_STORE_PASSWORD:  ${{ secrets.ANDROID_STORE_PASSWORD }}
+  #endif
 
+  #if (hasIos)
   build-ios:
     needs: version
     if: vars.ENABLE_IOS != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'ios'))
@@ -82,7 +85,9 @@ jobs:
       APPLE_CODESIGN_KEY:                ${{ secrets.APPLE_CODESIGN_KEY }}
       APPLE_TEAM_ID:                     ${{ secrets.APPLE_TEAM_ID }}
       KEYCHAIN_PASSWORD:                 ${{ secrets.KEYCHAIN_PASSWORD }}
+  #endif
 
+  #if (hasTvos)
   build-tvos:
     needs: version
     if: vars.ENABLE_TVOS != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'tvos'))
@@ -98,7 +103,9 @@ jobs:
       APPLE_CODESIGN_KEY:                     ${{ secrets.APPLE_CODESIGN_KEY }}
       APPLE_TEAM_ID:                          ${{ secrets.APPLE_TEAM_ID }}
       KEYCHAIN_PASSWORD:                      ${{ secrets.KEYCHAIN_PASSWORD }}
+  #endif
 
+  #if (hasWindows)
   build-windows:
     needs: version
     if: vars.ENABLE_WINDOWS != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'windows'))
@@ -109,7 +116,9 @@ jobs:
       version_store4: ${{ needs.version.outputs.store4 }}
       artifact_name:  dev-windows
       smoke_launch:   true
+  #endif
 
+  #if (hasDesktop)
   build-desktop:
     needs: version
     if: vars.ENABLE_DESKTOP != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'desktop'))
@@ -119,7 +128,9 @@ jobs:
       version_simple: ${{ needs.version.outputs.simple }}
       artifact_name:  dev-desktop
       include_macos:  ${{ vars.ENABLE_DESKTOP_MACOS_ON_MAIN == 'true' }}
+  #endif
 
+  #if (hasWasm)
   build-wasm:
     needs: version
     if: vars.ENABLE_WASM != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'wasm'))
@@ -128,3 +139,6 @@ jobs:
       channel:        ${{ needs.version.outputs.channel }}
       version_simple: ${{ needs.version.outputs.simple }}
       artifact_name:  dev-wasm
+  #endif
+
+# Keep this line last: the template engine can't close a block on a file's final line.
