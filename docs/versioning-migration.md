@@ -63,6 +63,35 @@ Replace the existing single line with two conditional groups (your app's reverse
 </PropertyGroup>
 ```
 
+Then remove what would override those values, because the build only fills blanks:
+
+- **`Package.appxmanifest`:** remove `Identity/@Name`, `Properties/DisplayName` and `uap:VisualElements/@DisplayName`.
+- **`Info.plist`:** remove `CFBundleIdentifier`, `CFBundleName` and `CFBundleDisplayName`, unless you localize them.
+
+#### If the app is already in the Microsoft Store
+
+Partner Center assigned your package name and publisher, so two things differ.
+
+Give the Windows head its Store name for Prod:
+
+```xml
+<ApplicationId Condition="'$(AppChannel)' == 'Prod' and $(TargetFramework.Contains('windows10'))">12345YourName.YourApp</ApplicationId>
+```
+
+**Keep the Store `Publisher` in the tracked manifest**, and set `ApplicationPublisher` to your display name:
+
+```xml
+<Identity Publisher="CN=00000000-0000-0000-0000-000000000000" Version="0.0.0.0" />
+```
+
+Don't put the `CN=…` value in `ApplicationPublisher`. The generator prefixes that property with `O=`, giving `O=CN=…`, and also uses it for `PublisherDisplayName`, so Partner Center would reject the package. Generate the manifest for both channels and compare it with your current Store identity before releasing:
+
+```pwsh
+dotnet msbuild src/YourApp/YourApp.csproj -t:UnoGeneratePackageAppxManifest -p:TargetFramework=net10.0-windows10.0.26100 -p:AppChannel=Prod
+```
+
+The output is under `obj/**/unoresizetizer/m/Package.appxmanifest`.
+
 ### 5. Get a Dev icon
 
 Copy `src/DevAssets.targets` and `src/DevAssets.Task.cs` from the template and import the targets from your `src/Directory.Build.targets` (`<Import Project="$(MSBuildThisFileDirectory)DevAssets.targets" />`). Dev builds then badge your existing icon and splash automatically. See [dev-assets.md](./dev-assets.md).
