@@ -30,7 +30,6 @@ What changes per channel:
 | Workflow | Trigger | Channel | Publishes? |
 |---|---|---|---|
 | `ci.yml` | push: main, PR: main + release/** | n/a (Debug smoke test) | n/a |
-| `validate-manifest-version.yml` | push: main, PR: main + release/** | n/a | n/a |
 | `package-windows.yml` | push: main + release/v* + workflow_dispatch | Dev on main (self-signed), Prod on release/v* (Store-signed) | No — manual Partner Center upload from artifact |
 | `package-android.yml` | push: main + release/v* + workflow_dispatch | Dev applicationId on main, Prod on release/v* | release/v* → Play Production track via `r0adkll/upload-google-play` |
 | `package-ios.yml` | push: main + release/v* + workflow_dispatch | Dev Bundle ID on main, Prod on release/v* | release/v* → TestFlight via `apple-actions/upload-testflight-build` (manual "Submit for Review") |
