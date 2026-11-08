@@ -137,10 +137,11 @@ deliberate:
 
 Instead, `src/Directory.Build.targets` post-processes the *generated* manifest with
 `XmlPoke` in the `StampWindowsStoreIdentity` target, after
-`UnoGeneratePackageAppxManifest`. Leave the variables unset and the manifest is untouched,
-so a fork builds green with its own identity.
+`UnoGeneratePackageAppxManifest`. Leave all three variables unset and the manifest is
+untouched, so a fork builds green with its own identity. Set only some of them and a Prod
+build fails, naming the values it got.
 
-Getting this wrong produces a **green build** and a Partner Center rejection —
+Getting a value wrong produces a **green build** and a Partner Center rejection —
 *"The name found in the package is not one of your reserved app names"* — on the one
 artifact that is expensive to retry. `_build-windows.yml` therefore asserts all three
 values in the generated manifest before packaging.

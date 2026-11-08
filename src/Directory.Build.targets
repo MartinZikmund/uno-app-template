@@ -67,8 +67,8 @@
       "O=$(ApplicationPublisher)" - there is no value of that property that yields a bare
       "CN=...". Poking the generated file is independent of that behaviour.
 
-      Values come from repo variables via CI. Unset => the manifest is left alone and a
-      fork builds green with its own identity.
+      Values come from repo variables via CI. All unset => the manifest is left alone and a
+      fork builds green with its own identity. Only some set => the build fails.
     -->
     <!-- CI exports these as ENVIRONMENT VARIABLES. MSBuild surfaces an environment variable
          as a property of the IDENTICAL name - case-insensitive, but underscores are part of
@@ -89,30 +89,31 @@
 
     <Target Name="StampWindowsStoreIdentity"
             Condition="'$(TargetPlatformIdentifier)' == 'windows' and '$(AppChannel)' == 'Prod'
-                       and ('$(WindowsStoreIdentityName)' != '' or '$(WindowsStorePublisher)' != '')"
+                       and ('$(WindowsStoreIdentityName)' != '' or '$(WindowsStorePublisher)' != '' or '$(WindowsStorePublisherDisplayName)' != '')"
             AfterTargets="UnoGeneratePackageAppxManifest">
         <PropertyGroup>
             <_StoreManifest>@(AppxManifest)</_StoreManifest>
             <_AppxNs>&lt;Namespace Prefix='d' Uri='http://schemas.microsoft.com/appx/manifest/foundation/windows10' /&gt;</_AppxNs>
         </PropertyGroup>
 
+        <!-- Stamping only some of them builds green and is rejected by Partner Center later. -->
+        <Error Condition="'$(WindowsStoreIdentityName)' == '' or '$(WindowsStorePublisher)' == '' or '$(WindowsStorePublisherDisplayName)' == ''"
+               Text="Partial Windows Store identity: Name='$(WindowsStoreIdentityName)' Publisher='$(WindowsStorePublisher)' PublisherDisplayName='$(WindowsStorePublisherDisplayName)'. Set all three WINDOWS_STORE_* variables, or none." />
+
         <Error Condition="'$(_StoreManifest)' == '' or !Exists('$(_StoreManifest)')"
                Text="StampWindowsStoreIdentity: could not locate the generated AppxManifest (@(AppxManifest)). The Store identity would not be applied." />
 
-        <XmlPoke Condition="'$(WindowsStoreIdentityName)' != ''"
-                 XmlInputPath="$(_StoreManifest)"
+        <XmlPoke XmlInputPath="$(_StoreManifest)"
                  Query="/d:Package/d:Identity/@Name"
                  Value="$(WindowsStoreIdentityName)"
                  Namespaces="$(_AppxNs)" />
 
-        <XmlPoke Condition="'$(WindowsStorePublisher)' != ''"
-                 XmlInputPath="$(_StoreManifest)"
+        <XmlPoke XmlInputPath="$(_StoreManifest)"
                  Query="/d:Package/d:Identity/@Publisher"
                  Value="$(WindowsStorePublisher)"
                  Namespaces="$(_AppxNs)" />
 
-        <XmlPoke Condition="'$(WindowsStorePublisherDisplayName)' != ''"
-                 XmlInputPath="$(_StoreManifest)"
+        <XmlPoke XmlInputPath="$(_StoreManifest)"
                  Query="/d:Package/d:Properties/d:PublisherDisplayName"
                  Value="$(WindowsStorePublisherDisplayName)"
                  Namespaces="$(_AppxNs)" />

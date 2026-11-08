@@ -118,8 +118,8 @@ jobs:
       #
       # The version is checked on every channel. The three Store identity values are checked
       # only on Prod, because StampWindowsStoreIdentity is itself gated on AppChannel=Prod -
-      # a Dev manifest legitimately carries Uno's own identity. Each identity value is also
-      # skipped when its repo variable is unset, so a fork stays green.
+      # a Dev manifest legitimately carries Uno's own identity. The identity is also skipped
+      # when its repo variables are unset, so a fork stays green; that target fails a partial set.
       - name: Verify the manifest version and Store identity
         env:
           MANIFEST: ${{ steps.manifest.outputs.manifest }}

@@ -162,7 +162,7 @@ Microsoft account will not authenticate.
 | `APPSTORE_APP_ID` | numeric App Store Connect app id, used by every review-submission call |
 | `APPLE_PROVISIONING_PROFILE_NAME` | profile **name**, not UUID — names survive regeneration, UUIDs do not |
 | `MS_STORE_PRODUCT_ID` | 12-character Store id from Partner Center |
-| `WINDOWS_STORE_IDENTITY_NAME`, `WINDOWS_STORE_PUBLISHER`, `WINDOWS_STORE_PUBLISHER_DISPLAY_NAME` | the three Partner Center → *Product identity* values, stamped into the manifest. Unset ⇒ the manifest is left alone. See [windows-packaging.md](./windows-packaging.md). |
+| `WINDOWS_STORE_IDENTITY_NAME`, `WINDOWS_STORE_PUBLISHER`, `WINDOWS_STORE_PUBLISHER_DISPLAY_NAME` | the three Partner Center → *Product identity* values, stamped into the manifest. All unset ⇒ the manifest is left alone; only some set ⇒ the Prod build fails. See [windows-packaging.md](./windows-packaging.md). |
 | `VERSION_CODE_OFFSET` | only for an app already live on Play above the computed versionCode |
 | `RELEASE_APP_ID` | GitHub App id; empty selects the fallback path |
 
