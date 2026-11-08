@@ -259,7 +259,10 @@ jobs:
           $ns = @{ d = 'http://schemas.microsoft.com/appx/manifest/foundation/windows10' }
           $runtime = (Select-Xml -Path $manifest -Namespace $ns -XPath '//d:PackageDependency').Node |
             Where-Object Name -like 'Microsoft.WindowsAppRuntime.*'
-          if ($runtime -and -not (Get-AppxPackage -Name $runtime.Name | Where-Object Architecture -eq 'X64')) {
+          # A same-named runtime older than the manifest's MinVersion would not satisfy the dependency.
+          $hasRuntime = $runtime -and (Get-AppxPackage -Name $runtime.Name |
+            Where-Object { $_.Architecture -eq 'X64' -and [version]$_.Version -ge [version]$runtime.MinVersion })
+          if ($runtime -and -not $hasRuntime) {
             $packages = (dotnet nuget locals global-packages --list) -replace '^global-packages:\s*', ''
             $msix = Get-ChildItem (Join-Path $packages 'microsoft.windowsappsdk') -Recurse -Filter "$($runtime.Name).msix" |
               Where-Object FullName -like '*win10-x64*' | Sort-Object FullName | Select-Object -Last 1
