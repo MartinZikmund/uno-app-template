@@ -1,0 +1,90 @@
+﻿<UserControl
+    x:Class="AppTemplate.Controls.InAppToastQueueControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:markup="using:AppTemplate.Markup"
+    IsHitTestVisible="True"
+    Unloaded="InAppToastQueueControl_Unloaded">
+
+    <!--  Root: positioned at the top, slides down into view  -->
+    <Grid
+        x:Name="RootGrid"
+        Margin="0,16,0,0"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Top"
+        Opacity="0"
+        Visibility="Collapsed">
+
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="SlideTransform" Y="-100" />
+        </Grid.RenderTransform>
+
+        <!--  Toast card  -->
+        <Border
+            MinWidth="300"
+            MaxWidth="400"
+            Padding="16"
+            Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+            CornerRadius="12"
+            PointerEntered="Toast_PointerEntered"
+            PointerExited="Toast_PointerExited">
+            <Border.Shadow>
+                <ThemeShadow />
+            </Border.Shadow>
+
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!--  Badge  -->
+                <Border
+                    x:Name="BadgeBorder"
+                    Grid.Column="0"
+                    Width="44"
+                    Height="44"
+                    VerticalAlignment="Top"
+                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                    CornerRadius="22">
+                    <FontIcon
+                        x:Name="BadgeIcon"
+                        FontSize="20"
+                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                        Glyph="&#xE735;" />
+                </Border>
+
+                <!--  Text content  -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                    <TextBlock
+                        x:Name="TitleText"
+                        Style="{ThemeResource BodyStrongTextBlockStyle}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        x:Name="MessageText"
+                        Margin="0,2,0,0"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        MaxLines="3"
+                        Style="{ThemeResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!--  Close button  -->
+                <Button
+                    Grid.Column="2"
+                    Width="32"
+                    Height="32"
+                    Padding="0"
+                    VerticalAlignment="Top"
+                    AutomationProperties.Name="{markup:Localize Key=ToastCloseButtonName}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="CloseButton_Click"
+                    ToolTipService.ToolTip="{markup:Localize Key=ToastCloseButtonName}">
+                    <FontIcon FontSize="12" Glyph="&#xE711;" />
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
