@@ -123,16 +123,20 @@
 
     <!-- Belt: fail a Prod CI build that lost its version injection, instead of shipping
          versionCode=1 to a store. Braces: .github/workflows/_build-*.yml additionally read
-         the version back OUT of the produced .aab / .ipa / .msixbundle. -->
+         the version back OUT of the produced .aab / .ipa / .msixbundle.
+
+         Checks the values captured in Directory.Build.props, not the final ones: 1.0.0 and 1 are
+         the SDK defaults but also legitimate versions, so comparing against them refuses real
+         releases. -->
     <Target Name="AssertStoreVersionStamped"
             Condition="'$(ContinuousIntegrationBuild)' == 'true' and '$(AppChannel)' == 'Prod'"
             BeforeTargets="Build">
         <Error Condition="'$(CiVersionInjected)' != 'true'"
                Text="Prod CI builds must pass -p:CiVersionInjected=true together with the version properties. See docs/versioning.md." />
-        <Error Condition="'$(ApplicationDisplayVersion)' == '' or '$(ApplicationDisplayVersion)' == '1.0.0'"
-               Text="ApplicationDisplayVersion is '$(ApplicationDisplayVersion)' - CI did not inject a real version." />
-        <Error Condition="'$(ApplicationVersion)' == '' or ('$(ApplicationVersion)' == '1' and '$(TargetPlatformIdentifier)' != 'windows')"
-               Text="ApplicationVersion is '$(ApplicationVersion)' - CI did not inject a real version." />
+        <Error Condition="'$(_InjectedApplicationDisplayVersion)' == ''"
+               Text="ApplicationDisplayVersion was not passed on the command line (it resolved to '$(ApplicationDisplayVersion)') - CI did not inject a real version." />
+        <Error Condition="'$(_InjectedApplicationVersion)' == ''"
+               Text="ApplicationVersion was not passed on the command line (it resolved to '$(ApplicationVersion)') - CI did not inject a real version." />
     </Target>
 
 </Project>

@@ -104,7 +104,9 @@ at once, so every packaging job passes:
 
 Every `X.Y.Z` and the `versionCode` come from the `.github/actions/app-version` composite. Desktop takes `0` for the same reason Windows does: Uno.Resizetizer generates its `Package.appxmanifest` too, and rejects a non-integer `ApplicationVersion`. `src/Directory.Build.targets`
 adds an `AssertStoreVersionStamped` guard that fails a Prod CI build which lost its injection,
-on every head. A local `dotnet build -f net10.0-android` still emits `versionCode=1` — that is
+on every head. It checks that the properties were *passed*, using values `src/Directory.Build.props`
+captures before any SDK default applies, rather than comparing them against the defaults `1` and
+`1.0.0`: those are legitimate versions too, and a real `1.0.0` release must not fail. A local `dotnet build -f net10.0-android` still emits `versionCode=1` — that is
 expected and harmless, because you never upload from a laptop.
 
 ## AppChannel

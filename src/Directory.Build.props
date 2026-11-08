@@ -32,6 +32,13 @@
         <DefineConstants Condition="'$(AppChannel)' == 'Dev'">$(DefineConstants);APP_CHANNEL_DEV</DefineConstants>
     </PropertyGroup>
 
+    <!-- Runs before any SDK applies its defaults, so only the command line can fill these. An SDK's
+         default 1 and an injected 1 are otherwise the same value. Read by AssertStoreVersionStamped. -->
+    <PropertyGroup>
+        <_InjectedApplicationVersion>$(ApplicationVersion)</_InjectedApplicationVersion>
+        <_InjectedApplicationDisplayVersion>$(ApplicationDisplayVersion)</_InjectedApplicationDisplayVersion>
+    </PropertyGroup>
+
     <!-- Per-worktree app identity (detection + derivation). See docs/worktree-identity.md. -->
     <Import Project="$(MSBuildThisFileDirectory)WorktreeIdentity.props" />
 </Project>
