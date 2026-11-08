@@ -55,3 +55,15 @@ jobs:
       - name: Build ${{ env.APP_NAME }} (Debug)
         shell: pwsh
         run: dotnet build $env:PROJECT_FILE -c Debug -p:ContinuousIntegrationBuild=true
+
+      - name: Run unit tests
+        shell: pwsh
+        run: dotnet test tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj -c Debug --report-trx --coverage --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/
+          if-no-files-found: warn
