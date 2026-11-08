@@ -27,6 +27,12 @@ runs:
 
         test -d "$PUBLISH_DIR" || { echo "::error::No published wwwroot at $PUBLISH_DIR"; exit 1; }
 
+        # An empty publish would otherwise "succeed" with only the _headers copied in below.
+        if [[ -z "$(find "$PUBLISH_DIR" -type f ! -name _headers -print -quit)" ]]; then
+          echo "::error::$PUBLISH_DIR contains no assets"
+          exit 1
+        fi
+
         if [[ -f "$PUBLISH_DIR/_headers" ]]; then
           echo "_headers reached the publish output"
         else
