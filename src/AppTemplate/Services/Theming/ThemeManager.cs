@@ -48,7 +48,17 @@ public sealed class ThemeManager : IThemeManager
             titleBar.ButtonBackgroundColor = Colors.Transparent;
             titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
 
-            if (ActualTheme == ApplicationTheme.Dark)
+            if (new AccessibilitySettings().HighContrast)
+            {
+                // Null hands the caption buttons back to the system, which draws them in the user's contrast colours
+                titleBar.ButtonForegroundColor = null;
+                titleBar.ButtonInactiveForegroundColor = null;
+                titleBar.ButtonHoverBackgroundColor = null;
+                titleBar.ButtonHoverForegroundColor = null;
+                titleBar.ButtonPressedBackgroundColor = null;
+                titleBar.ButtonPressedForegroundColor = null;
+            }
+            else if (ActualTheme == ApplicationTheme.Dark)
             {
                 titleBar.ButtonForegroundColor = Colors.White;
                 titleBar.ButtonInactiveForegroundColor = Colors.Gray;

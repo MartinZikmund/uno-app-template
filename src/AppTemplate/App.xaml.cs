@@ -32,6 +32,12 @@ public partial class App : Application, IApplication
     public App()
     {
         this.InitializeComponent();
+
+#if !HAS_UNO
+        // Colors.xaml has its own HighContrast dictionary, so stop WinUI re-colouring text over it.
+        // Uno never adjusts, so it has nothing to switch off.
+        HighContrastAdjustment = ApplicationHighContrastAdjustment.None;
+#endif
     }
 
     protected Window? MainWindow { get; private set; }

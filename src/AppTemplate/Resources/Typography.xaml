@@ -1,0 +1,72 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Type ramp. Sizes and weights come from the WinUI styles these are based on; the app
+        only chooses the families. See docs/theming.md.
+    -->
+
+    <!--
+        Bundled display face (Outfit, SIL OFL 1.1 - licence in Assets/Fonts/Outfit-OFL.txt).
+        A missing file falls back to the platform font rather than failing.
+    -->
+    <FontFamily x:Key="AppDisplayFontFamily">ms-appx:///Assets/Fonts/Outfit.ttf#Outfit</FontFamily>
+
+    <!--  Body text stays on the platform font (Segoe UI Variable on Windows).  -->
+    <StaticResource x:Key="AppBodyFontFamily" ResourceKey="ContentControlThemeFontFamily" />
+
+    <!--
+        To make a bundled face the default for every stock control too, override the WinUI key:
+        <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/MyFont.ttf#My Font</FontFamily>
+    -->
+
+    <Style
+        x:Key="AppDisplayTextBlockStyle"
+        BasedOn="{StaticResource DisplayTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource AppDisplayFontFamily}" />
+    </Style>
+
+    <Style
+        x:Key="AppTitleLargeTextBlockStyle"
+        BasedOn="{StaticResource TitleLargeTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource AppDisplayFontFamily}" />
+    </Style>
+
+    <Style
+        x:Key="AppTitleTextBlockStyle"
+        BasedOn="{StaticResource TitleTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource AppDisplayFontFamily}" />
+    </Style>
+
+    <Style
+        x:Key="AppSubtitleTextBlockStyle"
+        BasedOn="{StaticResource SubtitleTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource AppDisplayFontFamily}" />
+    </Style>
+
+    <Style
+        x:Key="AppBodyStrongTextBlockStyle"
+        BasedOn="{StaticResource BodyStrongTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource AppBodyFontFamily}" />
+    </Style>
+
+    <Style
+        x:Key="AppBodyTextBlockStyle"
+        BasedOn="{StaticResource BodyTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource AppBodyFontFamily}" />
+    </Style>
+
+    <Style
+        x:Key="AppCaptionTextBlockStyle"
+        BasedOn="{StaticResource CaptionTextBlockStyle}"
+        TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource AppBodyFontFamily}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextSecondaryBrush}" />
+    </Style>
+
+</ResourceDictionary>

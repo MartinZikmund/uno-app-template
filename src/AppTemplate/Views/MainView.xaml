@@ -13,12 +13,12 @@
             <FontIcon
                 HorizontalAlignment="Center"
                 FontSize="64"
-                Foreground="{ThemeResource AccentFillColorDefaultBrush}"
+                Foreground="{ThemeResource AppBrandBrush}"
                 Glyph="&#xE80F;" />
             <TextBlock
                 HorizontalAlignment="Center"
                 AutomationProperties.AutomationId="HelloTextBlock"
-                Style="{ThemeResource TitleLargeTextBlockStyle}"
+                Style="{StaticResource AppTitleLargeTextBlockStyle}"
                 Text="Hello Uno Platform!" />
         </StackPanel>
     </Grid>
