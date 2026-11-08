@@ -24,10 +24,11 @@ permissions:
 
 jobs:
   build:
-    # macos-26 is mandatory, not cosmetic: Microsoft.iOS.Sdk.net10.0_26.5 needs Xcode 26.x
-    # to build at all, and App Store Connect has rejected uploads built with an older SDK
-    # since 2026-04-28. Do not downgrade this to macos-15.
-    runs-on: macos-26
+    # The xcode-27 image's default Xcode is the one the iOS SDK wants. `dotnet workload restore`
+    # floats to the newest workload set (iOS SDK 27.1, needs Xcode 27.1); macos-26 images top out
+    # at Xcode 26.6. App Store Connect also rejects uploads built with an older SDK, so do not
+    # downgrade this.
+    runs-on: xcode-27
     timeout-minutes: 90
     env:
       DOTNET_NOLOGO: 1
@@ -47,17 +48,9 @@ jobs:
         with:
           workloads: src/AppTemplate.slnx
 
-      - name: Select Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
-
+      # No Xcode selection step: latest-stable would pick the 27.2 RC, which the SDK rejects.
       - name: Show Xcode version
         run: xcodebuild -version
-
-      - name: Download iOS platform
-        # Workaround for https://github.com/actions/runner-images/issues/13275
-        run: xcodebuild -downloadPlatform iOS
 
       - name: Import signing certificate
         if: env.HAS_SIGNING == 'true'
