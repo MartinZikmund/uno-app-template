@@ -14,7 +14,7 @@
   <!-- Assertion + mocking stack prescribed by .claude/rules/testing.md.
        Versions match src/Directory.Packages.props (tests live outside the CPM scope). -->
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="8.7.1" />
+    <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
   </ItemGroup>
 

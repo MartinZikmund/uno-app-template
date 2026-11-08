@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Xml;
 using System.Xml.Linq;
 using AppTemplate.Build;
-using FluentAssertions;
+using AwesomeAssertions;
 
 namespace Template.SelfTests.DevAssets;
 

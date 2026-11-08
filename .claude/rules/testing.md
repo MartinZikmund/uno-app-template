@@ -17,4 +17,4 @@ The runner is MTP, not VSTest — **don't pass VSTest-only flags** like `--nolog
 ## Conventions
 - Name tests `Method_Scenario_ExpectedResult`; structure them Arrange / Act / Assert. Use `[TestMethod]` and `[DataRow]` for parameterized cases.
 - **Prefer small hand-written fakes/stubs** for collaborators (clearer and refactor-stable); reach for **Moq** only when a hand-written fake is impractical.
-- Assert with **FluentAssertions** (`result.Should().Be(...)`).
+- Assert with **AwesomeAssertions** (`result.Should().Be(...)`).

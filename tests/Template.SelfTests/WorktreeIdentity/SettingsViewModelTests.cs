@@ -1,6 +1,6 @@
 using Template.SelfTests.Fakes;
 using AppTemplate.Core.ViewModels;
-using FluentAssertions;
+using AwesomeAssertions;
 
 namespace Template.SelfTests.WorktreeIdentity;
 
