@@ -63,7 +63,7 @@ jobs:
         with:
           # PIN, never `latest`: winapp is a 0.x preview, and bundling only appeared in
           # 0.3.2 - an older resolve silently takes a single input folder and cannot bundle.
-          version: 'v0.6.1'
+          version: 'v0.8.0'
 
       - name: Show winapp version
         run: winapp --version
@@ -194,18 +194,24 @@ jobs:
       - name: Sign the Dev bundle with a generated certificate
         if: inputs.channel == 'Dev'
         shell: pwsh
+        # A password prompt has no one to answer it; fail fast instead of hanging the job.
+        timeout-minutes: 10
         run: |
           $ErrorActionPreference = 'Stop'
+          # Without this a failing native command is ignored and the script carries on.
+          $PSNativeCommandUseErrorActionPreference = $true
           $pfx = Join-Path $env:RUNNER_TEMP 'devcert.pfx'
           $cer = Join-Path $env:RUNNER_TEMP "stage/$env:APP_NAME-Dev.cer"
+          # winapp's default PFX password: public, dev-only, not a secret.
+          $password = 'password'
 
           # `cert generate` infers the subject from the manifest, so it always matches
           # Identity/@Publisher - the mismatch that otherwise fails signing with 0x8007000B.
-          winapp cert generate --manifest "${{ steps.manifest.outputs.manifest }}" --output $pfx
-          winapp sign "${{ steps.pack.outputs.bundle }}" --cert $pfx --cert-password password
+          winapp cert generate --manifest "${{ steps.manifest.outputs.manifest }}" --output $pfx --password $password
+          winapp sign "${{ steps.pack.outputs.bundle }}" $pfx --password $password
 
           # Ship the public cert so a tester can trust it once and install the bundle.
-          $c = Get-PfxCertificate -FilePath $pfx
+          $c = Get-PfxCertificate -FilePath $pfx -Password (ConvertTo-SecureString $password -AsPlainText -Force)
           Export-Certificate -Cert $c -FilePath $cer | Out-Null
           Get-ChildItem (Join-Path $env:RUNNER_TEMP 'stage')
 
