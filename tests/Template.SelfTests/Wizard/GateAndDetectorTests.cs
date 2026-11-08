@@ -126,6 +126,22 @@ public class GateAndDetectorTests
     }
 
     [TestMethod]
+    [DataRow(".github/workflows/release.yml")]
+    [DataRow(".github/workflows/tag-release.yml")]
+    [DataRow(".github/workflows/package-windows.yml")]
+    public void Detect_PackagingFromEitherGenerationOfTheWorkflows(string workflow)
+    {
+        // Apps copied before the multi-store pipeline have the older files.
+        FeatureDetector.Detect([workflow], _ => null)["packaging"].Should().Be("True");
+    }
+
+    [TestMethod]
+    public void Detect_NoReleaseWorkflow_HasNoPackaging()
+    {
+        FeatureDetector.Detect([".github/workflows/ci.yml"], _ => null)["packaging"].Should().Be("False");
+    }
+
+    [TestMethod]
     public void Detect_CoversEveryFeatureInTheManifest()
     {
         var options = FeatureDetector.Detect([], _ => null);

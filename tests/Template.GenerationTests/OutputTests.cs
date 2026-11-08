@@ -138,7 +138,7 @@ public class OutputTests
             .And.Contain("<ApplicationPublisher>Contoso Ltd</ApplicationPublisher>");
         app.Read(".github/ISSUE_TEMPLATE/config.yml").Should().Contain("contoso/notes/discussions");
         app.Read(".template-state.json").Should().Contain("MartinZikmund/uno-app-template/tree/main/docs/upgrades", "upgrade notes stay in the template's repo");
-        app.Read(".github/workflows/package-android.yml").Should().Contain("package_name=com.contoso.notes.dev");
+        app.Read("docs/release-pipeline.md").Should().Contain("com.contoso.notes");
     }
 
     [TestMethod]
@@ -186,7 +186,7 @@ public class OutputTests
     [DataRow("xaml-styler", "Settings.XamlStyler", null, null)]
     [DataRow("tests", "tests/App1.Core.Tests/App1.Core.Tests.csproj", "Core.Tests", "src/App1.slnx")]
     [DataRow("ci", ".github/workflows/ci.yml", null, null)]
-    [DataRow("packaging", ".github/workflows/tag-release.yml", null, null)]
+    [DataRow("packaging", ".github/workflows/release.yml", null, null)]
     [DataRow("agents", null, null, null)]
     [DataRow("spec-kit", ".specify/memory/constitution.md", null, null)]
     [DataRow("community", ".github/PULL_REQUEST_TEMPLATE.md", null, null)]
@@ -212,23 +212,6 @@ public class OutputTests
 
         var plist = app.Read("src/App1/Platforms/iOS/Info.plist");
         plist.Should().Contain("<string>en</string>").And.NotContain("<string>cs</string>").And.NotContain("#if");
-    }
-
-    [TestMethod]
-    public void TagRelease_WaitsOnlyForThePlatformsTheAppHas()
-    {
-        var app = TemplateFixture.Generate("tag-windows", "App1", "--platforms", "windows", "--platforms", "desktop");
-
-        var workflow = app.Read(".github/workflows/tag-release.yml");
-        workflow.Should().Contain("Build Windows Packages").And.NotContain("Build Android Packages").And.NotContain("Build iOS Packages");
-    }
-
-    [TestMethod]
-    public void TagRelease_IsAbsentWithNothingToWaitFor()
-    {
-        var app = TemplateFixture.Generate("tag-none", "App1", "--platforms", "desktop");
-
-        app.Exists(".github/workflows/tag-release.yml").Should().BeFalse();
     }
 
     [TestMethod]
@@ -281,11 +264,11 @@ public class OutputTests
     }
 
     [TestMethod]
-    [DataRow("android", "Platforms/Android", "net10.0-android", ".github/workflows/package-android.yml")]
-    [DataRow("ios", "Platforms/iOS", "net10.0-ios", ".github/workflows/package-ios.yml")]
-    [DataRow("windows", "Platforms/Windows", "net10.0-windows", ".github/workflows/package-windows.yml")]
-    [DataRow("desktop", "Platforms/Desktop", "net10.0-desktop", null)]
-    [DataRow("wasm", "Platforms/WebAssembly", "net10.0-browserwasm", ".github/workflows/static-web-apps-deploy.yml")]
+    [DataRow("android", "Platforms/Android", "net10.0-android", ".github/workflows/_build-android.yml")]
+    [DataRow("ios", "Platforms/iOS", "net10.0-ios", ".github/workflows/_build-ios.yml")]
+    [DataRow("windows", "Platforms/Windows", "net10.0-windows", ".github/workflows/_build-windows.yml")]
+    [DataRow("desktop", "Platforms/Desktop", "net10.0-desktop", ".github/workflows/_build-desktop.yml")]
+    [DataRow("wasm", "Platforms/WebAssembly", "net10.0-browserwasm", ".github/workflows/_build-wasm.yml")]
     public void PlatformOff_RemovesItsHead(string platform, string folder, string tfm, string? workflow)
     {
         string[] all = ["android", "ios", "windows", "desktop", "wasm"];
@@ -339,6 +322,10 @@ public class OutputTests
     [DataRow("off", new[] { "--agents", "false", "--spec-kit", "false", "--worktree-identity", "false", "--dev-assets", "false", "--xaml-styler", "false", "--tests", "false", "--ci", "false", "--packaging", "false", "--community", "false" })]
     [DataRow("windows", new[] { "--platforms", "windows" })]
     [DataRow("wasm", new[] { "--platforms", "wasm" })]
+    [DataRow("desktop", new[] { "--platforms", "desktop" })]
+    [DataRow("android", new[] { "--platforms", "android" })]
+    [DataRow("nopackaging", new[] { "--packaging", "false" })]
+    [DataRow("noci", new[] { "--ci", "false" })]
     public void MarkdownLinks_ResolveInsideTheApp(string scenario, string[] options)
     {
         var app = TemplateFixture.Generate($"links-{scenario}", "App1", options);

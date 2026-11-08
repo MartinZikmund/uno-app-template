@@ -36,6 +36,21 @@ public class BuildTests
     }
 
     [TestMethod]
+    [DataRow("nopkg", new[] { "--platforms", "desktop", "--packaging", "false" })]
+    [DataRow("desktop", new[] { "--platforms", "desktop" })]
+    [DataRow("noci", new[] { "--platforms", "desktop", "--ci", "false", "--packaging", "false" })]
+    public void WithoutThePipeline_TheAppsOwnTestsStillPass(string scenario, string[] options)
+    {
+        // Several tests read workflow files, which an app may not have.
+        var app = TemplateFixture.Generate($"b-tests-{scenario}", "Contoso", options);
+        GitInit(app);
+
+        var test = TemplateFixture.Run("dotnet", ["test", app.Path("tests/Contoso.Core.Tests/Contoso.Core.Tests.csproj")], app.Root);
+
+        test.Should().Contain("succeeded:").And.NotContain("failed: 1");
+    }
+
+    [TestMethod]
     public void AgentsAndAndroidOff_TheAppsOwnTestsStillPass()
     {
         // Tests that look for an optional file to find the root, or that get excluded with one platform's, show up here.

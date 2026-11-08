@@ -15,6 +15,7 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="8.7.1" />
     <PackageReference Include="Spectre.Console.Testing" Version="0.57.2" />
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 
   <!-- UpgradeTests run the real tool, so its private patching logic gets exercised as users hit it. -->
