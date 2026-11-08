@@ -44,6 +44,11 @@ store push must not change what you are shipping.
 Each publish job `needs:` **only** the build job whose artifact it consumes. A red desktop
 leg cannot block Play; a Play failure cannot block TestFlight.
 
+The `vX.Y.Z` tag and the draft GitHub Release are stricter: they need **every** build and
+every automatic publish that ran to have succeeded. A head switched off and a publish skipped
+for missing secrets do not block them; a failure or a cancellation does, until *Re-run failed
+jobs* clears it. A dispatch with `only` never tags, because it is not a whole release.
+
 ## What is automatic and what waits for you
 
 Automatic on every `release/v*` push:
@@ -121,7 +126,8 @@ Repo variables, no YAML edit:
 | `ENABLE_DESKTOP_MACOS_ON_MAIN` | `true` adds `osx-arm64` to `main` builds (macOS runners bill at 10×; off by default, always on for releases) |
 
 `workflow_dispatch` on `build-main.yml` and `release.yml` also takes an `only` input
-(`android,windows`) to build a single head while iterating.
+(`android,windows`) to build a single head while iterating. On `release.yml` that head still
+publishes, and the run does not tag.
 
 ## The GitHub App, and why the fallback exists
 

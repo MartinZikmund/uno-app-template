@@ -331,12 +331,27 @@ jobs:
           skip_deploy_on_missing_secrets: false
 
   # ------------------------------------------------------------ tag + release page
-  # `tag` needs ONLY the automatic publishes. Declining a gated Store approval must not
-  # withhold the tag for a release that shipped everywhere else.
+  # `tag` needs every build and every automatic publish, because a failed build only makes
+  # its publish `skipped`. `skipped` itself is fine: that is a head switched off, and a
+  # publish with no secrets configured still reports `success`. The gated jobs stay out:
+  # declining a Store approval must not withhold the tag for a release that shipped
+  # everywhere else. An `only` dispatch is an iteration run, not a release, so it never tags.
 
   tag:
-    needs: [version, publish-play-internal, publish-testflight, publish-msstore-draft, publish-web]
-    if: always() && needs.version.result == 'success' && !contains(needs.*.result, 'failure')
+    needs:
+      - version
+      - build-android
+      - build-ios
+      - build-windows
+      - build-desktop
+      - build-wasm
+      - publish-play-internal
+      - publish-testflight
+      - publish-msstore-draft
+      - publish-web
+    if: >-
+      !cancelled() && needs.version.result == 'success' && needs.version.outputs.only == ''
+      && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -370,7 +385,7 @@ jobs:
 
   publish-github-release:
     needs: [version, tag, build-desktop, build-windows]
-    if: always() && needs.tag.result == 'success'
+    if: ${{ !cancelled() && needs.tag.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
