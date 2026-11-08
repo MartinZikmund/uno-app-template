@@ -6,6 +6,9 @@
       <Deploy Solution="Debug|*" />
     </Project>
   </Folder>
+  <Folder Name="/Template/">
+    <Project Path="../tests/Template.SelfTests/Template.SelfTests.csproj" />
+  </Folder>
   <Folder Name="/Solution Items/" />
   <Folder Name="/Solution Items/Agents/">
     <File Path="../CLAUDE.md" />

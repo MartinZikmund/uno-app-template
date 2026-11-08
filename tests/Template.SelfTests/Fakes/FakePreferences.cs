@@ -1,6 +1,6 @@
 using MZikmund.Toolkit.WinUI.Services;
 
-namespace AppTemplate.Core.Tests.Fakes;
+namespace Template.SelfTests.Fakes;
 
 /// <summary>In-memory <see cref="IPreferences"/>; complex values are stored as-is, not serialized.</summary>
 internal sealed class FakePreferences : IPreferences

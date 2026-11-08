@@ -1,7 +1,7 @@
 using AppTemplate.Services.Settings;
 using Microsoft.UI.Xaml;
 
-namespace AppTemplate.Core.Tests.Fakes;
+namespace Template.SelfTests.Fakes;
 
 internal sealed class FakeAppPreferences : IAppPreferences
 {

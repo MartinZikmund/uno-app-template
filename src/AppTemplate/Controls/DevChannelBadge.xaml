@@ -5,15 +5,22 @@
     xmlns:infra="using:AppTemplate.Infrastructure"
     IsHitTestVisible="False"
     Visibility="{x:Bind infra:AppEnvironment.IsDevChannel, Mode=OneTime, Converter={StaticResource BoolToVisibilityConverter}}">
+    <UserControl.Resources>
+        <!--  CI builds match their app icon's badge (docs/dev-assets.md) in both themes.  -->
+        <SolidColorBrush x:Key="CiBadgeBackgroundBrush" Color="#0078D4" />
+        <SolidColorBrush x:Key="CiBadgeForegroundBrush" Color="#FFFFFF" />
+    </UserControl.Resources>
     <!--
         Positioning belongs to the call site: the Windows head hosts this in TitleBar.RightHeader,
         other heads overlay it in the top-right corner. See WindowShell.xaml.
     -->
     <Border
+        x:Name="BadgeBorder"
         Padding="6,2"
         Background="{ThemeResource SystemFillColorCautionBrush}"
         CornerRadius="4">
         <TextBlock
+            x:Name="BadgeText"
             FontSize="10"
             FontWeight="SemiBold"
             Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"

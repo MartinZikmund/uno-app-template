@@ -63,9 +63,9 @@ Replace the existing single line with two conditional groups (your app's reverse
 </PropertyGroup>
 ```
 
-### 5. Add a Dev icon variant
+### 5. Get a Dev icon
 
-Copy `Assets/Icons/icon_foreground.svg` → `icon_foreground_dev.svg` and give it a distinct treatment (e.g. recolor to a caution amber or add a DEV ribbon). Add a single channel-conditional line — `<UnoIconForegroundFile Condition="'$(AppChannel)' == 'Dev'">Assets/Icons/icon_foreground_dev.svg</UnoIconForegroundFile>` — see the template's `AppTemplate.csproj`.
+Copy `src/DevAssets.targets` and `src/DevAssets.Task.cs` from the template and import the targets from your `src/Directory.Build.targets` (`<Import Project="$(MSBuildThisFileDirectory)DevAssets.targets" />`). Dev builds then badge your existing icon and splash automatically. See [dev-assets.md](./dev-assets.md).
 
 > **Do not** override `UnoIconBackgroundFile` per channel. Uno maps the generated app-icon resource name to the background file's base name, so a per-channel background (e.g. `icon_dev.svg`) renames the resource to `@mipmap/icon_dev` while the manifest still references `@mipmap/icon`, breaking the Android build (`APT2260: resource mipmap/icon not found`). Keep the background constant and vary only the foreground.
 

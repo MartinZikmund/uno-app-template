@@ -5,6 +5,7 @@ description: How to write and run tests in this template
 # Testing
 
 - Tests live in **`AppTemplate.Core.Tests`** (MSTest on **Microsoft.Testing.Platform**, `net10.0`). Keep testable logic in `AppTemplate.Core` so it can be covered without a UI head.
+- **Tests of the template's own dev tooling** go in **`tests/Template.SelfTests`**, never in `AppTemplate.Core.Tests`. That covers build machinery (`src/DevAssets.*`, `src/WorktreeIdentity.*`), repo scripts, and the in-app surface of that tooling (e.g. the About page's worktree label). Apps copy `AppTemplate.Core.Tests` and delete `Template.SelfTests`, so a template test in the former becomes dead weight in every app. `AppTemplate.Core.Tests` is for the app's own logic, the code an app keeps building on (view models, services, `IoC`).
 - **TDD:** write a failing test first, watch it fail, then implement until it passes.
 
 ## Running

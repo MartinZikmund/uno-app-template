@@ -20,8 +20,8 @@ Single MSBuild property: `AppChannel = Dev | Prod`. Defaults to `Dev`. Every CI 
 What changes per channel:
 - **Identity:** all four native heads take their identity from a single `ApplicationId` property — Android `applicationId`, iOS `CFBundleIdentifier`, and the Windows MSIX `<Identity Name>` — which is `…apptemplate` vs `…apptemplate.dev`. The MSIX `Publisher` comes from `ApplicationPublisher` (`O=Martin Zikmund`) and must match the subject of whichever certificate signs the package.
 - **Display name:** `App Template` vs `App Template Dev`.
-- **App icon:** the Dev channel overrides the icon *foreground* (`Assets/Icons/icon_foreground.svg` vs `icon_foreground_dev.svg`); the background is shared. Uno derives the generated icon resource name from the background file, so the background must stay constant across channels — only the foreground changes.
-- **In-app banner:** a `DEV` corner badge appears when `AppEnvironment.IsDevChannel` is true.
+- **App icon and splash:** Dev builds stamp a DEV badge onto the prod artwork at build time, so there is no Dev artwork to maintain. See [dev-assets.md](./dev-assets.md).
+- **In-app banner:** a `DEV` corner badge appears when `AppEnvironment.IsDevChannel` is true (a blue `CI` one on Dev builds made on CI; see [dev-assets.md](./dev-assets.md)).
 - **Compile constant:** `APP_CHANNEL_DEV` defined on Dev builds.
 - **Appsettings:** `appsettings.Dev.json` (overlay placeholder; wire up to your configuration host if you need separate sandbox keys).
 

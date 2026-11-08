@@ -208,9 +208,8 @@ Get-AppxPackage dev.mzikmund.apptemplate.dev.wt* | Select-Object Name, PackageFa
   a different package and the old install plus its data is orphaned. Uninstall before moving.
 - **`Get-Process AppTemplate` matches every worktree.** `AssemblyName` is deliberately unchanged —
   the launch configs, the WASM linker config and `--exe AppTemplate.exe` all depend on it.
-- **Icons are identical across worktrees.** `UnoIconBackgroundFile` must stay constant (the `UnoIcon`
-  item's `Include` *is* the background, and varying it renames the Android resource and breaks
-  `@mipmap/icon`), and the one foreground slot already belongs to the Dev channel.
+- **Icons are identical across worktrees.** Every Dev build gets the same generated DEV badge
+  ([dev-assets.md](./dev-assets.md)). A worktree name would be 1–3px tall at taskbar sizes, so it stays in the text labels.
 - **A local `-p:AppChannel=Prod` build from a worktree overwrites the real Prod app.** That is the
   safe direction — no worktree-suffixed id can ever ship — but it is worth knowing.
 - **The Desktop head's manifest version stays `1.0.0.1`**, because `SetNbgvVersionForUnoWindows` is
