@@ -24,7 +24,8 @@ The rest of the documentation starts at [docs/README.md](./docs/README.md).
    `ApplicationId` for both the `Prod` and `Dev` channels. They must differ between channels, which
    is what lets a Dev build install next to the released app.
 2. Drop your own artwork into `src/AppTemplate/Assets/Icons` and `src/AppTemplate/Assets/Splash`.
-3. Set the first version in `version.json`.
+3. Set the first version in `version.json`. Keep the `-dev` suffix: a bare `"0.1"` gives `nbgv prepare-release`
+   nothing to cut.
 4. Choose a license for your app. `docs/TEMPLATE-LICENSE.txt` is the template's own MIT notice, kept
    because this code started from it. It doesn't license your app.
 
