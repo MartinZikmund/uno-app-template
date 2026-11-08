@@ -44,6 +44,8 @@ jobs:
         run: |
           set -euo pipefail
           # -p:TargetFrameworks is REQUIRED alongside -r on a multi-targeted Uno project.
+          # ApplicationVersion=0 as on Windows: Uno.Resizetizer generates this head's manifest too,
+          # as X.Y.Z.<ApplicationVersion>, and rejects anything but an integer.
           dotnet publish "$PROJECT_FILE" -c Release -f "$TFM" -r "${{ matrix.rid }}" \
             -p:TargetFrameworks="$TFM" \
             -p:SelfContained=true \
@@ -53,7 +55,8 @@ jobs:
             -p:AppChannel=${{ inputs.channel }} \
             -p:CiVersionInjected=true \
             -p:Version=${{ inputs.version_simple }} \
-            -p:ApplicationDisplayVersion=${{ inputs.version_simple }}
+            -p:ApplicationDisplayVersion=${{ inputs.version_simple }} \
+            -p:ApplicationVersion=0
 
       - name: Zip
         shell: bash

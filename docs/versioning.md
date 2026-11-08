@@ -94,14 +94,18 @@ at once, so every packaging job passes:
 -p:CiVersionInjected=true -p:ApplicationDisplayVersion=X.Y.Z -p:ApplicationVersion=<per-platform>
 ```
 
-`src/Directory.Build.targets` adds an `AssertStoreVersionStamped` guard that fails a Prod CI
-build which lost its injection, and the three store-bound heads then read the version back
-out afterwards: iOS unzips the `.ipa` and reads `Info.plist`, Windows opens the
-`.msixbundle` and parses its bundle manifest, and Android reads the generated
-`AndroidManifest.xml` under `obj/`. Desktop and WASM carry no store version and are not
-checked. A local
-`dotnet build -f net10.0-android` still emits `versionCode=1` — that is expected and
-harmless, because you never upload from a laptop.
+| Head | `ApplicationDisplayVersion` | `ApplicationVersion` | Read back from |
+|---|---|---|---|
+| Android | `X.Y.Z` | the `versionCode` | the generated `AndroidManifest.xml` under `obj/` |
+| iOS | `X.Y.Z` | `X.Y.Z` | `Info.plist` inside the `.ipa` |
+| Windows | `X.Y.Z` | `0` | the bundle manifest inside the `.msixbundle` |
+| Desktop | `X.Y.Z` | `0` | not checked: no store version |
+| WebAssembly | `X.Y.Z` | `0` | not checked: no store version |
+
+Every `X.Y.Z` and the `versionCode` come from the `.github/actions/app-version` composite. Desktop takes `0` for the same reason Windows does: Uno.Resizetizer generates its `Package.appxmanifest` too, and rejects a non-integer `ApplicationVersion`. `src/Directory.Build.targets`
+adds an `AssertStoreVersionStamped` guard that fails a Prod CI build which lost its injection,
+on every head. A local `dotnet build -f net10.0-android` still emits `versionCode=1` — that is
+expected and harmless, because you never upload from a laptop.
 
 ## AppChannel
 

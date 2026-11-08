@@ -7,7 +7,7 @@
 
           -p:CiVersionInjected=true
           -p:ApplicationDisplayVersion=<X.Y.Z>
-          -p:ApplicationVersion=<0 for Windows | versionCode for Android | X.Y.Z for iOS>
+          -p:ApplicationVersion=<versionCode for Android | X.Y.Z for iOS | 0 otherwise>
 
       as MSBuild GLOBAL properties, which win unconditionally at evaluation time.
 
