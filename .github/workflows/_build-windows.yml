@@ -63,7 +63,7 @@ jobs:
         with:
           # PIN, never `latest`: winapp is a 0.x preview, and bundling only appeared in
           # 0.3.2 - an older resolve silently takes a single input folder and cannot bundle.
-          version: 'v0.6.1'
+          version: 'v0.8.0'
 
       - name: Show winapp version
         run: winapp --version

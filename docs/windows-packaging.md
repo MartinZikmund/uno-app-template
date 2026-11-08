@@ -16,7 +16,7 @@ only in the standalone `Microsoft.Windows.SDK.BuildTools.MSIX` package, which th
 does not restore, and `UapAppxPackageBuildMode` appears zero times in the targets it does
 import. `/p:AppxBundle=Always` cannot produce a bundle on this SDK.
 
-Pin the CLI version (`microsoft/setup-WinAppCli@v0.2` with `version: 'v0.6.1'`): winapp is
+Pin the CLI version (`microsoft/setup-WinAppCli@v0.2` with `version: 'v0.8.0'`): winapp is
 a 0.x preview and bundling only appeared in 0.3.2.
 
 ```powershell
