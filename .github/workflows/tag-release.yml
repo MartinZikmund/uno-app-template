@@ -20,6 +20,7 @@ jobs:
       github.event.repository.private == false
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: write
     steps:
       - name: Checkout the built commit

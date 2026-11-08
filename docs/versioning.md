@@ -35,8 +35,8 @@ What changes per channel:
 | `package-android.yml` | push: main + release/v* + workflow_dispatch | Dev applicationId on main, Prod on release/v* | release/v* → Play Production track via `r0adkll/upload-google-play` |
 | `package-ios.yml` | push: main + release/v* + workflow_dispatch | Dev Bundle ID on main, Prod on release/v* | release/v* → TestFlight via `apple-actions/upload-testflight-build` (manual "Submit for Review") |
 | `tag-release.yml` | workflow_run after the three packaging workflows on release/v* | n/a | Pushes annotated tag `v{version}` |
-| `prepare-release.yml` | workflow_dispatch | n/a | Cuts release/v{current}, opens PR for main bump |
-| `static-web-apps-deploy.yml` | push: release/v*, PR: main | Prod on release/v*, Dev on PR previews | release/v* → production Static Web App; PRs → Azure SWA preview env (public repos only) |
+| `prepare-release.yml` | workflow_dispatch | n/a | Cuts release/v{current}, starts its builds, opens PR for main bump |
+| `static-web-apps-deploy.yml` | push: release/v*, PR: main, workflow_dispatch on release/v* | Prod on release/v*, Dev on PR previews | release/v* → production Static Web App; PRs → Azure SWA preview env (public repos only) |
 
 All packaging workflows are gated by `github.event.repository.private == false || github.event_name == 'workflow_dispatch'` so private forks don't burn paid Actions minutes on every push.
 
@@ -50,7 +50,7 @@ nbgv prepare-release
 git push origin main release/v{current}
 ```
 
-**Workflow:** Actions → Prepare Release → Run. Pushes release branch, opens a PR for the main bump.
+**Workflow:** Actions → Prepare Release → Run. Pushes the release branch, starts its builds, and opens a PR for the main bump. It starts the builds explicitly because a push made with `GITHUB_TOKEN` doesn't trigger workflows. That also means the bump PR gets no CI by itself, so close and reopen it to run the checks.
 
 ### Building releases
 
