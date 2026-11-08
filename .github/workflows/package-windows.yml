@@ -133,19 +133,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Read package version from manifest
-        id: manifest
-        shell: pwsh
-        run: |
-          [xml]$xml = Get-Content "$env:PROJECT_PATH/Package.appxmanifest"
-          $version = $xml.Package.Identity.Version
-          echo "version=$version" >> $env:GITHUB_OUTPUT
-
       - name: Download all MSIX_Package_* artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: MSIX_Package_*
           path: ./msix
+
+      # The source manifest holds a 0.0.0.0 placeholder; the real version is stamped at build time.
+      - name: Read package version from the built packages
+        id: manifest
+        shell: pwsh
+        run: |
+          $msix = Get-ChildItem -Path ./msix -Filter *.msix -Recurse | Select-Object -First 1
+          if ($msix.Name -notmatch '_(\d+\.\d+\.\d+\.\d+)_') { throw "No version in '$($msix.Name)'" }
+          echo "version=$($Matches[1])" >> $env:GITHUB_OUTPUT
 
       - name: Copy all .msix files to temporary location
         id: copymsix
@@ -155,13 +156,22 @@ jobs:
           Copy-Item $msixFiles -Destination $tmp
           echo "msix_temp_dir=$tmp" >> $env:GITHUB_OUTPUT
 
+      # Not Action-MsixBundler: it hardcodes Windows Kits\10\bin\10.0.26100.0, which the runner image no longer provides.
       - name: Make msixbundle
         id: bundler
-        uses: LanceMcCarthy/Action-MsixBundler@v2.0.0
-        with:
-          msix-folder: ${{ steps.copymsix.outputs.msix_temp_dir }}
-          msixbundle-filepath: "./msix/${{ env.APP_NAME }}_${{ steps.manifest.outputs.version }}.msixbundle"
-          msixbundle-version: ${{ steps.manifest.outputs.version }}
+        shell: pwsh
+        run: |
+          $kits = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
+          $makeappx = Get-ChildItem $kits -Recurse -Filter makeappx.exe -ErrorAction SilentlyContinue |
+            Where-Object FullName -Match '\\x64\\' | Sort-Object FullName | Select-Object -Last 1
+          if (-not $makeappx) {
+            Get-ChildItem $kits -ErrorAction SilentlyContinue | Out-String | Write-Host
+            throw "makeappx.exe not found under $kits"
+          }
+          Write-Host "Using $($makeappx.FullName)"
+          $bundle = "./msix/${{ env.APP_NAME }}_${{ steps.manifest.outputs.version }}.msixbundle"
+          & $makeappx.FullName bundle /bv "${{ steps.manifest.outputs.version }}" /d "${{ steps.copymsix.outputs.msix_temp_dir }}" /p $bundle
+          if ($LASTEXITCODE -ne 0) { throw "makeappx failed ($LASTEXITCODE)" }
 
       - name: Make .msixupload
         shell: pwsh
