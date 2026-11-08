@@ -121,6 +121,22 @@ public partial class ProdBuildGuardTests
             .And.Contain("-p:ApplicationVersion="));
     }
 
+    [TestMethod]
+    public void NbgvAndroidTarget_CiVersionInjected_KeepsTheInjectedVersion()
+    {
+        var output = RunNbgvAndroidTarget("-p:CiVersionInjected=true", "-p:ApplicationDisplayVersion=0.1.172", "-p:ApplicationVersion=100172");
+
+        output.Should().Contain("ANDROID_VERSION=100172|0.1.172");
+    }
+
+    [TestMethod]
+    public void NbgvAndroidTarget_NoInjection_LetsNbgvDeriveTheVersion()
+    {
+        var output = RunNbgvAndroidTarget();
+
+        output.Should().Contain($"ANDROID_VERSION={(1 << 16) + 172}|0.1.172-dev");
+    }
+
     private static string[] WindowsProd => ["-p:TargetPlatformIdentifier=windows", "-p:AppChannel=Prod"];
 
     private static string[] ProdCi(params string[] properties) => ["-p:ContinuousIntegrationBuild=true", "-p:AppChannel=Prod", .. properties];
@@ -194,6 +210,73 @@ public partial class ProdBuildGuardTests
         {
             directory.Delete(recursive: true);
         }
+    }
+
+    // Runs the real NBGV targets (only GetBuildVersion is stubbed) up to Android's
+    // _GetAndroidPackageName, and returns the version the Android SDK would then read.
+    private static string RunNbgvAndroidTarget(params string[] properties)
+    {
+        var root = FindRepoRoot();
+        var directory = Directory.CreateTempSubdirectory("nbgv-android-");
+        try
+        {
+            var project = Path.Combine(directory.FullName, "android.proj");
+            File.WriteAllText(project, $"""
+                <Project>
+                  <Import Project="{Path.Combine(root, "src", "Directory.Build.props")}" />
+                  <PropertyGroup>
+                    <TargetPlatformIdentifier>android</TargetPlatformIdentifier>
+                    <ApplicationVersion Condition="'$(ApplicationVersion)' == ''">1</ApplicationVersion>
+                    <ApplicationDisplayVersion Condition="'$(ApplicationDisplayVersion)' == ''">1.0.0</ApplicationDisplayVersion>
+                    <BuildVersion>0.1.172.0</BuildVersion>
+                    <BuildNumber>172</BuildNumber>
+                    <Version>0.1.172-dev</Version>
+                  </PropertyGroup>
+                  <Import Project="{NbgvTargets()}" />
+                  <Target Name="GetBuildVersion" />
+                  <Target Name="_GetAndroidPackageName" />
+                  <Target Name="Report" AfterTargets="_GetAndroidPackageName">
+                    <Message Importance="high" Text="ANDROID_VERSION=$(ApplicationVersion)|$(ApplicationDisplayVersion)" />
+                  </Target>
+                </Project>
+                """);
+
+            ProcessStartInfo startInfo = new("dotnet")
+            {
+                WorkingDirectory = directory.FullName,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            foreach (var argument in new[] { "msbuild", project, "-nologo", "-t:_GetAndroidPackageName" }.Concat(properties))
+            {
+                startInfo.ArgumentList.Add(argument);
+            }
+
+            using var process = Process.Start(startInfo)!;
+            var error = process.StandardError.ReadToEndAsync();
+            var output = process.StandardOutput.ReadToEnd() + error.Result;
+            process.WaitForExit();
+
+            process.ExitCode.Should().Be(0, output);
+            return output;
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    private static string NbgvTargets()
+    {
+        var root = FindRepoRoot();
+        var version = XDocument.Load(Path.Combine(root, "src", "Directory.Packages.props"))
+            .Descendants("PackageVersion")
+            .Single(package => (string?)package.Attribute("Include") == "Nerdbank.GitVersioning")
+            .Attribute("Version")!.Value;
+        var packages = Environment.GetEnvironmentVariable("NUGET_PACKAGES")
+            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+
+        return Path.Combine(packages, "nerdbank.gitversioning", version, "build", "Nerdbank.GitVersioning.targets");
     }
 
     private static string FindRepoRoot()

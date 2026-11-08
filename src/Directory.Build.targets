@@ -9,13 +9,18 @@
           -p:ApplicationDisplayVersion=<X.Y.Z>
           -p:ApplicationVersion=<versionCode for Android | X.Y.Z for iOS | 0 otherwise>
 
-      as MSBuild GLOBAL properties, which win unconditionally at evaluation time.
+      as MSBuild GLOBAL properties, which win over every evaluation-time assignment.
 
       Why global properties and not a target: ApplicationVersion / ApplicationDisplayVersion
       are resolved during EVALUATION by five different SDKs (Uno's WinAppSdk / Desktop / Wasm
       targets, Microsoft.Android.Sdk.DefaultProperties.targets, Xamarin.Shared.props), while
       NBGV assigns the real version inside the GetBuildVersion TARGET - far too late to
-      influence them. A command-line property wins on all five at once.
+      influence them.
+
+      Caveat: a global property does NOT beat a property set inside a target. NBGV's
+      NBGV_SetVersionForMauiAndroid/iOS targets do exactly that (Android once got
+      versionCode 65708 instead of the injected one), so Directory.Build.props sets
+      NBGV_SetMauiVersionProperties=false whenever CiVersionInjected=true.
 
       The targets below exist only so a LOCAL build is not silently wrong, and so a Prod CI
       build that lost its injection fails loudly instead of shipping versionCode=1.
