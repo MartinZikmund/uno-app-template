@@ -30,18 +30,6 @@ jobs:
 
       - uses: ./.github/actions/setup-dotnet-build
 
-      # The checked-in Package.appxmanifest is a TEMPLATE that Uno regenerates into obj/
-      # with the NBGV version. The 0.0.0.0 pin is load-bearing and stays enforced.
-      - name: Package.appxmanifest Identity Version must stay pinned at 0.0.0.0
-        run: |
-          set -euo pipefail
-          v=$(grep -o 'Version="[^"]*"' src/AppTemplate/Package.appxmanifest | head -1 | sed 's/.*="//;s/"//' || true)
-          echo "Identity Version in the checked-in manifest: $v"
-          if [ "$v" != "0.0.0.0" ]; then
-            echo "::error::Package.appxmanifest Identity Version must remain 0.0.0.0 - it is stamped at build time by SetNbgvVersionForUnoWindows."
-            exit 1
-          fi
-
       - name: Version sanity
         uses: ./.github/actions/app-version
         with:

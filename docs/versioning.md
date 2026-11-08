@@ -125,7 +125,7 @@ What changes per channel:
 
 The checked-in manifest is a *template*; Uno regenerates it into `obj/` at build time and
 `SetNbgvVersionForUnoWindows` supplies the version. The `Version="0.0.0.0"` pin is
-load-bearing, and `ci.yml`'s `guards` job fails the build if it ever changes.
+load-bearing, and `PackageManifestTests` in `AppTemplate.Core.Tests` fails if it ever changes.
 
 ## Release lifecycle
 
