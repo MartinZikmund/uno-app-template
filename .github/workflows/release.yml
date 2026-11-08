@@ -298,6 +298,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          # $ErrorActionPreference ignores a native exit code; this makes msstore failures throw.
+          $PSNativeCommandUseErrorActionPreference = $true
           # `reconfigure` persists credentials to a config file on THIS runner, so it must
           # run in the same job as the call that uses them.
           msstore reconfigure `
@@ -606,6 +608,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          # Without this a failed `update` would still be followed by `publish`, skipping the 10% rollout.
+          $PSNativeCommandUseErrorActionPreference = $true
           msstore reconfigure `
             --tenantId "${{ secrets.MS_STORE_TENANT_ID }}" `
             --sellerId "${{ secrets.MS_STORE_SELLER_ID }}" `
