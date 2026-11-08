@@ -100,6 +100,8 @@ jobs:
       - name: Commit and push if drift
         id: commit
         shell: bash
+        env:
+          HEAD_REF: ${{ steps.pr.outputs.ref }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -110,7 +112,7 @@ jobs:
           fi
           git add -A
           git commit -m 'chore: Apply XAML styler'
-          git push origin HEAD:${{ steps.pr.outputs.ref }}
+          git push origin "HEAD:$HEAD_REF"
           echo "pushed=true" >> "$GITHUB_OUTPUT"
 
       - name: Comment with outcome
