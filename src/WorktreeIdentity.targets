@@ -144,7 +144,7 @@
 
         <ItemGroup>
             <BundleResource Remove="%(_MobileLabelIosSrc.FullPath)" />
-            <BundleResource Include="$(_MobileLabelIosDest)" Link="Resources/$(_MobileLabelIosSub)InfoPlist.strings" />
+            <BundleResource Include="$(_MobileLabelIosDest)" Link="$(_MobileLabelIosSub)InfoPlist.strings" />
         </ItemGroup>
     </Target>
 
