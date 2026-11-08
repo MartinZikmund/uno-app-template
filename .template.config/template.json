@@ -420,7 +420,6 @@
             "src/AppTemplate/Properties/PublishProfiles/**",
             ".github/Install-WindowsSdkISO.ps1",
             ".github/workflows/package-windows.yml",
-            ".github/workflows/validate-manifest-version.yml",
             ".claude/skills/run-winui-app/**"
           ]
         },
@@ -524,7 +523,7 @@
         {
           "condition": "(!useAndroidInternetTest)",
           "exclude": [
-            "tests/AppTemplate.Core.Tests/Packaging/**"
+            "tests/AppTemplate.Core.Tests/Packaging/AndroidManifestTests.cs"
           ]
         },
         {
@@ -532,7 +531,6 @@
           "exclude": [
             ".github/workflows/ci.yml",
             ".github/workflows/todo.yml",
-            ".github/workflows/validate-manifest-version.yml",
             ".github/dependabot.yml"
           ]
         },
