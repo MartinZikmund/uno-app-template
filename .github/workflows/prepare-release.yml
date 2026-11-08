@@ -10,6 +10,7 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
       pull-requests: write
     steps:
@@ -44,6 +45,17 @@ jobs:
 
       - name: Push the new release branch
         run: git push origin "${{ steps.version.outputs.release_branch }}"
+
+      # A push made with GITHUB_TOKEN doesn't start workflows, so the push above fires nothing.
+      - name: Start the release builds
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_BRANCH: ${{ steps.version.outputs.release_branch }}
+        run: |
+          gh workflow run package-windows.yml --ref "$RELEASE_BRANCH"
+          gh workflow run package-android.yml --ref "$RELEASE_BRANCH"
+          gh workflow run package-ios.yml --ref "$RELEASE_BRANCH"
+          gh workflow run static-web-apps-deploy.yml --ref "$RELEASE_BRANCH"
 
       - name: Push the main bump as a PR-source branch
         run: |

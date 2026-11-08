@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - "release/v**"
+  # Prepare Release starts this, because its own push doesn't trigger workflows.
+  workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
@@ -30,8 +32,10 @@ jobs:
       pull-requests: write
     # Release pushes always deploy (Prod). PR previews (Dev) only on public repos, so
     # private forks don't burn paid Actions minutes on a throwaway preview every push.
+    # Non-PR deployments go to production, so a manual run must come from a release branch.
     if: >
       github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/release/v')) ||
       (github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.repository.private == false)
     runs-on: ubuntu-latest
     name: Build and Deploy Job
