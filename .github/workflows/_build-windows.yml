@@ -234,15 +234,24 @@ jobs:
       - name: Smoke launch the packaged app
         if: inputs.smoke_launch && inputs.channel == 'Dev'
         continue-on-error: true
+        shell: pwsh
         run: |
-          set -euo pipefail
+          $ErrorActionPreference = 'Stop'
           # Proves the package actually registers and starts - the failure a build alone
           # cannot catch. Non-blocking: flaky UI automation must not fail a build.
-          winapp run "src/AppTemplate/bin/Release/$TFM/win-x64/publish" \
-            --exe "$APP_NAME.exe" --detach --json || true
-          winapp ui screenshot -a "App Template Dev" --output "$RUNNER_TEMP/stage/smoke.png" \
-            || echo "::warning::smoke screenshot failed"
-          winapp unregister --manifest "${{ steps.manifest.outputs.manifest }}" || true
+          # By PID: the window title is not unique, see docs/worktree-identity.md.
+          $app = winapp run "src/AppTemplate/bin/Release/$env:TFM/win-x64/publish" `
+            --exe "$env:APP_NAME.exe" --detach --json | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $app.ProcessId) { throw "winapp run failed ($LASTEXITCODE)" }
+          try {
+            Start-Sleep -Seconds 15
+            winapp ui screenshot -a $app.ProcessId --output (Join-Path $env:RUNNER_TEMP 'stage/smoke.png')
+            if ($LASTEXITCODE -ne 0) { Write-Host "::warning::smoke screenshot failed" }
+          }
+          finally {
+            Stop-Process -Id $app.ProcessId -ErrorAction SilentlyContinue
+            winapp unregister --manifest "${{ steps.manifest.outputs.manifest }}"
+          }
 
       - uses: actions/upload-artifact@v7
         with:
