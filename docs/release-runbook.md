@@ -133,6 +133,11 @@ no rebuild and therefore no version change. `play` and `web` re-publish directly
 downloads the `.msixbundle` and points you at it, because Store submission needs a Windows
 runner — re-run the release run's `publish-msstore-draft` job, or upload it by hand.
 
+`store-ops` has no reviewers, so `force=true` is the confirmation: without it the run refuses,
+before anything moves, if `play` or `web` already has that commit. It only overrides this
+guard. Play still rejects a `versionCode` it has already consumed, so a real re-upload of the
+same commit needs a new commit (see below).
+
 ## Things that will bite you
 
 | Store | What bites | What to do |

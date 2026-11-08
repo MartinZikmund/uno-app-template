@@ -44,7 +44,7 @@ on:
         required: false
         default: ""
       force:
-        description: "republish only: ignore the already-published guard"
+        description: "republish only: re-push a target this commit already reached"
         type: boolean
         default: false
 
@@ -52,6 +52,7 @@ permissions:
   contents: read
   actions: read
   deployments: write
+  statuses: write
 
 jobs:
   play:
@@ -168,8 +169,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Validate inputs
+      - name: Validate inputs and find the source commit
+        id: source
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_ID: ${{ inputs.value }}
           TARGETS: ${{ inputs.republish_targets }}
         run: |
@@ -178,6 +181,34 @@ jobs:
             ''|*[!0-9]*) echo "::error::republish needs the source run id in 'value' (digits only)."; exit 1 ;;
           esac
           [ -n "$TARGETS" ] || { echo "::error::republish needs 'republish_targets' (play,msstore,web)."; exit 1; }
+          sha="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq .head_sha)"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      # This workflow has no reviewers, so overwriting what a store already has takes an explicit
+      # force=true. Checked before anything moves, so a mistaken dispatch changes nothing.
+      - id: once-play
+        if: contains(inputs.republish_targets, 'play')
+        uses: ./.github/actions/publish-once
+        with:
+          environment: play-internal
+          sha: ${{ steps.source.outputs.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          force: ${{ inputs.force }}
+
+      - id: once-web
+        if: contains(inputs.republish_targets, 'web')
+        uses: ./.github/actions/publish-once
+        with:
+          environment: web-production
+          sha: ${{ steps.source.outputs.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          force: ${{ inputs.force }}
+
+      - name: Refuse to re-push without force
+        if: steps.once-play.outputs.skip == 'true' || steps.once-web.outputs.skip == 'true'
+        run: |
+          echo "::error::A requested target already has this commit (see the notices above). Pass force=true to re-push it."
+          exit 1
 
       # Each artifact goes to its OWN directory. A single `pattern: release-*` with
       # merge-multiple would put the AAB, the .msixbundle and the desktop zips in the same
@@ -213,6 +244,7 @@ jobs:
         run: find pkg-android pkg-wasm pkg-windows -type f 2>/dev/null | head -50 || true
 
       - name: Re-upload to Play (internal)
+        id: upload-play
         if: contains(inputs.republish_targets, 'play')
         uses: r0adkll/upload-google-play@v1
         with:
@@ -222,7 +254,17 @@ jobs:
           tracks: internal
           status: completed
 
+      - name: Record the Play upload
+        if: steps.upload-play.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: play-internal
+          sha: ${{ steps.source.outputs.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Re-deploy the web build
+        id: upload-web
         if: contains(inputs.republish_targets, 'web')
         uses: Azure/static-web-apps-deploy@v1
         with:
@@ -232,6 +274,15 @@ jobs:
           skip_app_build: true
           skip_api_build: true
           skip_deploy_on_missing_secrets: false
+
+      - name: Record the web deploy
+        if: steps.upload-web.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: web-production
+          sha: ${{ steps.source.outputs.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Note the Microsoft Store path
         if: contains(inputs.republish_targets, 'msstore')
