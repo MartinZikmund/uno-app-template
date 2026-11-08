@@ -36,6 +36,20 @@ public class BuildTests
     }
 
     [TestMethod]
+    public void AgentsAndAndroidOff_TheAppsOwnTestsStillPass()
+    {
+        // Tests that look for an optional file to find the root, or that get excluded with one platform's, show up here.
+        var app = TemplateFixture.Generate("b-tests-noagents", "Contoso", "--platforms", "desktop", "--agents", "false", "--spec-kit", "false");
+        GitInit(app);
+
+        var test = TemplateFixture.Run("dotnet", ["test", app.Path("tests/Contoso.Core.Tests/Contoso.Core.Tests.csproj")], app.Root);
+
+        test.Should().Contain("succeeded:").And.NotContain("failed: 1");
+        app.Exists("tests/Contoso.Core.Tests/Packaging/PackageManifestTests.cs").Should().BeTrue();
+        app.Exists("tests/Contoso.Core.Tests/Packaging/AndroidManifestTests.cs").Should().BeFalse();
+    }
+
+    [TestMethod]
     public void Default_BuildsWithoutAGitRepository()
     {
         // `dotnet new` alone doesn't create a repository, and that must not be a dead end.
