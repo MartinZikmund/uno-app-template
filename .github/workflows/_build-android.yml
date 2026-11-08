@@ -31,8 +31,9 @@ jobs:
       TFM: net10.0-android
       OUT: src/AppTemplate/bin/Release/net10.0-android/publish
       # `secrets` is legal in job-level `env` and illegal in every `if:`. This is the only
-      # correct way to branch on secret presence.
-      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+      # correct way to branch on secret presence. All four or it is treated as not configured:
+      # signing with the blob alone would only fail later, with empty parameters.
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' && secrets.ANDROID_STORE_PASSWORD != '' }}
 
     steps:
       - uses: actions/checkout@v7
@@ -65,10 +66,10 @@ jobs:
             -p:AndroidSigningKeyPass='${{ secrets.ANDROID_KEY_PASSWORD }}' \
             -p:AndroidSigningStorePass='${{ secrets.ANDROID_STORE_PASSWORD }}'
 
-      - name: Publish AAB (unsigned - no keystore configured)
+      - name: Publish AAB (unsigned - signing not fully configured)
         if: env.HAS_KEYSTORE != 'true'
         run: |
-          echo "::notice::ANDROID_KEYSTORE_BASE64 is not set - building an UNSIGNED AAB. This is expected in a fork; the Play publish jobs will skip."
+          echo "::notice::ANDROID_KEYSTORE_BASE64, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD and ANDROID_STORE_PASSWORD are not all set - building an UNSIGNED AAB. This is expected in a fork; the Play publish jobs will skip."
           dotnet publish "$PROJECT_FILE" -c Release -f "$TFM" \
             -p:AppChannel=${{ inputs.channel }} \
             -p:CiVersionInjected=true \

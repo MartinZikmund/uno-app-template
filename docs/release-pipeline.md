@@ -104,9 +104,10 @@ Every packaging job is gated on
 `github.event.repository.private == false || github.event_name == 'workflow_dispatch'`,
 so a private fork does not burn paid Actions minutes on every push.
 
-**A missing secret is never a build failure.** Each publish job checks for its credential
-and skips green with a `::warning::` naming what is absent. Concretely, a fresh fork with
-no secrets at all gets:
+**A missing secret is never a build failure.** Each publish job checks for its whole set of
+credentials and skips green with a `::warning::` naming what it needs. A partial set counts
+as missing, so a half-configured store skips rather than half-running. Concretely, a fresh
+fork with no secrets at all gets:
 
 - an **unsigned** Android AAB (and the Play jobs skip)
 - an iOS **simulator** `.app.zip` instead of an `.ipa` — a device `.ipa` is by definition
@@ -156,12 +157,13 @@ push and triggers `release.yml` the normal way.
 
 | Secret | Used by | Missing ⇒ |
 |---|---|---|
-| `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `ANDROID_STORE_PASSWORD` | Android build | unsigned AAB, job green, Play jobs skip |
-| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Play publish | Play jobs skip green |
-| `APPLE_DISTRIBUTION_P12_BASE64`, `APPLE_P12_PASSWORD`, `APPLE_PROVISIONING_PROFILE_BASE64`, `APPLE_CODESIGN_KEY`, `APPLE_TEAM_ID`, `KEYCHAIN_PASSWORD` | iOS build | simulator build; TestFlight and App Store jobs skip |
+| `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `ANDROID_STORE_PASSWORD` | Android build | any one missing ⇒ unsigned AAB, job green, Play jobs skip |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | Play publish, with `vars.ANDROID_PACKAGE_NAME` | Play jobs skip green |
+| `APPLE_DISTRIBUTION_P12_BASE64`, `APPLE_P12_PASSWORD`, `APPLE_PROVISIONING_PROFILE_BASE64`, `APPLE_CODESIGN_KEY`, `APPLE_TEAM_ID` | iOS build, with `vars.APPLE_PROVISIONING_PROFILE_NAME` | any one missing ⇒ simulator build; TestFlight and App Store jobs skip |
+| `KEYCHAIN_PASSWORD` | iOS build | optional: a random one is generated |
 | `APPLE_ADHOC_PROVISIONING_PROFILE_BASE64` | iOS build on `main` | `main` falls back to a simulator build |
-| `APPSTORE_ISSUER_ID`, `APPSTORE_API_KEY_ID`, `APPSTORE_API_PRIVATE_KEY` | TestFlight, review submission | those jobs skip green |
-| `MS_STORE_TENANT_ID`, `MS_STORE_SELLER_ID`, `MS_STORE_CLIENT_ID`, `MS_STORE_CLIENT_SECRET` | Microsoft Store | Store jobs skip; the `.msixbundle` artifact stays available for manual upload |
+| `APPSTORE_ISSUER_ID`, `APPSTORE_API_KEY_ID`, `APPSTORE_API_PRIVATE_KEY` | TestFlight, and review submission with `vars.APPSTORE_APP_ID` | any one missing ⇒ those jobs skip green |
+| `MS_STORE_TENANT_ID`, `MS_STORE_SELLER_ID`, `MS_STORE_CLIENT_ID`, `MS_STORE_CLIENT_SECRET` | Microsoft Store, with `vars.MS_STORE_PRODUCT_ID` | any one missing ⇒ Store jobs skip; the `.msixbundle` artifact stays available for manual upload |
 | `AZURESTATICWEBAPPSDEPLOYMENTTOKEN` | web deploy | skips green |
 | `RELEASE_APP_PRIVATE_KEY` | release cut, tag | degrades to the `GITHUB_TOKEN` + dispatch path |
 
@@ -170,7 +172,7 @@ Microsoft account will not authenticate.
 
 | Variable | Purpose |
 |---|---|
-| `ANDROID_PACKAGE_NAME` | Play listing id (default `dev.mzikmund.apptemplate`) |
+| `ANDROID_PACKAGE_NAME` | Play listing id, e.g. `dev.mzikmund.apptemplate`. Required by the Play jobs. |
 | `APPSTORE_APP_ID` | numeric App Store Connect app id, used by every review-submission call |
 | `APPLE_PROVISIONING_PROFILE_NAME` | profile **name**, not UUID — names survive regeneration, UUIDs do not |
 | `MS_STORE_PRODUCT_ID` | 12-character Store id from Partner Center |

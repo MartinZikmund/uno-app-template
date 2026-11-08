@@ -37,7 +37,9 @@ jobs:
       APP_NAME: AppTemplate
       PROJECT_FILE: src/AppTemplate/AppTemplate.csproj
       TFM: net10.0-ios
-      HAS_SIGNING: ${{ secrets.APPLE_DISTRIBUTION_P12_BASE64 != '' && secrets.APPLE_PROVISIONING_PROFILE_BASE64 != '' }}
+      # All of them or it is treated as not configured. KEYCHAIN_PASSWORD is the exception:
+      # import-codesign-certs generates one when it is absent.
+      HAS_SIGNING: ${{ secrets.APPLE_DISTRIBUTION_P12_BASE64 != '' && secrets.APPLE_P12_PASSWORD != '' && secrets.APPLE_PROVISIONING_PROFILE_BASE64 != '' && secrets.APPLE_CODESIGN_KEY != '' && secrets.APPLE_TEAM_ID != '' && vars.APPLE_PROVISIONING_PROFILE_NAME != '' }}
 
     steps:
       - uses: actions/checkout@v7
@@ -82,10 +84,10 @@ jobs:
             -p:CodesignTeamId="${{ secrets.APPLE_TEAM_ID }}" \
             -p:CodesignProvision="${{ vars.APPLE_PROVISIONING_PROFILE_NAME }}"
 
-      - name: Build simulator .app (no signing material)
+      - name: Build simulator .app (signing not fully configured)
         if: env.HAS_SIGNING != 'true'
         run: |
-          echo "::notice::No Apple signing material - building an iOS SIMULATOR app. This is expected in a fork; TestFlight and App Store jobs will skip."
+          echo "::notice::APPLE_DISTRIBUTION_P12_BASE64, APPLE_P12_PASSWORD, the provisioning profile, APPLE_CODESIGN_KEY, APPLE_TEAM_ID and vars.APPLE_PROVISIONING_PROFILE_NAME are not all set - building an iOS SIMULATOR app. This is expected in a fork; TestFlight and App Store jobs will skip."
           dotnet build "$PROJECT_FILE" -c Release -f "$TFM" \
             -p:RuntimeIdentifier=iossimulator-arm64 \
             -p:TargetFrameworks="$TFM" \

@@ -144,8 +144,9 @@ jobs:
       # job keys off this, not off this job's result: it also succeeds when it skipped.
       published: ${{ steps.once.outputs.skip == 'true' || steps.upload.outcome == 'success' }}
     env:
-      HAS_PLAY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' }}
-      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+      HAS_PLAY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' && vars.ANDROID_PACKAGE_NAME != '' }}
+      # The same four the Android build requires before it signs anything.
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' && secrets.ANDROID_STORE_PASSWORD != '' }}
     steps:
       - uses: actions/checkout@v7
       - id: once
@@ -155,9 +156,9 @@ jobs:
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Skip - no Play credentials
+      - name: Skip - Play credentials incomplete
         if: env.HAS_PLAY != 'true' || env.HAS_KEYSTORE != 'true'
-        run: echo "::warning::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON or ANDROID_KEYSTORE_BASE64 is not configured - skipping the Play internal upload. The AAB artifact is unaffected."
+        run: echo "::warning::Skipping the Play internal upload - it needs GOOGLE_PLAY_SERVICE_ACCOUNT_JSON, vars.ANDROID_PACKAGE_NAME and all four ANDROID_* signing secrets. The AAB artifact is unaffected."
 
       - uses: actions/download-artifact@v8
         if: steps.once.outputs.skip != 'true' && env.HAS_PLAY == 'true' && env.HAS_KEYSTORE == 'true'
@@ -199,7 +200,7 @@ jobs:
       # job keys off this, not off this job's result: it also succeeds when it skipped.
       published: ${{ steps.once.outputs.skip == 'true' || steps.upload.outcome == 'success' }}
     env:
-      HAS_ASC: ${{ secrets.APPSTORE_API_PRIVATE_KEY != '' }}
+      HAS_ASC: ${{ secrets.APPSTORE_ISSUER_ID != '' && secrets.APPSTORE_API_KEY_ID != '' && secrets.APPSTORE_API_PRIVATE_KEY != '' }}
     steps:
       - uses: actions/checkout@v7
       - id: once
@@ -209,9 +210,9 @@ jobs:
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Skip - no App Store Connect key
+      - name: Skip - App Store Connect credentials incomplete
         if: env.HAS_ASC != 'true'
-        run: echo "::warning::APPSTORE_API_PRIVATE_KEY is not configured - skipping the TestFlight upload. The .ipa artifact is unaffected."
+        run: echo "::warning::Skipping the TestFlight upload - it needs APPSTORE_ISSUER_ID, APPSTORE_API_KEY_ID and APPSTORE_API_PRIVATE_KEY. The .ipa artifact is unaffected."
 
       - uses: actions/download-artifact@v8
         if: steps.once.outputs.skip != 'true' && env.HAS_ASC == 'true'
@@ -267,7 +268,7 @@ jobs:
       # job keys off this, not off this job's result: it also succeeds when it skipped.
       published: ${{ steps.once.outputs.skip == 'true' || steps.upload.outcome == 'success' }}
     env:
-      HAS_MSSTORE: ${{ secrets.MS_STORE_CLIENT_SECRET != '' }}
+      HAS_MSSTORE: ${{ secrets.MS_STORE_TENANT_ID != '' && secrets.MS_STORE_SELLER_ID != '' && secrets.MS_STORE_CLIENT_ID != '' && secrets.MS_STORE_CLIENT_SECRET != '' && vars.MS_STORE_PRODUCT_ID != '' }}
     steps:
       - uses: actions/checkout@v7
       - id: once
@@ -277,10 +278,10 @@ jobs:
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Skip - no Partner Center credentials
+      - name: Skip - Partner Center credentials incomplete
         if: env.HAS_MSSTORE != 'true'
         shell: bash
-        run: echo "::warning::MS_STORE_CLIENT_SECRET is not configured - skipping. The .msixbundle artifact is still available for manual Partner Center upload."
+        run: echo "::warning::Skipping the Microsoft Store draft - it needs all four MS_STORE_* secrets and vars.MS_STORE_PRODUCT_ID. The .msixbundle artifact is still available for manual Partner Center upload."
 
       - uses: actions/download-artifact@v8
         if: steps.once.outputs.skip != 'true' && env.HAS_MSSTORE == 'true'
@@ -484,7 +485,7 @@ jobs:
     timeout-minutes: 30
     environment: play-production      # REQUIRED REVIEWER + branch policy release/v*
     env:
-      HAS_PLAY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' }}
+      HAS_PLAY: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' && vars.ANDROID_PACKAGE_NAME != '' }}
     steps:
       - uses: actions/checkout@v7
       - id: once
@@ -494,9 +495,9 @@ jobs:
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Skip - no Play credentials
+      - name: Skip - Play credentials incomplete
         if: env.HAS_PLAY != 'true'
-        run: echo "::warning::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is not configured - skipping the production promotion."
+        run: echo "::warning::Skipping the production promotion - it needs GOOGLE_PLAY_SERVICE_ACCOUNT_JSON and vars.ANDROID_PACKAGE_NAME."
 
       - name: Install Play API client
         if: steps.once.outputs.skip != 'true' && env.HAS_PLAY == 'true'
@@ -534,7 +535,7 @@ jobs:
     timeout-minutes: 45
     environment: appstore-production  # REQUIRED REVIEWER
     env:
-      HAS_ASC: ${{ secrets.APPSTORE_API_PRIVATE_KEY != '' }}
+      HAS_ASC: ${{ secrets.APPSTORE_ISSUER_ID != '' && secrets.APPSTORE_API_KEY_ID != '' && secrets.APPSTORE_API_PRIVATE_KEY != '' && vars.APPSTORE_APP_ID != '' }}
       APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
       APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
       APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
@@ -548,9 +549,9 @@ jobs:
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Skip - no App Store Connect key
+      - name: Skip - App Store Connect credentials incomplete
         if: env.HAS_ASC != 'true'
-        run: echo "::warning::APPSTORE_API_PRIVATE_KEY is not configured - skipping the App Store submission."
+        run: echo "::warning::Skipping the App Store submission - it needs APPSTORE_ISSUER_ID, APPSTORE_API_KEY_ID, APPSTORE_API_PRIVATE_KEY and vars.APPSTORE_APP_ID."
 
       - name: Install App Store Connect client
         if: steps.once.outputs.skip != 'true' && env.HAS_ASC == 'true'
@@ -584,7 +585,7 @@ jobs:
     timeout-minutes: 30
     environment: ms-store-production  # REQUIRED REVIEWER
     env:
-      HAS_MSSTORE: ${{ secrets.MS_STORE_CLIENT_SECRET != '' }}
+      HAS_MSSTORE: ${{ secrets.MS_STORE_TENANT_ID != '' && secrets.MS_STORE_SELLER_ID != '' && secrets.MS_STORE_CLIENT_ID != '' && secrets.MS_STORE_CLIENT_SECRET != '' && vars.MS_STORE_PRODUCT_ID != '' }}
     steps:
       - uses: actions/checkout@v7
       - id: once
@@ -593,10 +594,10 @@ jobs:
           environment: ms-store-production
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Skip - no Partner Center credentials
+      - name: Skip - Partner Center credentials incomplete
         if: env.HAS_MSSTORE != 'true'
         shell: bash
-        run: echo "::warning::MS_STORE_CLIENT_SECRET is not configured - skipping the Microsoft Store commit."
+        run: echo "::warning::Skipping the Microsoft Store commit - it needs all four MS_STORE_* secrets and vars.MS_STORE_PRODUCT_ID."
       - uses: microsoft/microsoft-store-apppublisher@v1.4
         if: steps.once.outputs.skip != 'true' && env.HAS_MSSTORE == 'true'
       - name: Commit the submission at 10% rollout
