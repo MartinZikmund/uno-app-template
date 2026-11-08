@@ -39,6 +39,12 @@
         <_InjectedApplicationDisplayVersion>$(ApplicationDisplayVersion)</_InjectedApplicationDisplayVersion>
     </PropertyGroup>
 
+    <!-- NBGV's NBGV_SetVersionForMauiAndroid/iOS targets overwrite ApplicationVersion and
+         ApplicationDisplayVersion mid-build, even over -p: values. CI's injected version must win. -->
+    <PropertyGroup Condition="'$(CiVersionInjected)' == 'true'">
+        <NBGV_SetMauiVersionProperties>false</NBGV_SetMauiVersionProperties>
+    </PropertyGroup>
+
     <!-- Per-worktree app identity (detection + derivation). See docs/worktree-identity.md. -->
     <Import Project="$(MSBuildThisFileDirectory)WorktreeIdentity.props" />
 </Project>

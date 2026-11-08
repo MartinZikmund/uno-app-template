@@ -87,8 +87,8 @@ is not monotonic. The same applies to `AssemblyFileVersion`. Use `SimpleVersion`
 
 `ApplicationVersion` and `ApplicationDisplayVersion` are resolved at **evaluation** time by
 five different SDKs, while NBGV assigns the real version inside the `GetBuildVersion`
-*target* — far too late to influence them. Command-line global properties win on all five
-at once, so every packaging job passes:
+*target* — far too late to influence them. Command-line global properties win over those
+evaluation-time assignments, so every packaging job passes:
 
 ```
 -p:CiVersionInjected=true -p:ApplicationDisplayVersion=X.Y.Z -p:ApplicationVersion=<per-platform>
@@ -106,8 +106,9 @@ Every `X.Y.Z` and the `versionCode` come from the `.github/actions/app-version` 
 adds an `AssertStoreVersionStamped` guard that fails a Prod CI build which lost its injection,
 on every head. It checks that the properties were *passed*, using values `src/Directory.Build.props`
 captures before any SDK default applies, rather than comparing them against the defaults `1` and
-`1.0.0`: those are legitimate versions too, and a real `1.0.0` release must not fail. A local `dotnet build -f net10.0-android` still emits `versionCode=1` — that is
-expected and harmless, because you never upload from a laptop.
+`1.0.0`: those are legitimate versions too, and a real `1.0.0` release must not fail.
+
+A global property does **not** beat a property set inside a *target*, and NBGV's `NBGV_SetVersionForMauiAndroid` / `…IOS` targets do exactly that (Android once got `versionCode=65708` instead of the injected one). `src/Directory.Build.props` therefore sets `NBGV_SetMauiVersionProperties=false` whenever `CiVersionInjected=true`. Without the injection (a local `dotnet build -f net10.0-android`), NBGV derives the version itself: `versionCode = major<<24 + minor<<16 + build number`, `versionName = $(Version)`.
 
 ## AppChannel
 
