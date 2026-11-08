@@ -33,7 +33,7 @@ jobs:
       # Surfaced as an env var so the deploy step can skip itself when no Cloudflare
       # credentials are configured (forks) and still leave the workflow green - the
       # `secrets` context is not usable in a step-level `if:`.
-      HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+      HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -50,9 +50,9 @@ jobs:
         with:
           publish-dir: src/AppTemplate/bin/Release/${{ env.TFM }}/publish/wwwroot
 
-      - name: Skip - no Cloudflare API token
+      - name: Skip - Cloudflare credentials incomplete
         if: env.HAS_CLOUDFLARE != 'true'
-        run: echo "::warning::CLOUDFLARE_API_TOKEN is not configured - skipping the preview upload."
+        run: echo "::warning::Skipping the preview upload - it needs both CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID."
 
       # Uploads the version without making it live, and pins it to a stable alias so
       # the preview URL stays the same across every push to the PR.
