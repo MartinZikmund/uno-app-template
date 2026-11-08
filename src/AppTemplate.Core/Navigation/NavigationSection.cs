@@ -4,4 +4,5 @@ public enum NavigationSection
 {
     Main,
     Settings,
+    Onboarding,
 }
