@@ -104,7 +104,27 @@ dotnet run --project tools/Wizard.Cli/MZikmund.UnoApp.Cli.csproj -- wizard --ui-
 ## Releasing
 
 Both packages share the repository's `version.json`. Run the **Template Package** workflow by hand with `publish`
-ticked. It needs a `NUGET_API_KEY` secret. Publish from a `release/v*` branch to get a stable version number.
+ticked. Publish from a `release/v*` branch to get a stable version number.
+
+Publishing uses [Trusted Publishing](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing), so no API key is
+stored anywhere. The `publish` job swaps a GitHub token for a NuGet key that lasts an hour. It needs this setup once:
+
+1. On nuget.org, open your username, then **Trusted Publishing**, and add a policy owned by the account that will own
+   the `MZikmund.UnoApp.*` packages. Its scope has to allow new packages, because the first publish creates both.
+
+   | Field | Value |
+   |---|---|
+   | Repository Owner | `MartinZikmund` |
+   | Repository | `uno-app-template` |
+   | Workflow File | `template-package.yml` |
+   | Environment | `nuget-publish` |
+
+2. In the GitHub repository, add a `NUGET_USER` secret holding that nuget.org profile name, not an email address.
+
+GitHub creates the `nuget-publish` environment on the first run. To control who can publish and from where, add required
+reviewers and deployment branches to it under **Settings > Environments**.
+
+Renaming the workflow file or the environment breaks publishing until the policy matches again.
 
 `mzuno-app upgrade --patch` regenerates an app's old template version from NuGet, so a version an app was created from
 must stay published. Apps made from an unpublished build need `--from-source <path to that .nupkg>`.
