@@ -12,7 +12,7 @@ This installs [XAML Styler](./xaml-styler.md), which CI enforces on every pull r
 
 ## Target frameworks
 
-`src/AppTemplate` is an Uno single project that builds five heads. The target framework moniker
+`src/AppTemplate` is an Uno single project that builds six heads. The target framework moniker
 selects which one:
 
 | TFM | Platform | Prerequisites |
@@ -22,6 +22,7 @@ selects which one:
 | `net10.0-windows10.0.26100` | Windows, WinAppSDK | Windows + the Windows SDK |
 | `net10.0-android` | Android | Android workload |
 | `net10.0-ios` | iOS | iOS workload, and a Mac to build against |
+| `net10.0-tvos` | tvOS (Apple TV) | tvOS workload; a Mac for anything past compiling. See [tvos.md](./tvos.md) |
 
 Prefer a single-target build. The default multi-target build pulls the Android SDK, which fails on
 network-restricted machines and is rarely what you want while iterating.
