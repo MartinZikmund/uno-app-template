@@ -3,6 +3,7 @@
         <TargetFrameworks>
             net10.0-android;
             net10.0-ios;
+            net10.0-tvos;
             net10.0-windows10.0.26100;
             net10.0-desktop;
             net10.0-browserwasm;
@@ -33,7 +34,7 @@
              from the background file (Uno maps UnoIcon.Include = UnoIconBackgroundFile),
              so the background must stay constant or Android's @mipmap/icon breaks. -->
         <UnoIconBackgroundFile>Assets/Icons/icon_transparent.svg</UnoIconBackgroundFile>
-        <UnoIconBackgroundFile Condition="'$(IsIOS)' == 'true' or '$(IsAndroid)' == 'true'">Assets/Icons/icon.svg</UnoIconBackgroundFile>
+        <UnoIconBackgroundFile Condition="'$(IsIOS)' == 'true' or '$(IsTvOS)' == 'true' or '$(IsAndroid)' == 'true'">Assets/Icons/icon.svg</UnoIconBackgroundFile>
 
         <!-- Dev builds badge the icon and splash below at build time (src/DevAssets.targets). -->
 

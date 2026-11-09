@@ -7,14 +7,20 @@ namespace AppTemplate.Services;
 public sealed class ShareService : IShareService
 {
     private readonly IWindowShellProvider _windowShellProvider;
+#if !__TVOS__
     private string? _pendingTitle;
     private string? _pendingUri;
+#endif
 
     public ShareService(IWindowShellProvider windowShellProvider)
         => _windowShellProvider = windowShellProvider;
 
     public Task ShareAsync(string title, string uri)
     {
+#if __TVOS__
+        // tvOS has no share sheet.
+        return Task.CompletedTask;
+#else
         _pendingTitle = title;
         _pendingUri = uri;
 
@@ -46,8 +52,10 @@ public sealed class ShareService : IShareService
 #endif
 
         return Task.CompletedTask;
+#endif
     }
 
+#if !__TVOS__
     private void OnDataRequested(DataTransferManager sender, DataRequestedEventArgs args)
     {
         sender.DataRequested -= OnDataRequested;
@@ -61,6 +69,7 @@ public sealed class ShareService : IShareService
         _pendingTitle = null;
         _pendingUri = null;
     }
+#endif
 
 #if !HAS_UNO
     [ComImport]
