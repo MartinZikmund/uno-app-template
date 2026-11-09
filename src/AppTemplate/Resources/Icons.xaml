@@ -1,0 +1,28 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Centralized glyph constants for FontIcon usage.
+
+        Keep glyph literals in one place rather than repeating raw &#xExxx; codes
+        across the views. Glyph codes are from the Segoe Fluent Icons / Segoe MDL2
+        Assets font.
+
+        Usage with a FontIcon:
+        <FontIcon Glyph="{StaticResource ShareIcon}" />
+
+        Usage for an IconElement property (e.g. NavigationViewItem.Icon, SettingsCard.HeaderIcon):
+        <NavigationViewItem.Icon>
+            <FontIcon Glyph="{StaticResource ShareIcon}" />
+        </NavigationViewItem.Icon>
+    -->
+
+    <x:String x:Key="ShareIcon">&#xE72D;</x:String>
+    <x:String x:Key="SettingsIcon">&#xE713;</x:String>
+    <x:String x:Key="AddIcon">&#xE710;</x:String>
+    <x:String x:Key="DeleteIcon">&#xE74D;</x:String>
+    <x:String x:Key="BackIcon">&#xE72B;</x:String>
+    <x:String x:Key="MoreIcon">&#xE712;</x:String>
+    <x:String x:Key="HomeIcon">&#xE80F;</x:String>
+    <x:String x:Key="ThemeIcon">&#xE793;</x:String>
+
+</ResourceDictionary>
