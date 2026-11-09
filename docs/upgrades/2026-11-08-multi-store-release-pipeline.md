@@ -9,12 +9,17 @@ platforms: []
 
 The old `package-*.yml`, `tag-release.yml` and `static-web-apps-deploy.yml` are gone. In their place, one reusable
 workflow per head builds everything, and `release.yml` publishes from `release/v*` branches to Google Play, TestFlight
-and the App Store, the Microsoft Store, and Azure Static Web Apps. A store only receives a test build automatically:
+and the App Store, the Microsoft Store, and your web host. A store only receives a test build automatically:
 anything the public would see, such as a Play production rollout, App Store review or a Store commit, waits for an
 approval. Store versions are also injected explicitly now, so a build can't silently ship `versionCode=1`.
 
 Full map: [release-pipeline.md](https://github.com/MartinZikmund/uno-app-template/blob/main/docs/release-pipeline.md).
 Day-to-day operations: [release-runbook.md](https://github.com/MartinZikmund/uno-app-template/blob/main/docs/release-runbook.md).
+
+The web host started as Azure Static Web Apps and is now Cloudflare Workers. If you ship WebAssembly, you're copying
+workflows that already deploy there, so follow
+[2026-11-09-cloudflare-workers-hosting](https://github.com/MartinZikmund/uno-app-template/blob/main/docs/upgrades/2026-11-09-cloudflare-workers-hosting.md)
+as well. It covers the Worker config, the secrets and retiring Azure.
 
 ## Who is affected
 
@@ -31,7 +36,8 @@ them rather than extend them.
 
 1. **Replace the workflows.** The pieces depend on each other, so copy the set rather than patching your own. Take these
    from [`.github/`](https://github.com/MartinZikmund/uno-app-template/tree/main/.github):
-   - `actions/setup-dotnet-build`, `actions/app-version` and `actions/publish-once`
+   - `actions/setup-dotnet-build`, `actions/app-version` and `actions/publish-once`, plus
+     `actions/prepare-wasm-assets` if you ship WebAssembly
    - `workflows/_build-*.yml`, one per head you ship
    - `workflows/build-main.yml`, `release.yml`, `prepare-release.yml`, `forward-merge.yml`, `store-ops.yml`,
      `store-health.yml`, and `wasm-pr-preview.yml` if you ship WebAssembly
@@ -56,7 +62,8 @@ them rather than extend them.
    [`src/Directory.Build.props`](https://github.com/MartinZikmund/uno-app-template/blob/main/src/Directory.Build.props) (the
    `_InjectedApplicationVersion` group) and
    [`src/Directory.Build.targets`](https://github.com/MartinZikmund/uno-app-template/blob/main/src/Directory.Build.targets)
-   (`SetNbgvVersionForUnoWindows`, `StampWindowsStoreIdentity` and `AssertStoreVersionStamped`).
+   (`SetNbgvVersionForUnoWindows`, `StampWindowsStoreIdentity` and `AssertStoreVersionStamped`). In the props file, also
+   take the `NBGV_SetMauiVersionProperties` group.
 
 5. **Create the GitHub Environments.** `release.yml` expects `play-internal`, `testflight`, `ms-store-draft` and
    `web-production` with a `release/v*` branch policy. `play-production`, `appstore-production` and `ms-store-production`
