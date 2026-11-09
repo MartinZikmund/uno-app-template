@@ -19,7 +19,7 @@ Copy it, rename it, delete what you don't need.
 | **Localization from the start** | `{markup:Localize Key=...}` in XAML, `IStringLocalizer` in code, English and Czech resources included. |
 | **Side-by-side Dev builds** | Nerdbank.GitVersioning with Dev and Prod channels that install alongside each other, with a DEV badge generated onto your icon and splash ([docs/dev-assets.md](./docs/dev-assets.md)). See [docs/versioning.md](./docs/versioning.md). Each git worktree gets its own identity too, so two can run at once — see [docs/worktree-identity.md](./docs/worktree-identity.md). |
 | **CI that packages** | Every push to `main` packages all five heads and publishes nothing. XAML formatting is enforced on every PR — see [docs/xaml-styler.md](./docs/xaml-styler.md). |
-| **Automated multi-store releases** | `release/vX.Y` branches ship to Google Play, TestFlight / App Store, the Microsoft Store and Azure Static Web Apps, with staged rollouts and one-click approval gates. See [docs/release-pipeline.md](./docs/release-pipeline.md). |
+| **Automated multi-store releases** | `release/vX.Y` branches ship to Google Play, TestFlight / App Store, the Microsoft Store and Cloudflare Workers, with staged rollouts and one-click approval gates. See [docs/release-pipeline.md](./docs/release-pipeline.md). |
 | **Written for coding agents** | [`AGENTS.md`](./AGENTS.md) and [`.claude/rules/`](./.claude/rules/) carry the conventions an agent needs before it writes a line. |
 
 ## Using this template
