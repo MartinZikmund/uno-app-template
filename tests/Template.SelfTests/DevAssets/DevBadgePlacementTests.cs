@@ -1,5 +1,5 @@
 using AppTemplate.Build;
-using FluentAssertions;
+using AwesomeAssertions;
 
 namespace Template.SelfTests.DevAssets;
 

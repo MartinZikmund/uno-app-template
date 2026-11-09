@@ -1,5 +1,5 @@
 using AppTemplate.Build;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Template.SelfTests.Fakes;

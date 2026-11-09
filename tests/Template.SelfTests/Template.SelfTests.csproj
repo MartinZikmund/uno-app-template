@@ -25,7 +25,7 @@
 
   <!-- Versions match tests/AppTemplate.Core.Tests (tests live outside the CPM scope). -->
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="8.7.1" />
+    <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
     <!-- 18.9.x: the last MSBuild line that ships a net10.0 build (18.10 moved to net11.0). -->
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.9.6" />
   </ItemGroup>
