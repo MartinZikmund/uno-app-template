@@ -41,8 +41,8 @@
                             $(RepoRoot)docs/upgrades/**;
                             $(RepoRoot)template/overlay/.template-state.json;
                             $(RepoRoot)**/*.user" />
-    <!-- Dropped from the pack, not just from generated output: NuGet reads an extensionless PackagePath as a folder. -->
-    <None Include="@(_TemplateFile)" Pack="true" PackagePath="$(_TemplateContentRoot)%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- The root only: NuGet appends RecursiveDir itself, and reads a PackagePath with no extension as a folder. -->
+    <None Include="@(_TemplateFile)" Pack="true" PackagePath="$(_TemplateContentRoot)" />
     <None Include="PACKAGE.md" Pack="true" PackagePath="PACKAGE.md" />
     <_UpgradeNote Include="$(RepoRoot)docs/upgrades/*.md" Exclude="$(RepoRoot)docs/upgrades/README.md;$(RepoRoot)docs/upgrades/_TEMPLATE.md" />
   </ItemGroup>
