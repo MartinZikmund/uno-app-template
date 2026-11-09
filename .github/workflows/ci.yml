@@ -78,6 +78,8 @@ jobs:
           - { name: wasm,    tfm: net10.0-browserwasm,       os: ubuntu-24.04 }
           - { name: android, tfm: net10.0-android,           os: ubuntu-24.04 }
           - { name: windows, tfm: net10.0-windows10.0.26100, os: windows-2025 }
+          # Compile only: bundling, AOT and the simulator smoke test need a Mac (build-main.yml).
+          - { name: tvos,    tfm: net10.0-tvos,              os: windows-2025 }
           # iOS is deliberately absent: macOS runners bill at 10x and every push to main
           # already builds the iOS head in build-main.yml.
     runs-on: ${{ matrix.os }}

@@ -1,0 +1,163 @@
+name: Build tvOS
+
+# Reusable: builds a signed device .ipa when Apple signing material is configured, otherwise a
+# simulator .app that is booted in an Apple TV simulator as a smoke test.
+# Publishing is not wired up for tvOS - this workflow never talks to a store.
+
+on:
+  workflow_call:
+    inputs:
+      channel:        { type: string, required: true }
+      version_simple: { type: string, required: true }
+      artifact_name:  { type: string, required: true }
+    secrets:
+      APPLE_DISTRIBUTION_P12_BASE64:          { required: false }
+      APPLE_P12_PASSWORD:                     { required: false }
+      APPLE_TVOS_PROVISIONING_PROFILE_BASE64: { required: false }
+      APPLE_CODESIGN_KEY:                     { required: false }
+      APPLE_TEAM_ID:                          { required: false }
+      KEYCHAIN_PASSWORD:                      { required: false }
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # Same image as _build-ios.yml, for the same reason: the workload needs its Xcode.
+    runs-on: xcode-27
+    timeout-minutes: 90
+    env:
+      DOTNET_NOLOGO: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      ContinuousIntegrationBuild: true
+      APP_NAME: AppTemplate
+      PROJECT_FILE: src/AppTemplate/AppTemplate.csproj
+      TFM: net10.0-tvos
+      # tvOS provisioning profiles are separate from iOS ones. KEYCHAIN_PASSWORD is optional:
+      # import-codesign-certs generates one when it is absent.
+      HAS_SIGNING: ${{ secrets.APPLE_DISTRIBUTION_P12_BASE64 != '' && secrets.APPLE_P12_PASSWORD != '' && secrets.APPLE_TVOS_PROVISIONING_PROFILE_BASE64 != '' && secrets.APPLE_CODESIGN_KEY != '' && secrets.APPLE_TEAM_ID != '' && vars.APPLE_TVOS_PROVISIONING_PROFILE_NAME != '' }}
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-dotnet-build
+        with:
+          workloads: src/AppTemplate.slnx
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Import signing certificate
+        if: env.HAS_SIGNING == 'true'
+        uses: Apple-Actions/import-codesign-certs@v7
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DISTRIBUTION_P12_BASE64 }}
+          p12-password: ${{ secrets.APPLE_P12_PASSWORD }}
+          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+
+      - name: Install provisioning profile
+        if: env.HAS_SIGNING == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "${{ secrets.APPLE_TVOS_PROVISIONING_PROFILE_BASE64 }}" | base64 -d \
+            > ~/Library/MobileDevice/Provisioning\ Profiles/build-tvos.mobileprovision
+
+      - name: Build signed .ipa (device)
+        if: env.HAS_SIGNING == 'true'
+        run: |
+          dotnet publish "$PROJECT_FILE" -c Release -f "$TFM" -r tvos-arm64 \
+            -p:TargetFrameworks="$TFM" \
+            -p:AppChannel=${{ inputs.channel }} \
+            -p:CiVersionInjected=true \
+            -p:ApplicationDisplayVersion=${{ inputs.version_simple }} \
+            -p:ApplicationVersion=${{ inputs.version_simple }} \
+            -p:ArchiveOnBuild=true \
+            -p:CodesignKey="${{ secrets.APPLE_CODESIGN_KEY }}" \
+            -p:CodesignTeamId="${{ secrets.APPLE_TEAM_ID }}" \
+            -p:CodesignProvision="${{ vars.APPLE_TVOS_PROVISIONING_PROFILE_NAME }}"
+
+      - name: Build simulator .app (signing not fully configured)
+        if: env.HAS_SIGNING != 'true'
+        run: |
+          echo "::notice::tvOS signing is not fully configured - building a tvOS SIMULATOR app. See docs/tvos.md."
+          dotnet build "$PROJECT_FILE" -c Release -f "$TFM" \
+            -p:RuntimeIdentifier=tvossimulator-arm64 \
+            -p:TargetFrameworks="$TFM" \
+            -p:AppChannel=${{ inputs.channel }} \
+            -p:CiVersionInjected=true \
+            -p:ApplicationDisplayVersion=${{ inputs.version_simple }} \
+            -p:ApplicationVersion=${{ inputs.version_simple }}
+
+      # Device builds are full AOT, which fails on assembly loader errors no simulator build sees.
+      - name: Build unsigned device app (full AOT check)
+        if: env.HAS_SIGNING != 'true'
+        run: |
+          dotnet build "$PROJECT_FILE" -c Release -f "$TFM" \
+            -p:RuntimeIdentifier=tvos-arm64 \
+            -p:TargetFrameworks="$TFM" \
+            -p:AppChannel=${{ inputs.channel }} \
+            -p:CiVersionInjected=true \
+            -p:ApplicationDisplayVersion=${{ inputs.version_simple }} \
+            -p:ApplicationVersion=${{ inputs.version_simple }} \
+            -p:EnableCodeSigning=false \
+            -p:CodesignRequireProvisioningProfile=false
+
+      - name: Verify the produced bundle
+        id: bundle
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/stage"
+          if [ "$HAS_SIGNING" = "true" ]; then
+            ipa="$(find "src/AppTemplate/bin/Release/$TFM/tvos-arm64" -name '*.ipa' 2>/dev/null | head -1 || true)"
+            [ -n "$ipa" ] || { echo "::error::no .ipa produced. Grep the log for 'Created the package:'"; exit 1; }
+            rm -rf "$RUNNER_TEMP/crack" && mkdir -p "$RUNNER_TEMP/crack"
+            unzip -q "$ipa" -d "$RUNNER_TEMP/crack"
+            plist="$(find "$RUNNER_TEMP/crack/Payload" -maxdepth 2 -name Info.plist 2>/dev/null | head -1 || true)"
+            cp "$ipa" "$RUNNER_TEMP/stage/"
+          else
+            app="$(find "src/AppTemplate/bin/Release/$TFM/tvossimulator-arm64" -maxdepth 2 -name '*.app' 2>/dev/null | head -1 || true)"
+            [ -n "$app" ] || { echo "::error::no .app produced"; exit 1; }
+            plist="$app/Info.plist"
+            echo "app=$app" >> "$GITHUB_OUTPUT"
+            ditto -c -k --keepParent "$app" "$RUNNER_TEMP/stage/${APP_NAME}-tvos-simulator.app.zip"
+          fi
+          cv="$(plutil -extract CFBundleVersion raw "$plist")"
+          sv="$(plutil -extract CFBundleShortVersionString raw "$plist")"
+          echo "Info.plist: CFBundleVersion=$cv CFBundleShortVersionString=$sv"
+          [ "$cv" = "${{ inputs.version_simple }}" ] || { echo "::error::CFBundleVersion is $cv, expected ${{ inputs.version_simple }}"; exit 1; }
+          [ "$sv" = "${{ inputs.version_simple }}" ] || { echo "::error::CFBundleShortVersionString is $sv, expected ${{ inputs.version_simple }}"; exit 1; }
+          plutil -extract CFBundleIcons json -o - "$plist" >/dev/null || { echo "::error::no CFBundleIcons in Info.plist - the brand assets were not compiled in"; exit 1; }
+          plutil -extract UILaunchStoryboardName raw "$plist"
+
+      - name: Download tvOS simulator runtime
+        if: env.HAS_SIGNING != 'true'
+        run: xcodebuild -downloadPlatform tvOS
+
+      - name: Smoke test in an Apple TV simulator
+        if: env.HAS_SIGNING != 'true'
+        env:
+          APP: ${{ steps.bundle.outputs.app }}
+        run: |
+          set -euo pipefail
+          runtime="$(xcrun simctl list runtimes tvOS -j | jq -r '[.runtimes[] | select(.isAvailable)] | last | .identifier')"
+          device_type="$(xcrun simctl list devicetypes -j | jq -r '[.devicetypes[] | select(.productFamily == "Apple TV")] | last | .identifier')"
+          device="$(xcrun simctl create smoke "$device_type" "$runtime")"
+          xcrun simctl bootstatus "$device" -b
+          xcrun simctl install "$device" "$APP"
+          bundle_id="$(plutil -extract CFBundleIdentifier raw "$APP/Info.plist")"
+          xcrun simctl launch "$device" "$bundle_id"
+          sleep 30
+          xcrun simctl io "$device" screenshot "$RUNNER_TEMP/stage/tvos-simulator.png"
+          # A crash at startup drops the app's launchd job.
+          xcrun simctl spawn "$device" launchctl list | grep -F "UIKitApplication:$bundle_id" \
+            || { echo "::error::$bundle_id is not running 30s after launch"; xcrun simctl spawn "$device" log show --last 2m --style compact --predicate "process == '$APP_NAME'" | tail -60; exit 1; }
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ${{ runner.temp }}/stage
+          retention-days: ${{ inputs.channel == 'Prod' && 90 || 14 }}
+          if-no-files-found: error

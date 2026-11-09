@@ -100,6 +100,22 @@ jobs:
       APPLE_TEAM_ID:                     ${{ secrets.APPLE_TEAM_ID }}
       KEYCHAIN_PASSWORD:                 ${{ secrets.KEYCHAIN_PASSWORD }}
 
+  build-tvos:
+    needs: version
+    if: vars.ENABLE_TVOS != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'tvos'))
+    uses: ./.github/workflows/_build-tvos.yml
+    with:
+      channel:        Prod
+      version_simple: ${{ needs.version.outputs.simple }}
+      artifact_name:  release-tvos
+    secrets:
+      APPLE_DISTRIBUTION_P12_BASE64:          ${{ secrets.APPLE_DISTRIBUTION_P12_BASE64 }}
+      APPLE_P12_PASSWORD:                     ${{ secrets.APPLE_P12_PASSWORD }}
+      APPLE_TVOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_TVOS_PROVISIONING_PROFILE_BASE64 }}
+      APPLE_CODESIGN_KEY:                     ${{ secrets.APPLE_CODESIGN_KEY }}
+      APPLE_TEAM_ID:                          ${{ secrets.APPLE_TEAM_ID }}
+      KEYCHAIN_PASSWORD:                      ${{ secrets.KEYCHAIN_PASSWORD }}
+
   build-windows:
     needs: version
     if: vars.ENABLE_WINDOWS != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'windows'))
@@ -397,6 +413,7 @@ jobs:
       - version
       - build-android
       - build-ios
+      - build-tvos
       - build-windows
       - build-desktop
       - build-wasm

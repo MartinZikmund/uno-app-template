@@ -105,6 +105,7 @@ public partial class ProdBuildGuardTests
     [TestMethod]
     [DataRow("_build-android.yml")]
     [DataRow("_build-ios.yml")]
+    [DataRow("_build-tvos.yml")]
     [DataRow("_build-windows.yml")]
     [DataRow("_build-desktop.yml")]
     [DataRow("_build-wasm.yml")]
