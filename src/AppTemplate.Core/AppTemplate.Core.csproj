@@ -21,6 +21,10 @@
 
     <ItemGroup>
         <PackageReference Include="MZikmund.Toolkit.WinUI" />
+    </ItemGroup>
+
+    <!-- SourceGear.sqlite3 has no tvOS binary, so its P/Invokes would fail the native link. See docs/tvos.md. -->
+    <ItemGroup Condition="'$(IsTvOS)' != 'true'">
         <PackageReference Include="sqlite-net-e" />
         <PackageReference Include="SourceGear.sqlite3" />
     </ItemGroup>

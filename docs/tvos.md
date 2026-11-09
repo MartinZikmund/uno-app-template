@@ -46,9 +46,10 @@ badge stays inside the icon's parallax safe zone - see [dev-assets.md](./dev-ass
 - **Local storage is not durable.** Apple only guarantees small key-value storage, which is what
   `ApplicationData.Current.LocalSettings` uses. Files can be purged by the system, so keep anything
   important in the cloud.
-- **SQLite needs its own native library.** `SourceGear.sqlite3` ships no tvOS binaries, so `sqlite-net-e`
-  would fail at runtime. The template doesn't call it, but a feature that does needs another provider
-  on this head.
+- **SQLite isn't referenced.** `SourceGear.sqlite3` ships no tvOS binaries, and Apple's system SQLite
+  lacks `sqlite3_enable_load_extension`, which SQLitePCLRaw binds to. So both csproj files leave
+  `sqlite-net-e` and `SourceGear.sqlite3` out on this head, and shared code using them must be
+  excluded from it or given another provider.
 - **No OSLog logging provider.** `Uno.Extensions.Logging.OSLog` has no tvOS build, so the SDK leaves it
   out on this head.
 
