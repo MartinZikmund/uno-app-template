@@ -7,7 +7,10 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-        <WarningsAsErrors>True</WarningsAsErrors>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <!-- NU1507: advisory about package source mapping; fires only on dev machines that have
+             extra NuGet feeds configured (the template needs the Uno dev feed for Uno.Sdk). -->
+        <NoWarn>$(NoWarn);NU1507</NoWarn>
 
         <UnoFeatures>
             SkiaRenderer;
