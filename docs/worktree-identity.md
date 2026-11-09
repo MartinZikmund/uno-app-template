@@ -232,8 +232,10 @@ Three rules that are cheap to honour now and expensive to retrofit:
 3. **Keep `Identity/@Name` and `Properties/DisplayName` blank in `Package.appxmanifest`.**
    Uno.Resizetizer only fills *empty* fields from `ApplicationId` / `ApplicationTitle`, so a
    hardcoded value, such as the one Visual Studio's *Associate App with the Store* writes, silently
-   cancels the worktree suffix and every worktree installs over the same package. Store identity
-   belongs in the generated manifest at packaging time, never in the tracked one.
+   cancels the worktree suffix and every worktree installs over the same package. The package name
+   belongs in `ApplicationId`, never in the tracked manifest. A Store `Publisher` is the exception:
+   keep it in the tracked manifest, because the generator would turn `ApplicationPublisher` into
+   `O=CN=…`. See [versioning-migration.md](./versioning-migration.md).
 
 ## See also
 
