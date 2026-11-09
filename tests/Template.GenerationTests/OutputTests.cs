@@ -299,6 +299,33 @@ public class OutputTests
     }
 
     [TestMethod]
+    public void WindowsOff_RemovesItsPackageSizeSetup()
+    {
+        var app = TemplateFixture.Generate("no-win-size", "App1", "--platforms", "desktop", "--platforms", "wasm");
+
+        app.Exists("src/App1/TrimmerRoots.xml").Should().BeFalse();
+        var project = app.Read("src/App1/App1.csproj");
+        project.Should().NotContain("TrimmerRootDescriptor");
+        project.Should().NotContain("PrunePackageReference");
+        project.Should().NotContain("WindowsAppSDKSelfContained");
+        app.Read("src/App1/ThirdParty/CommunityToolkit/README.md").Should().NotContain("TrimmerRoots");
+        app.Read("docs/community-toolkit-copy.md").Should().NotContain("TrimmerRoots");
+    }
+
+    [TestMethod]
+    public void WindowsOn_KeepsItsPackageSizeSetup()
+    {
+        var app = TemplateFixture.Generate("win-size", "App1", "--platforms", "windows");
+
+        app.Exists("src/App1/TrimmerRoots.xml").Should().BeTrue();
+        var project = app.Read("src/App1/App1.csproj");
+        project.Should().Contain("TrimmerRootDescriptor");
+        project.Should().Contain("PrunePackageReference");
+        project.Should().Contain("WindowsAppSDKSelfContained");
+        app.Read("docs/community-toolkit-copy.md").Should().Contain("windows-packaging.md");
+    }
+
+    [TestMethod]
     [DataRow("all", new[] { "android", "ios", "windows", "desktop", "wasm" })]
     [DataRow("nowasm", new[] { "windows", "desktop" })]
     [DataRow("nodesktop", new[] { "wasm", "windows" })]
