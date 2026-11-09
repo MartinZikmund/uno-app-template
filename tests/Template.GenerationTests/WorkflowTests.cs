@@ -15,6 +15,16 @@ public class WorkflowTests
     private static readonly Regex _needsExpression = new(@"needs\.([A-Za-z0-9_-]+)\.");
     private static readonly Regex _script = new(@"python (\.github/scripts/[A-Za-z0-9_.-]+)");
 
+    private static readonly string[] _cloudflareFiles =
+    [
+        "wrangler.jsonc",
+        "docs/deployment.md",
+        ".github/actions/prepare-wasm-assets/action.yml",
+        ".github/workflows/wasm-pr-preview.yml",
+        "src/App1/Platforms/WebAssembly/wwwroot/_headers",
+        "tests/App1.Core.Tests/Packaging/CloudflareWorkflowTests.cs",
+    ];
+
     [TestMethod]
     [DataRow("default", new string[0])]
     [DataRow("android", new[] { "--platforms", "android" })]
@@ -152,6 +162,107 @@ public class WorkflowTests
     }
 
     [TestMethod]
+    [DataRow("nowasm", new[] { "--platforms", "windows" })]
+    [DataRow("nopackaging", new[] { "--packaging", "false" })]
+    public void Cloudflare_NothingToDeploy_LeavesNoHostingBehind(string scenario, string[] options)
+    {
+        var app = TemplateFixture.Generate($"cf-{scenario}", "App1", options);
+
+        foreach (var removed in _cloudflareFiles)
+        {
+            app.Exists(removed).Should().BeFalse($"{removed} only serves the Cloudflare deployment");
+        }
+
+        app.Read("docs/README.md").Should().NotContain("deployment.md");
+        foreach (var workflow in app.TextFiles().Where(file => file.StartsWith(".github/", StringComparison.Ordinal)))
+        {
+            app.Read(workflow).Should().NotContain("wrangler").And.NotContain("CLOUDFLARE_", workflow);
+        }
+    }
+
+    [TestMethod]
+    public void Cloudflare_WasmWithReleaseWorkflows_KeepsHosting()
+    {
+        var app = TemplateFixture.Generate("cf-wasm", "App1", "--platforms", "wasm");
+
+        foreach (var kept in _cloudflareFiles)
+        {
+            app.Exists(kept).Should().BeTrue($"{kept} is part of the Cloudflare deployment");
+        }
+
+        app.Read("docs/README.md").Should().Contain("deployment.md");
+        app.Read(".github/workflows/release.yml").Should().Contain("cloudflare/wrangler-action");
+    }
+
+    [TestMethod]
+    public void Cloudflare_WasmWithoutReleaseWorkflows_KeepsTheWasmHead()
+    {
+        var app = TemplateFixture.Generate("cf-wasm-nopack", "App1", "--platforms", "wasm", "--packaging", "false");
+
+        app.Exists("src/App1/Platforms/WebAssembly/Program.cs").Should().BeTrue();
+        app.Exists("src/App1/Platforms/WebAssembly/wwwroot/_headers").Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DataRow("ContosoNotes", "contoso-notes")]
+    [DataRow("Contoso.Notes", "contoso-notes")]
+    [DataRow("App1", "app1")]
+    [DataRow("MY_App", "my-app")]
+    public void WorkerName_FollowsTheAppName(string name, string expected)
+    {
+        var app = TemplateFixture.Generate($"cf-name-{expected}-{name.Length}", name, "--platforms", "wasm");
+
+        WorkerConfig(app).GetProperty("name").GetString().Should().Be(expected);
+        app.Read("docs/deployment.md").Should().Contain($"`{expected}`").And.Contain($"https://{expected}.").And.Contain($"-{expected}.");
+    }
+
+    [TestMethod]
+    public void WorkerName_LongAppName_StaysWithinCloudflaresRules()
+    {
+        // Cut at 63 characters, right on a separator.
+        var app = TemplateFixture.Generate("cf-name-long", new string('A', 62) + "-Notes", "--platforms", "wasm");
+
+        WorkerConfig(app).GetProperty("name").GetString().Should().MatchRegex("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$");
+    }
+
+    [TestMethod]
+    public void WorkerName_LeavesLinksToTheTemplateAlone()
+    {
+        var app = TemplateFixture.Generate("cf-name-links", "ContosoNotes");
+
+        app.Read(".template-state.json").Should().Contain("MartinZikmund/uno-app-template");
+    }
+
+    [TestMethod]
+    public void WorkerConfig_PublishDirectory_IsTheAppsOwn()
+    {
+        var app = TemplateFixture.Generate("cf-dir", "ContosoNotes", "--platforms", "wasm");
+
+        var directory = WorkerConfig(app).GetProperty("assets").GetProperty("directory").GetString();
+
+        directory.Should().Be("./src/ContosoNotes/bin/Release/net10.0-browserwasm/publish/wwwroot");
+    }
+
+    [TestMethod]
+    public void DeploymentDoc_NamesNoOtherAccount()
+    {
+        var app = TemplateFixture.Generate("cf-doc", "ContosoNotes", "--platforms", "wasm");
+
+        app.Read("docs/deployment.md").Should().NotContain("mzikmund");
+    }
+
+    [TestMethod]
+    [DataRow("nowindows", new[] { "--platforms", "desktop" }, false)]
+    [DataRow("nopackaging", new[] { "--platforms", "windows", "--packaging", "false" }, false)]
+    [DataRow("windows", new[] { "--platforms", "windows" }, true)]
+    public void WindowsSigningTest_ComesWithItsWorkflow(string scenario, string[] options, bool expected)
+    {
+        var app = TemplateFixture.Generate($"sign-{scenario}", "App1", options);
+
+        app.Exists("tests/App1.Core.Tests/Packaging/WindowsSigningWorkflowTests.cs").Should().Be(expected);
+    }
+
+    [TestMethod]
     public void WindowsOff_RemovesItsPackagingDoc()
     {
         var app = TemplateFixture.Generate("wf-nowindows", "App1", "--platforms", "desktop");
@@ -195,6 +306,12 @@ public class WorkflowTests
         var app = TemplateFixture.Generate("tools-none", "App1", "--xaml-styler", "false", "--ci", "false", "--packaging", "false");
 
         app.Exists(".config/dotnet-tools.json").Should().BeFalse();
+    }
+
+    private static JsonElement WorkerConfig(GeneratedApp app)
+    {
+        using var config = JsonDocument.Parse(app.Read("wrangler.jsonc"), new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
+        return config.RootElement.Clone();
     }
 
     private static IReadOnlyList<string> ToolsIn(GeneratedApp app)

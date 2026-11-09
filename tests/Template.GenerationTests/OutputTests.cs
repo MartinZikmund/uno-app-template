@@ -9,7 +9,7 @@ public class OutputTests
 {
     private static readonly string[] _leakedTokens =
     [
-        "AppTemplate", "apptemplate", "App Template", "AppTmpl", "Martin Zikmund", "dev.mzikmund",
+        "AppTemplate", "apptemplate", "App Template", "AppTmpl", "Martin Zikmund", "mzikmund",
         "__opt_", "__TEMPLATE_VERSION__", "__APPLIED_UPGRADES__",
         "Template.SelfTests", "template-selftest", "verify-dev-assets", "verify-worktree", "superpowers/",
     ];
@@ -87,8 +87,9 @@ public class OutputTests
     {
         var app = TemplateFixture.Generate("default-complete", "ContosoNotes");
 
-        // Extensionless files are the known casualty: NuGet reads such a PackagePath as a folder.
-        app.AllFiles().Should().NotContain(f => f.Contains("/LICENSE/", StringComparison.Ordinal));
+        // Extensionless files are the known casualty: NuGet reads such a PackagePath as a folder and nests the file.
+        app.AllFiles().Should().NotContain(f => Regex.IsMatch(f, @"(?:^|/)([^/.]+)/(?:.*/)?\1$"));
+        File.Exists(app.Path("src/ContosoNotes/Platforms/WebAssembly/wwwroot/_headers")).Should().BeTrue();
         app.Exists(".specify/extensions/.registry").Should().BeTrue();
         app.Exists(".gitignore").Should().BeTrue();
         app.Exists(".editorconfig").Should().BeTrue();
