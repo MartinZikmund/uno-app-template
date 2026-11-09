@@ -37,7 +37,7 @@
     <None Include="PACKAGE.md" Pack="true" PackagePath="PACKAGE.md" />
   </ItemGroup>
 
-  <!-- Separate SDK and global.json (the UI is on Uno.Sdk 7), so these run as their own processes, from their own folders. -->
+  <!-- The UI has its own SDK and global.json, so these run as their own processes, from their own folders. -->
   <Target Name="BundleTemplateAndUi" BeforeTargets="_GetPackageFiles" Condition="'$(SkipBundle)' != 'true'">
     <RemoveDir Directories="$(_BundleRoot)" />
     <Exec Command="dotnet pack MZikmund.UnoApp.Templates.csproj -c $(Configuration) -o &quot;$(_BundleRoot)template&quot;"

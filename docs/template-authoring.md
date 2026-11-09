@@ -20,7 +20,7 @@ The agent-facing rules, including the marker syntax table, are in
 | `tools/TemplatePack/` | Packs the repository root as `MZikmund.UnoApp.Templates` and stamps the version into the state file |
 | `tools/Wizard.Core/` | Selection rules, manifest, state file and upgrade note parsing. Shared by CLI and UI |
 | `tools/Wizard.Cli/` | The `mzuno-app` tool, including the local server for the visual wizard |
-| `tools/Wizard.Ui/` | The visual wizard, an Uno WebAssembly app. It has its own `global.json` because it's on Uno.Sdk 7 |
+| `tools/Wizard.Ui/` | The visual wizard, an Uno WebAssembly app. It has its own `global.json`, so its Uno.Sdk can move separately from the apps |
 | `docs/upgrades/` | One note per change that apps need to act on |
 | `tests/Template.SelfTests/` | Fast tests of the build machinery and `Wizard.Core` |
 | `tests/Template.GenerationTests/` | Packs the real template, generates apps, runs the real tool, and compiles the output |
