@@ -320,7 +320,7 @@ public class WorkflowTests
         return [.. manifest.RootElement.GetProperty("tools").EnumerateObject().Select(tool => tool.Name)];
     }
 
-    private static IEnumerable<string> CheckWorkflow(GeneratedApp app, string workflow)
+    internal static IEnumerable<string> CheckWorkflow(GeneratedApp app, string workflow)
     {
         var text = app.Read(workflow);
         if (Regex.IsMatch(text, @"^\s*#(if|else|elseif|endif)\b", RegexOptions.Multiline))

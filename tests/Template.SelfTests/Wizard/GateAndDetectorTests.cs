@@ -26,6 +26,8 @@ public class GateAndDetectorTests
     [DataRow(".claude/skills/speckit-plan/SKILL.md", true)]
     [DataRow(".github/PULL_REQUEST_TEMPLATE.md", true)]
     [DataRow(".github/workflows/template-selftest.yml", false)]
+    [DataRow(".github/workflows/template-wizard-preview.yml", false)]
+    [DataRow("tools/Wizard.Ui/wrangler.jsonc", false)]
     [DataRow("README.md", false)]
     [DataRow(@"src\AppTemplate\App.xaml", true)]
     public void Ships_ClassifiesPaths(string path, bool ships)

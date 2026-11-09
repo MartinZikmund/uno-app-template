@@ -41,7 +41,7 @@ public class OutputTests
         foreach (var path in new[]
         {
             ".template.config", "template", "tools", "scripts", "docs/superpowers", "docs/upgrades", "tests/Template.SelfTests",
-            "tests/Template.GenerationTests", ".github/workflows/template-selftest.yml", ".github/FUNDING.yml",
+            "tests/Template.GenerationTests", ".github/workflows/template-selftest.yml", ".github/workflows/template-wizard-preview.yml", ".github/FUNDING.yml",
             "docs/versioning-migration.md", ".claude/rules/template-upgrades.md", "LICENSE",
         })
         {
