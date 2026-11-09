@@ -33,6 +33,9 @@ badge stays inside the icon's parallax safe zone - see [dev-assets.md](./dev-ass
 
 ## What behaves differently on Apple TV
 
+- **The app runs on the interpreter, not AOT.** With full AOT the native link fails on undefined
+  P/Invoke symbols, including Windows-only ones inside Uno.UI and Silk.NET. `AppTemplate.csproj` sets
+  `MtouchInterpreter=all`, as Uno's own tvOS head does, so expect slower managed code than on iOS.
 - **Input is focus-driven.** People use the Siri Remote, not touch or a pointer, so check that every
   page can be reached and used with focus alone. The template's pages have not been reviewed for this
   yet, and the smoke test below only proves the app starts.
@@ -55,7 +58,7 @@ Worktree and channel display names work as on iOS. See [worktree-identity.md](./
 
 | Signing configured | Result |
 |---|---|
-| No | A simulator `.app`, a compile of the unsigned device app to catch full AOT failures, and a smoke test that boots an Apple TV simulator, launches the app, and uploads a screenshot |
+| No | A simulator `.app`, an unsigned device build to catch native link failures, and a smoke test that boots an Apple TV simulator, launches the app, and uploads a screenshot |
 | Yes | A signed `.ipa` |
 
 Signing reuses the iOS certificate secrets and adds these, because tvOS provisioning profiles are

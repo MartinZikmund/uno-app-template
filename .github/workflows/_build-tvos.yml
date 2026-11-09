@@ -91,8 +91,8 @@ jobs:
             -p:ApplicationDisplayVersion=${{ inputs.version_simple }} \
             -p:ApplicationVersion=${{ inputs.version_simple }}
 
-      # Device builds are full AOT, which fails on assembly loader errors no simulator build sees.
-      - name: Build unsigned device app (full AOT check)
+      # Signing aside, this is the build a store upload would use, and its native link can fail on its own.
+      - name: Build unsigned device app
         if: env.HAS_SIGNING != 'true'
         run: |
           dotnet build "$PROJECT_FILE" -c Release -f "$TFM" \
