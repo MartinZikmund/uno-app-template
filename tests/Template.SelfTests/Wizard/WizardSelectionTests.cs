@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using MZikmund.UnoApp.Wizard;
 
 namespace Template.SelfTests.Wizard;

@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using FluentAssertions;
+using AwesomeAssertions;
 using YamlDotNet.RepresentationModel;
 
 namespace Template.GenerationTests;

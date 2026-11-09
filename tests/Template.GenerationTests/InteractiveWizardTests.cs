@@ -1,4 +1,4 @@
-using FluentAssertions;
+using AwesomeAssertions;
 using MZikmund.UnoApp.Cli;
 using MZikmund.UnoApp.Wizard;
 using Spectre.Console.Testing;
