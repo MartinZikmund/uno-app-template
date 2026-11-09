@@ -58,8 +58,8 @@
 
     <!-- Nothing here uses Windows ML (39 MB of natives); an app that adopts it must remove these two. -->
     <!-- Nothing draws with Skia on Windows, but MZikmund.Toolkit.WinUI pulls SkiaSharp.Views.WinUI in. Prune only the
-         natives (~230 MB with PDBs); trimming removes the managed side. -->
-    <!-- A later Uno.Sdk is meant to turn Skia off on WinAppSDK; revisit then. -->
+         natives (~230 MB with PDBs); trimming removes the managed side. Drop these two prunes once that package stops
+         depending on SkiaSharp.Views.WinUI. -->
     <ItemGroup Condition="'$(IsWinAppSdk)' == 'true'">
         <PrunePackageReference Include="Microsoft.WindowsAppSDK.ML" Version="99.0.0" />
         <PrunePackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="99.0.0" />
@@ -75,10 +75,10 @@
         <TrimMode>partial</TrimMode>
     </PropertyGroup>
 
-    <!-- Trimming Microsoft.WinUI breaks markup extensions: the app dies in InitializeComponent
-         ("Markup extension could not provide value", 0xc000027b). Costs ~14.7 MB. -->
+    <!-- Without these roots the app crashes at launch (0xc000027b, "Markup extension could not provide value").
+         The CommunityToolkit packages used to keep them alive; drop with the source copy. -->
     <ItemGroup Condition="'$(IsWinAppSdk)' == 'true'">
-        <TrimmerRootAssembly Include="Microsoft.WinUI" />
+        <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
     </ItemGroup>
 
     <ItemGroup>

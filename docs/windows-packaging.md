@@ -102,7 +102,7 @@ intermediate `obj/…/unoresizetizer/m/Package.appxmanifest`, which lacks it, or
 
 ## Package size
 
-The x64 publish layout is 61.7 MB (a Release publish with the flags the workflow uses, measured on
+The x64 publish layout is 47.1 MB (a Release publish with the flags the workflow uses, measured on
 Uno.Sdk 7.0.0-dev.179). The same publish with none of the settings below is 405.2 MB.
 
 | Step | Layout |
@@ -110,8 +110,8 @@ Uno.Sdk 7.0.0-dev.179). The same publish with none of the settings below is 405.
 | Nothing below | 405.2 MB |
 | Prune the Windows ML packages (`onnxruntime.dll`, `DirectML.dll`) | 364.7 MB |
 | Also prune the SkiaSharp native assets | 121.7 MB |
-| Also `WindowsAppSDKSelfContained=false` | 47.0 MB |
-| Also root `Microsoft.WinUI` for the trimmer | 61.7 MB |
+| Also `WindowsAppSDKSelfContained=false` | 47.0 MB (crashes at launch without the descriptor) |
+| Also the `TrimmerRoots.xml` descriptor | 47.1 MB |
 
 - **Framework-dependent Windows App SDK.** Uno.Sdk 7.0.0-dev.179 still defaults
   `WindowsAppSDKSelfContained` to `true`, which bundles the whole runtime into every architecture's
@@ -128,9 +128,13 @@ Uno.Sdk 7.0.0-dev.179). The same publish with none of the settings below is 405.
   (`0xc000027b` in `Microsoft.UI.Xaml.dll`). Reflection-based JSON is still off in
   a trimmed build, so serialize through source-generated metadata
   ([json-aot-serialization.md](./json-aot-serialization.md)).
-- **`Microsoft.WinUI` is a trimmer root.** Even in partial mode, a trimmed `Microsoft.WinUI.dll` makes the app
-  fail in `InitializeComponent` with `Markup extension could not provide value`. Rooting `WinRT.Runtime` alone
-  does not help; rooting `Microsoft.WinUI` does, for 14.7 MB.
+- **`TrimmerRoots.xml` keeps the `Microsoft.UI.Xaml.Markup` types.** With the copied toolkit (and
+  `TrimMode=partial`) the trimmer removed types WinUI needs for markup extensions, and the app died in
+  `InitializeComponent` with `Markup extension could not provide value` (`0xc000027b`). The real
+  CommunityToolkit packages kept them alive by accident. The descriptor costs 0.1 MB. Delete it, and its
+  `TrimmerRootDescriptor` item, when the packages are back, and check that the app still launches.
+- **Drop the Skia prunes** once `MZikmund.Toolkit.WinUI` stops depending on `SkiaSharp.Views.WinUI`; an Uno
+  change will not remove those natives.
 
 The workarounds that earlier versions of this repo carried for Uno.WinUI 6 (`DropUnusedSkiaNative`,
 `Save/RestoreNuGetUnoWinUIReferences`) are gone: Uno.WinUI 7.1 keeps NuGet's own Windows assemblies, and the
