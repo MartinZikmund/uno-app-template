@@ -11,6 +11,8 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- UNOB0029 does not recognize MSTest.Sdk (MTP) test projects as test projects. -->
+    <UnoDisableUNOB0029Validation>true</UnoDisableUNOB0029Validation>
   </PropertyGroup>
 
   <!-- The worktree label on the About page (SettingsViewModel.WorktreeLabel). -->
