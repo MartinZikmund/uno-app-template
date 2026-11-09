@@ -10,7 +10,6 @@
         <WarningsAsErrors>True</WarningsAsErrors>
 
         <UnoFeatures>
-            SkiaRenderer;
             Hosting;
             Logging;
             Mvvm;
