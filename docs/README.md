@@ -5,6 +5,7 @@ One page per topic. Keep it that way — see [`.claude/rules/docs.md`](../.claud
 ## Building & tooling
 
 - [building.md](./building.md) — target frameworks, per-platform prerequisites, build and run commands.
+- [community-toolkit-copy.md](./community-toolkit-copy.md) — the temporary source copy of the CommunityToolkit pieces the app uses, until the toolkit supports Uno 7.
 - [dev-assets.md](./dev-assets.md) — the Dev-channel icon and splash, badged at build time from your prod artwork.
 - [spec-kit.md](./spec-kit.md) — the Spec Kit spec-driven development workflow (`/speckit-*` commands and the project constitution).
 - [worktree-identity.md](./worktree-identity.md) — per-worktree package identity, so two git worktrees can be installed and run side by side.

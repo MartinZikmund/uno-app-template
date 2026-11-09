@@ -7,6 +7,8 @@
     <Nullable>enable</Nullable>
     <!-- Mirror trimmed apps: reflection-based System.Text.Json must fail in tests too. -->
     <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+    <!-- UNOB0029 does not recognize MSTest.Sdk (MTP) test projects as test projects. -->
+    <UnoDisableUNOB0029Validation>true</UnoDisableUNOB0029Validation>
   </PropertyGroup>
 
   <ItemGroup>
