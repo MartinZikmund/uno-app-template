@@ -63,8 +63,8 @@ internal sealed class WizardServer
         });
 
         app.MapGet("/favicon.ico", () => Results.NoContent());
-        app.MapGet("/api/manifest", () => Results.Json(_manifest, WizardJsonContext.Default.TemplateManifest));
-        app.MapGet("/api/info", () => Results.Json(new WizardInfo(Bundled.Version, _outputRoot), WizardJsonContext.Default.WizardInfo));
+        app.MapGet($"/{PreviewSite.ManifestPath}", () => Results.Json(_manifest, WizardJsonContext.Default.TemplateManifest));
+        app.MapGet($"/{PreviewSite.InfoPath}", () => Results.Json(new WizardInfo(Bundled.Version, _outputRoot), WizardJsonContext.Default.WizardInfo));
         app.MapPost("/api/create", (HttpRequest request, CancellationToken aborted) => CreateAsync(request, aborted));
         app.MapPost("/api/shutdown", (IHostApplicationLifetime lifetime) =>
         {

@@ -8,7 +8,7 @@ public sealed partial class MainPage : Page
 {
     public MainPage()
     {
-        // The server serves this page and the API from one origin, so relative URLs are all the client needs.
+        // The page and the API share an origin, locally and in a hosted preview, so relative URLs are all the client needs.
         var origin = Uno.Foundation.WebAssemblyRuntime.InvokeJS("location.origin");
         HttpClient http = new() { BaseAddress = new Uri(origin.TrimEnd('/') + "/") };
         ViewModel = new WizardViewModel(new WizardApi(http))
@@ -29,6 +29,8 @@ public sealed partial class MainPage : Page
     public WizardViewModel ViewModel { get; }
 
     public static Visibility Show(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
+
+    public static Visibility Hide(bool value) => Show(!value);
 
     public static bool HasText(string? value) => !string.IsNullOrEmpty(value);
 

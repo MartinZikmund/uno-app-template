@@ -15,11 +15,11 @@ public interface IWizardApi
 public sealed class WizardApi(HttpClient http) : IWizardApi
 {
     public async Task<TemplateManifest> GetManifestAsync() =>
-        await http.GetFromJsonAsync("api/manifest", WizardJsonContext.Default.TemplateManifest)
+        await http.GetFromJsonAsync(PreviewSite.ManifestPath, WizardJsonContext.Default.TemplateManifest)
         ?? throw new InvalidDataException("The server returned an empty manifest.");
 
     public async Task<WizardInfo> GetInfoAsync() =>
-        await http.GetFromJsonAsync("api/info", WizardJsonContext.Default.WizardInfo)
+        await http.GetFromJsonAsync(PreviewSite.InfoPath, WizardJsonContext.Default.WizardInfo)
         ?? throw new InvalidDataException("The server returned no info.");
 
     public async Task<CreateResponse> CreateAsync(CreateRequest request)

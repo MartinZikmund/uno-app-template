@@ -92,12 +92,22 @@
 
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
+                    <InfoBar
+                        Title="This is a preview, so it can't create apps"
+                        Margin="24,12,24,0"
+                        AutomationProperties.AutomationId="PreviewBar"
+                        IsClosable="False"
+                        IsOpen="{x:Bind ViewModel.IsPreview, Mode=OneWay}"
+                        Message="To use the command it builds, first run: dotnet new install MZikmund.UnoApp.Templates. For the full wizard, run: dotnet tool install -g MZikmund.UnoApp.Cli, then: mzuno-app wizard."
+                        Severity="Informational" />
+
                     <!--  Project  -->
-                    <ScrollViewer Visibility="{x:Bind local:MainPage.Show(ViewModel.IsProjectStep), Mode=OneWay}">
+                    <ScrollViewer Grid.Row="1" Visibility="{x:Bind local:MainPage.Show(ViewModel.IsProjectStep), Mode=OneWay}">
                         <StackPanel
                             MaxWidth="800"
                             Padding="24"
@@ -106,7 +116,7 @@
                             <TextBlock
                                 Margin="0,0,0,16"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Name your app and decide where it goes."
+                                Text="{x:Bind ViewModel.ProjectIntro, Mode=OneWay}"
                                 TextWrapping="Wrap" />
 
                             <local:SettingsRow Header="Project name">
@@ -157,14 +167,20 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
 
-                            <local:SettingsRow Description="The app is created in a folder with the project name inside this one." Header="Output folder">
+                            <local:SettingsRow
+                                Description="The app is created in a folder with the project name inside this one."
+                                Header="Output folder"
+                                Visibility="{x:Bind local:MainPage.Hide(ViewModel.IsPreview), Mode=OneWay}">
                                 <TextBox
                                     Width="280"
                                     AutomationProperties.AutomationId="OutputTextBox"
                                     Text="{x:Bind ViewModel.OutputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </local:SettingsRow>
 
-                            <local:SettingsRow Description="Runs git init and makes a first commit." Header="Create a git repository">
+                            <local:SettingsRow
+                                Description="Runs git init and makes a first commit."
+                                Header="Create a git repository"
+                                Visibility="{x:Bind local:MainPage.Hide(ViewModel.IsPreview), Mode=OneWay}">
                                 <ToggleSwitch
                                     MinWidth="0"
                                     AutomationProperties.AutomationId="GitToggle"
@@ -177,7 +193,7 @@
                     </ScrollViewer>
 
                     <!--  Platforms  -->
-                    <ScrollViewer Visibility="{x:Bind local:MainPage.Show(ViewModel.IsPlatformsStep), Mode=OneWay}">
+                    <ScrollViewer Grid.Row="1" Visibility="{x:Bind local:MainPage.Show(ViewModel.IsPlatformsStep), Mode=OneWay}">
                         <StackPanel
                             MaxWidth="800"
                             Padding="24"
@@ -212,7 +228,7 @@
                     </ScrollViewer>
 
                     <!--  Feature groups  -->
-                    <ScrollViewer Visibility="{x:Bind local:MainPage.Show(ViewModel.IsGroupStep), Mode=OneWay}">
+                    <ScrollViewer Grid.Row="1" Visibility="{x:Bind local:MainPage.Show(ViewModel.IsGroupStep), Mode=OneWay}">
                         <StackPanel
                             MaxWidth="800"
                             Padding="24"
@@ -257,7 +273,7 @@
                     </ScrollViewer>
 
                     <!--  Review  -->
-                    <ScrollViewer Visibility="{x:Bind local:MainPage.Show(ViewModel.IsReviewStep), Mode=OneWay}">
+                    <ScrollViewer Grid.Row="1" Visibility="{x:Bind local:MainPage.Show(ViewModel.IsReviewStep), Mode=OneWay}">
                         <StackPanel
                             MaxWidth="800"
                             Padding="24"
@@ -266,7 +282,7 @@
                             <TextBlock
                                 Margin="0,0,0,16"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Text="Check your choices, then create the app."
+                                Text="{x:Bind ViewModel.ReviewIntro, Mode=OneWay}"
                                 TextWrapping="Wrap" />
 
                             <ItemsControl ItemsSource="{x:Bind ViewModel.Problems, Mode=OneWay}">
@@ -302,7 +318,8 @@
                             <StackPanel
                                 Margin="0,16,0,0"
                                 Orientation="Horizontal"
-                                Spacing="12">
+                                Spacing="12"
+                                Visibility="{x:Bind local:MainPage.Hide(ViewModel.IsPreview), Mode=OneWay}">
                                 <Button
                                     AutomationProperties.AutomationId="CreateButton"
                                     Command="{x:Bind ViewModel.CreateCommand}"
@@ -354,7 +371,7 @@
 
                     <!--  Footer  -->
                     <Grid
-                        Grid.Row="1"
+                        Grid.Row="2"
                         Padding="24,12"
                         BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
                         BorderThickness="0,1,0,0"

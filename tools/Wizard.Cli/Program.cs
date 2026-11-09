@@ -11,6 +11,7 @@ root.Subcommands.Add(BuildFeatures());
 root.Subcommands.Add(BuildUpgrade());
 root.Subcommands.Add(BuildAdopt());
 root.Subcommands.Add(BuildCheckUpgradeNote());
+root.Subcommands.Add(BuildWritePreview());
 
 try
 {
@@ -351,6 +352,29 @@ static Command BuildCheckUpgradeNote()
         }
 
         return verdict.Passed ? 0 : 1;
+    });
+    return command;
+}
+
+static Command BuildWritePreview()
+{
+    Option<string> output = new("--output") { Description = "The published wizard UI's web root.", Required = true };
+
+    // For CI on the template repository, which is why it isn't listed in --help.
+    Command command = new("write-preview", "Let a published wizard UI run without a server, as a read-only preview.") { output };
+    command.Hidden = true;
+    command.SetAction(parse =>
+    {
+        try
+        {
+            PreviewSite.Write(parse.GetValue(output)!, Bundled.Manifest(), Bundled.Version);
+        }
+        catch (DirectoryNotFoundException exception)
+        {
+            throw new CliException(exception.Message);
+        }
+
+        return 0;
     });
     return command;
 }

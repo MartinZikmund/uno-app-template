@@ -247,4 +247,5 @@ public sealed record CreateRequest(
 
 public sealed record CreateResponse(bool Success, string Message, string? Path);
 
-public sealed record WizardInfo(string Version, string OutputRoot);
+/// <param name="CanCreate"><see langword="false"/> in a hosted preview, where nothing can write to the visitor's disk.</param>
+public sealed record WizardInfo(string Version, string OutputRoot, bool CanCreate = true);

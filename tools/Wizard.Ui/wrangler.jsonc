@@ -1,0 +1,14 @@
+// Cloudflare Workers config for the wizard's pull request previews. See docs/template-wizard.md.
+//
+// Assets only, with no script. `workers_dev` is off because nothing should stay live at the Worker's own address: the
+// first upload has to deploy to create the Worker, and that would otherwise leave one PR's wizard there for good.
+// There's no single-page fallback either, so a missing file is a plain 404 rather than index.html posing as an answer.
+{
+  "name": "uno-app-wizard",
+  "compatibility_date": "2026-09-08",
+  "workers_dev": false,
+  "preview_urls": true,
+  "assets": {
+    "directory": "./bin/Release/net10.0-browserwasm/publish/wwwroot"
+  }
+}

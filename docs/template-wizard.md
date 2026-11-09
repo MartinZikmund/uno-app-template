@@ -14,6 +14,20 @@ This opens a local page with a step for each group of choices and a live preview
 app** writes the app to disk. It's a local server bound to loopback, reachable only from the browser tab it opened,
 and it stops when you press Ctrl+C.
 
+### Pull request previews
+
+Each pull request on the template repository gets a hosted copy of the wizard at a stable address, posted as a comment
+by [`template-wizard-preview.yml`](../.github/workflows/template-wizard-preview.yml). It sits next to the app's own
+preview and uses its own Cloudflare Worker, `uno-app-wizard`.
+
+The preview is read-only. It has no server, so `mzuno-app write-preview` adds `api/manifest.json` and `api/info.json` to
+the published UI as plain files, built from the same config the tool reads. The info file sets `canCreate` to false,
+which hides **Create app**, the output folder and the git option. Every step and the live command still work.
+
+Nothing is served at the Worker's own address, only at each preview's alias. The first run creates the Worker with a
+deploy, and later runs only upload versions. This needs no extra secrets beyond the app preview's
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Apps created from the template get none of this.
+
 ## In your terminal
 
 ```bash

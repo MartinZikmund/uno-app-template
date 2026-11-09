@@ -36,6 +36,13 @@ public sealed partial class WizardViewModel : ObservableObject
 
     public string Version { get; private set; } = "";
 
+    /// <summary>A hosted preview: every choice works and the command is real, but nothing can create the app.</summary>
+    public bool IsPreview { get; private set; }
+
+    public string ProjectIntro => IsPreview ? "Name your app." : "Name your app and decide where it goes.";
+
+    public string ReviewIntro => IsPreview ? "Check your choices, then copy the command." : "Check your choices, then create the app.";
+
     public IReadOnlyList<StepItem> Steps { get; private set; } = [];
 
     public IReadOnlyList<ParameterItem> Parameters { get; private set; } = [];
@@ -153,6 +160,10 @@ public sealed partial class WizardViewModel : ObservableObject
         _selection = new WizardSelection(manifest);
         Version = info.Version;
         OutputDirectory = info.OutputRoot;
+        IsPreview = !info.CanCreate;
+        OnPropertyChanged(nameof(IsPreview));
+        OnPropertyChanged(nameof(ProjectIntro));
+        OnPropertyChanged(nameof(ReviewIntro));
 
         PlatformItems = [.. manifest.Platforms.Select(platform => new PlatformItem(platform, _selection, Refresh))];
         Parameters = [.. manifest.Parameters.Select(parameter => new ParameterItem(parameter, _selection, Refresh, ProblemFor))];
@@ -276,7 +287,7 @@ public sealed partial class WizardViewModel : ObservableObject
         }
     }
 
-    private bool CanCreate() => IsValid && !IsBusy;
+    private bool CanCreate() => !IsPreview && IsValid && !IsBusy;
 
     private int IndexOf(StepItem step)
     {
