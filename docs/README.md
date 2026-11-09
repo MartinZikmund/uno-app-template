@@ -13,6 +13,7 @@ One page per topic. Keep it that way — see [`.claude/rules/docs.md`](../.claud
 ## Architecture
 
 - [json-aot-serialization.md](./json-aot-serialization.md) — `JsonSerializerContext` conventions for AOT-safe, trim-safe JSON serialization.
+- [localization.md](./localization.md) — how `IStringLocalizer` and the static `Localizer` accessor are wired, and the tracked migration to the toolkit's `ILocalizer`.
 - [views.md](./views.md) — `ViewBase<TViewModel>`, `IViewBase`, and how views resolve their view models.
 
 ## Release
