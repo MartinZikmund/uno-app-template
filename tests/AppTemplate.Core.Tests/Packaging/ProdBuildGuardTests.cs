@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using FluentAssertions;
+using AwesomeAssertions;
 
 namespace AppTemplate.Core.Tests.Packaging;
 
