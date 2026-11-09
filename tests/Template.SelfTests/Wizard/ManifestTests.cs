@@ -12,7 +12,7 @@ public class ManifestTests
         var manifest = WizardTestData.RealManifest();
 
         manifest.ShortName.Should().Be("mzuno-app");
-        manifest.Platforms.Select(p => p.Id).Should().BeEquivalentTo("android", "ios", "windows", "desktop", "wasm");
+        manifest.Platforms.Select(p => p.Id).Should().BeEquivalentTo("android", "ios", "tvos", "windows", "desktop", "wasm");
         manifest.FindFeature("rating")!.CliName.Should().Be("rating");
         manifest.FindFeature("displayRequest")!.CliName.Should().Be("display-request");
         manifest.FindFeature("display-request")!.Id.Should().Be("displayRequest");

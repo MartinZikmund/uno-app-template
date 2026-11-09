@@ -93,6 +93,7 @@ public class WizardSelectionTests
         selection.SetFeature("rating", false);
         selection.SetFeature("displayRequest", false);
         selection.SetPlatform("ios", false);
+        selection.SetPlatform("tvos", false);
         selection.SetPlatform("android", false);
         selection.SetPlatform("wasm", false);
         selection.SetParameter("appId", "com.contoso.app");

@@ -123,6 +123,7 @@ public class BuildTests
     [DataRow("wasm", "net10.0-browserwasm")]
     [DataRow("windows", "net10.0-windows10.0.26100")]
     [DataRow("android", "net10.0-android")]
+    [DataRow("tvos", "net10.0-tvos")]
     public void SinglePlatform_Builds(string platform, string framework)
     {
         var app = TemplateFixture.Generate($"b-only-{platform}", "Contoso", "--platforms", platform);

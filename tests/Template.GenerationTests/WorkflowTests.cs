@@ -29,6 +29,7 @@ public class WorkflowTests
     [DataRow("default", new string[0])]
     [DataRow("android", new[] { "--platforms", "android" })]
     [DataRow("ios", new[] { "--platforms", "ios" })]
+    [DataRow("tvos", new[] { "--platforms", "tvos" })]
     [DataRow("windows", new[] { "--platforms", "windows" })]
     [DataRow("desktop", new[] { "--platforms", "desktop" })]
     [DataRow("wasm", new[] { "--platforms", "wasm" })]
@@ -63,14 +64,14 @@ public class WorkflowTests
 
         var release = app.Read(".github/workflows/release.yml");
         release.Should().Contain("build-windows:").And.Contain("build-desktop:").And.Contain("publish-msstore-draft:").And.Contain("commit-msstore:");
-        foreach (var removed in new[] { "build-android", "build-ios", "build-wasm", "publish-play-internal", "promote-play-production", "publish-testflight", "submit-appstore", "publish-web" })
+        foreach (var removed in new[] { "build-android", "build-ios", "build-tvos", "build-wasm", "publish-play-internal", "promote-play-production", "publish-testflight", "submit-appstore", "publish-web" })
         {
             release.Should().NotContain(removed);
         }
 
         var main = app.Read(".github/workflows/build-main.yml");
         main.Should().Contain("build-windows:").And.Contain("build-desktop:");
-        main.Should().NotContain("build-android").And.NotContain("build-ios").And.NotContain("build-wasm");
+        main.Should().NotContain("build-android").And.NotContain("build-ios").And.NotContain("build-tvos").And.NotContain("build-wasm");
     }
 
     [TestMethod]

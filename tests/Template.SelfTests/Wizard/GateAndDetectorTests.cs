@@ -102,6 +102,14 @@ public class GateAndDetectorTests
     }
 
     [TestMethod]
+    public void Detect_FindsTheTvosHead()
+    {
+        var options = FeatureDetector.Detect(["src/Stopwatch/Platforms/tvOS/Main.tvOS.cs"], _ => null);
+
+        options["platforms"].Should().Be("tvos");
+    }
+
+    [TestMethod]
     public void Detect_ReadsPlatformsAndFeaturesFromFiles()
     {
         string[] files =

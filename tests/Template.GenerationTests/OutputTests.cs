@@ -213,6 +213,10 @@ public class OutputTests
 
         var plist = app.Read("src/App1/Platforms/iOS/Info.plist");
         plist.Should().Contain("<string>en</string>").And.NotContain("<string>cs</string>").And.NotContain("#if");
+
+        var tvPlist = app.Read("src/App1/Platforms/tvOS/Info.plist");
+        tvPlist.Should().Contain("<string>en</string>").And.NotContain("<string>cs</string>").And.NotContain("#if");
+        app.Exists("src/App1/Platforms/tvOS/Resources/cs.lproj").Should().BeFalse();
     }
 
     [TestMethod]
@@ -267,12 +271,13 @@ public class OutputTests
     [TestMethod]
     [DataRow("android", "Platforms/Android", "net10.0-android", ".github/workflows/_build-android.yml")]
     [DataRow("ios", "Platforms/iOS", "net10.0-ios", ".github/workflows/_build-ios.yml")]
+    [DataRow("tvos", "Platforms/tvOS", "net10.0-tvos", ".github/workflows/_build-tvos.yml")]
     [DataRow("windows", "Platforms/Windows", "net10.0-windows", ".github/workflows/_build-windows.yml")]
     [DataRow("desktop", "Platforms/Desktop", "net10.0-desktop", ".github/workflows/_build-desktop.yml")]
     [DataRow("wasm", "Platforms/WebAssembly", "net10.0-browserwasm", ".github/workflows/_build-wasm.yml")]
     public void PlatformOff_RemovesItsHead(string platform, string folder, string tfm, string? workflow)
     {
-        string[] all = ["android", "ios", "windows", "desktop", "wasm"];
+        string[] all = ["android", "ios", "tvos", "windows", "desktop", "wasm"];
         var options = all.Where(p => p != platform).SelectMany(p => new[] { "--platforms", p }).ToArray();
 
         var app = TemplateFixture.Generate($"no-{platform}", "App1", options);
@@ -291,11 +296,36 @@ public class OutputTests
             {
                 "android" => "net10.0-android",
                 "ios" => "net10.0-ios",
+                "tvos" => "net10.0-tvos",
                 "windows" => "net10.0-windows",
                 "desktop" => "net10.0-desktop",
                 _ => "net10.0-browserwasm",
             });
         }
+    }
+
+    [TestMethod]
+    public void TvosOff_RemovesItsSetup()
+    {
+        var app = TemplateFixture.Generate("no-tvos-setup", "App1", "--platforms", "desktop");
+
+        var project = app.Read("src/App1/App1.csproj");
+        project.Should().NotContain("MtouchInterpreter").And.NotContain("docs/tvos.md");
+        app.Read("src/App1.Core/App1.Core.csproj").Should().NotContain("docs/tvos.md");
+        app.Exists("docs/tvos.md").Should().BeFalse();
+        app.Read(".github/workflows/ci.yml").Should().NotContain("net10.0-tvos");
+    }
+
+    [TestMethod]
+    public void TvosOn_DropsDocsForWhatTheAppLeftOut()
+    {
+        var bare = TemplateFixture.Generate("tvos-bare-docs", "App1", "--platforms", "tvos", "--sqlite", "false", "--share", "false", "--rating", "false", "--launcher", "false", "--ci", "false", "--packaging", "false");
+        var full = TemplateFixture.Generate("tvos-full-docs", "App1", "--platforms", "tvos");
+
+        var docs = bare.Read("docs/tvos.md");
+        docs.Should().NotContain("SourceGear").And.NotContain("share sheet").And.NotContain("LauncherService").And.NotContain("## CI");
+        full.Read("docs/tvos.md").Should().Contain("SourceGear").And.Contain("share sheet").And.Contain("LauncherService").And.Contain("## CI");
+        full.Read("src/App1/App1.csproj").Should().Contain("MtouchInterpreter");
     }
 
     [TestMethod]
@@ -326,7 +356,7 @@ public class OutputTests
     }
 
     [TestMethod]
-    [DataRow("all", new[] { "android", "ios", "windows", "desktop", "wasm" })]
+    [DataRow("all", new[] { "android", "ios", "tvos", "windows", "desktop", "wasm" })]
     [DataRow("nowasm", new[] { "windows", "desktop" })]
     [DataRow("nodesktop", new[] { "wasm", "windows" })]
     [DataRow("wasmdesktop", new[] { "wasm", "desktop" })]
@@ -352,6 +382,8 @@ public class OutputTests
     [DataRow("wasm", new[] { "--platforms", "wasm" })]
     [DataRow("desktop", new[] { "--platforms", "desktop" })]
     [DataRow("android", new[] { "--platforms", "android" })]
+    [DataRow("tvos", new[] { "--platforms", "tvos" })]
+    [DataRow("tvos-bare", new[] { "--platforms", "tvos", "--worktree-identity", "false", "--dev-assets", "false", "--ci", "false", "--packaging", "false" })]
     [DataRow("nopackaging", new[] { "--packaging", "false" })]
     [DataRow("noci", new[] { "--ci", "false" })]
     public void MarkdownLinks_ResolveInsideTheApp(string scenario, string[] options)
