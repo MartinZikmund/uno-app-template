@@ -142,8 +142,10 @@ jobs:
           APP: ${{ steps.bundle.outputs.app }}
         run: |
           set -euo pipefail
-          runtime="$(xcrun simctl list runtimes tvOS -j | jq -r '[.runtimes[] | select(.isAvailable)] | last | .identifier')"
-          device_type="$(xcrun simctl list devicetypes -j | jq -r '[.devicetypes[] | select(.productFamily == "Apple TV")] | last | .identifier')"
+          latest='[.runtimes[] | select(.isAvailable)] | last'
+          runtime="$(xcrun simctl list runtimes tvOS -j | jq -r "$latest | .identifier")"
+          # Not every Apple TV model works with every runtime, so ask the runtime.
+          device_type="$(xcrun simctl list runtimes tvOS -j | jq -r "$latest | .supportedDeviceTypes | last | .identifier")"
           device="$(xcrun simctl create smoke "$device_type" "$runtime")"
           xcrun simctl bootstatus "$device" -b
           xcrun simctl install "$device" "$APP"
@@ -155,7 +157,9 @@ jobs:
           xcrun simctl spawn "$device" launchctl list | grep -F "UIKitApplication:$bundle_id" \
             || { echo "::error::$bundle_id is not running 30s after launch"; xcrun simctl spawn "$device" log show --last 2m --style compact --predicate "process == '$APP_NAME'" | tail -60; exit 1; }
 
+      # Even after a failed smoke test: the screenshot and the app are what you'd debug it with.
       - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
         with:
           name: ${{ inputs.artifact_name }}
           path: ${{ runner.temp }}/stage
