@@ -1,6 +1,6 @@
 using System.Text.Json;
 using AppTemplate.Core.Models;
-using FluentAssertions;
+using AwesomeAssertions;
 
 namespace AppTemplate.Core.Tests;
 
