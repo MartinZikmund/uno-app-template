@@ -39,6 +39,11 @@ When a CommunityToolkit build for Uno 7 is out:
 2. Remove the `SettingsCard.xaml` merge from `src/AppTemplate/App.xaml`.
 3. Restore in `src/Directory.Packages.props` the `CommunityToolkit.WinUI.Controls.SettingsControls` and
    `CommunityToolkit.WinUI.Converters` versions, and reference both from `src/AppTemplate/AppTemplate.csproj`.
-4. Delete `src/AppTemplate/TrimmerRoots.xml` and its `TrimmerRootDescriptor` item in `AppTemplate.csproj`: it keeps
+4. Delete `docs/community-toolkit-copy.md` and its line in `docs/README.md`.
+<!--#if (hasWindows)-->
+5. Delete `src/AppTemplate/TrimmerRoots.xml` and its `TrimmerRootDescriptor` item in `AppTemplate.csproj`: it keeps
    the `Microsoft.UI.Xaml.Markup` types the packages used to keep alive. Then check a trimmed Windows publish still
    launches.
+<!--#endif-->
+
+Code and XAML that use these types need no changes, because the namespaces match the packages'.

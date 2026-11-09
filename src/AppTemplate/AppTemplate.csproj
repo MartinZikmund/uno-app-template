@@ -87,6 +87,7 @@
         <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" PrivateAssets="all" />
     </ItemGroup>
 
+    <!--#if (hasWindows)-->
     <!-- Nothing here uses Windows ML (39 MB of natives); an app that adopts it must remove these two. -->
     <!-- Nothing draws with Skia on Windows, but MZikmund.Toolkit.WinUI pulls SkiaSharp.Views.WinUI in. Prune only the
          natives (~230 MB with PDBs); trimming removes the managed side. Drop these two prunes once that package stops
@@ -111,6 +112,7 @@
     <ItemGroup Condition="'$(IsWinAppSdk)' == 'true'">
         <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
     </ItemGroup>
+    <!--#endif-->
 
     <ItemGroup>
       <Page Update="Resources\DataTemplates.xaml">

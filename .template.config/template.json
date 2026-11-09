@@ -452,6 +452,7 @@
           "exclude": [
             "src/AppTemplate/Platforms/Windows/**",
             "src/AppTemplate/Properties/PublishProfiles/**",
+            "src/AppTemplate/TrimmerRoots.xml",
             ".github/workflows/_build-windows.yml",
             "docs/windows-packaging.md",
             "tests/AppTemplate.Core.Tests/Packaging/StoreWorkflowTests.cs",
