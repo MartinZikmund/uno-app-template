@@ -31,7 +31,7 @@
         { "choice": "ios", "displayName": "iOS", "description": "iPhone and iPad. Needs the ios workload and a Mac to build against." },
         { "choice": "windows", "displayName": "Windows (WinAppSDK)", "description": "Native WinUI on Windows with MSIX packaging." },
         { "choice": "desktop", "displayName": "Desktop (Skia)", "description": "Windows, macOS and Linux from one Skia-rendered head. The fastest head to build." },
-        { "choice": "wasm", "displayName": "WebAssembly", "description": "Runs in the browser, with a static-site deployment workflow." }
+        { "choice": "wasm", "displayName": "WebAssembly", "description": "Runs in the browser, deployed to Cloudflare Workers when release workflows are included." }
       ]
     },
     "hasAndroid": { "type": "computed", "value": "(platforms == android)" },
@@ -87,6 +87,18 @@
       "valueSource": "name",
       "valueTransform": "firstSeven",
       "replaces": "AppTmpl"
+    },
+    "workerName": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "workerName",
+      "replaces": "app-template",
+      "onlyIf": [
+        { "before": "\"", "after": "\"" },
+        { "before": "`", "after": "`" },
+        { "after": "//", "before": "." },
+        { "after": ">-", "before": "." }
+      ]
     },
     "publisher": {
       "type": "parameter",
@@ -264,7 +276,12 @@
     "alnum": { "identifier": "replace", "pattern": "[^A-Za-z0-9]", "replacement": "" },
     "lower": { "identifier": "lowerCase" },
     "lowerAlnum": { "identifier": "chain", "steps": [ "alnum", "lower" ] },
-    "firstSeven": { "identifier": "replace", "pattern": "^(.{7}).*$", "replacement": "$1" }
+    "firstSeven": { "identifier": "replace", "pattern": "^(.{7}).*$", "replacement": "$1" },
+    "hyphenateSeparators": { "identifier": "replace", "pattern": "[^A-Za-z0-9]+", "replacement": "-" },
+    "hyphenateWords": { "identifier": "replace", "pattern": "(?<=[a-z0-9])(?=[A-Z])", "replacement": "-" },
+    "firstSixtyThree": { "identifier": "replace", "pattern": "^(.{63}).*$", "replacement": "$1" },
+    "trimHyphens": { "identifier": "replace", "pattern": "^-+|-+$", "replacement": "" },
+    "workerName": { "identifier": "chain", "steps": [ "hyphenateSeparators", "hyphenateWords", "lower", "firstSixtyThree", "trimHyphens" ] }
   },
   "SpecialCustomOperations": {
     "**/*.cs": {
@@ -438,6 +455,7 @@
             ".github/workflows/_build-windows.yml",
             "docs/windows-packaging.md",
             "tests/AppTemplate.Core.Tests/Packaging/StoreWorkflowTests.cs",
+            "tests/AppTemplate.Core.Tests/Packaging/WindowsSigningWorkflowTests.cs",
             ".claude/skills/run-winui-app/**"
           ]
         },
@@ -453,7 +471,11 @@
           "exclude": [
             "src/AppTemplate/Platforms/WebAssembly/**",
             ".github/workflows/_build-wasm.yml",
-            ".github/workflows/wasm-pr-preview.yml"
+            ".github/workflows/wasm-pr-preview.yml",
+            ".github/actions/prepare-wasm-assets/**",
+            "wrangler.jsonc",
+            "docs/deployment.md",
+            "tests/AppTemplate.Core.Tests/Packaging/CloudflareWorkflowTests.cs"
           ]
         },
         {
@@ -567,9 +589,15 @@
             ".github/workflows/wasm-pr-preview.yml",
             ".github/scripts/**",
             ".github/actions/publish-once/**",
+            ".github/actions/prepare-wasm-assets/**",
+            "wrangler.jsonc",
+            "src/AppTemplate/Platforms/WebAssembly/wwwroot/_headers",
+            "docs/deployment.md",
             "docs/release-pipeline.md",
             "docs/release-runbook.md",
-            "tests/AppTemplate.Core.Tests/Packaging/StoreWorkflowTests.cs"
+            "tests/AppTemplate.Core.Tests/Packaging/StoreWorkflowTests.cs",
+            "tests/AppTemplate.Core.Tests/Packaging/CloudflareWorkflowTests.cs",
+            "tests/AppTemplate.Core.Tests/Packaging/WindowsSigningWorkflowTests.cs"
           ]
         },
         {

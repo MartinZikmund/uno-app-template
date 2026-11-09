@@ -115,11 +115,14 @@ These all came up while building this, and the generation tests guard against ea
 
 - **Plain `#if DEBUG` gets evaluated and stripped** under the engine's default C# rules, silently dropping the Debug
   branch. `template.json` restricts C# to `//#if` for this reason.
-- **NuGet reads an extensionless `PackagePath` as a folder.** `LICENSE` became `LICENSE/LICENSE`, so it stays out of the
+- **NuGet reads an extensionless `PackagePath` as a folder.** `_headers` became a folder with the file buried inside, so
+  the pack gives every file a folder path and a test looks for nesting. `LICENSE` once did the same, so it stays out of the
   pack and the overlay carries a copy.
 - **`sourceName` rewrites `AppTemplate` everywhere**, including inside your own package names and the template's identity.
 - **A symbol's `replaces` applies to every file.** Replacing the repository slug globally also rewrote links back to the
-  template, which is why `githubDiscussions` replaces only the discussions URL.
+  template, which is why `githubDiscussions` replaces only the discussions URL. `workerName` has the same problem,
+  since `app-template` is inside `uno-app-template`, so its `onlyIf` lists the contexts it may replace in. Writing the
+  Worker's name any other way leaves it unchanged in generated apps.
 - **An MSBuild file above the repository can reach projects outside `src/`,** so `tests/` and `tools/` opt out.
 - **NuGet also drops a `.nupkg` nested in a package by default,** which only installing the real tool reveals. The
   **Template Package** workflow does that.

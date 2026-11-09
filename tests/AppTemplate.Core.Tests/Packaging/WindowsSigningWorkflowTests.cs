@@ -53,11 +53,11 @@ public class WindowsSigningWorkflowTests
     private static string FindRepoRoot()
     {
         DirectoryInfo? dir = new(AppContext.BaseDirectory);
-        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "AGENTS.md")))
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "version.json")))
         {
             dir = dir.Parent;
         }
 
-        return dir?.FullName ?? throw new DirectoryNotFoundException("Repository root (AGENTS.md) not found.");
+        return dir?.FullName ?? throw new DirectoryNotFoundException("Repository root (version.json) not found.");
     }
 }

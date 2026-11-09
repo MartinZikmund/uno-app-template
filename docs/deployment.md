@@ -5,10 +5,14 @@ Worker named `app-template`.
 
 | Environment | Trigger | URL |
 |---|---|---|
-| **Production** (Prod channel) | push to `release/v**` → `release.yml` | <https://app-template.mzikmund.workers.dev> |
-| **PR preview** (Dev channel) | PR to `main`, public repo only → `wasm-pr-preview.yml` | `https://pr-<number>-app-template.mzikmund.workers.dev` |
+| **Production** (Prod channel) | push to `release/v**` → `release.yml` | <https://app-template.your-subdomain.workers.dev> |
+| **PR preview** (Dev channel) | PR to `main`, public repo only → `wasm-pr-preview.yml` | `https://pr-<number>-app-template.your-subdomain.workers.dev` |
 
-`mzikmund` is the account-wide `workers.dev` subdomain. It can be renamed in the dashboard,
+<!--#if (false)-->
+This repository's own Worker is at <https://app-template.mzikmund.workers.dev>.
+
+<!--#endif-->
+`your-subdomain` stands for the account-wide `workers.dev` subdomain. It can be renamed in the dashboard,
 which changes every URL above — Cloudflare reissues certificates for the new name, so expect TLS
 handshakes to fail for a few minutes afterwards. Nothing in CI hardcodes it: the preview URL is
 scraped from wrangler's output rather than constructed.
@@ -40,12 +44,11 @@ stable `pr-<number>` alias. The workflow deliberately scrapes the alias — the 
 4. Run `npx wrangler deploy` once (or merge a release) to **create** the Worker —
    `versions upload` uploads into an existing Worker and fails if there isn't one.
 
-## Adopting this template
+## Naming the Worker
 
-Rename `app-template` in [`wrangler.jsonc`](../wrangler.jsonc) to your own Worker name, the same
-way you replace `AppTemplate` elsewhere. That name decides the deployed hostname, so pick it
-before the first deploy: renaming later orphans the old Worker and every preview alias under it.
-Nothing else in the deployment path is app-specific.
+`name` in [`wrangler.jsonc`](../wrangler.jsonc) decides the deployed hostname, so settle it before
+the first deploy: renaming later orphans the old Worker and every preview alias under it. Nothing
+else in the deployment path is app-specific.
 
 ## Configuration
 
