@@ -79,6 +79,7 @@ actually render before reporting it done.
 
 ```bash
 dotnet tool restore                                                  # once after cloning (XAML Styler)
+dotnet workload restore src/AppTemplate.slnx                         # once after cloning (every head needs them)
 
 # Build a head (TFM is per-platform; WinUI TFM is the *-windows* entry in the csproj)
 dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-desktop

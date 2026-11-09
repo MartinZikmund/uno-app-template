@@ -98,6 +98,10 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      # Restoring AppTemplate.Core evaluates every TFM, and the runner image has no tvOS workload.
+      - name: Install tvOS workload
+        run: dotnet workload install tvos
+
       - name: Unit tests
         shell: pwsh
         run: dotnet test tests/Template.SelfTests/Template.SelfTests.csproj
@@ -117,7 +121,11 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # Desktop head only: it needs no workload and renders the same icon and splash outputs as the Windows head.
+      # Restoring the project evaluates every TFM, and the runner image has no tvOS workload.
+      - name: Install tvOS workload
+        run: dotnet workload install tvos
+
+      # Desktop head only: it renders the same icon and splash outputs as the Windows head.
       - name: Verify rendered assets
         shell: pwsh
         run: ./scripts/verify-dev-assets.ps1

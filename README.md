@@ -83,7 +83,8 @@ prose to this file.
 
 ```bash
 dotnet tool restore                                                   # XAML Styler, once per clone
-dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-desktop    # fastest head, no workloads
+dotnet workload restore src/AppTemplate.slnx                          # every head's workload, once per clone
+dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-desktop    # fastest head
 ```
 
 Other heads, per-platform prerequisites, and how to run the packaged Windows app live in

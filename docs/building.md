@@ -10,6 +10,16 @@ dotnet tool restore
 
 This installs [XAML Styler](./xaml-styler.md), which CI enforces on every pull request.
 
+## Restore workloads
+
+Restoring a project evaluates all of its target frameworks, so every build needs the workloads of
+every head, even with `-f net10.0-desktop`. Without them you get `NETSDK1147`. Install them once
+after cloning, and again after adding a head:
+
+```bash
+dotnet workload restore src/AppTemplate.slnx
+```
+
 ## Target frameworks
 
 `src/AppTemplate` is an Uno single project that builds six heads. The target framework moniker
@@ -17,12 +27,12 @@ selects which one:
 
 | TFM | Platform | Prerequisites |
 |---|---|---|
-| `net10.0-desktop` | Cross-platform desktop (Windows, macOS, Linux), Skia-rendered | None beyond the .NET SDK — the fastest head to build |
-| `net10.0-browserwasm` | WebAssembly | None beyond the .NET SDK |
+| `net10.0-desktop` | Cross-platform desktop (Windows, macOS, Linux), Skia-rendered | None beyond the workloads above — the fastest head to build |
+| `net10.0-browserwasm` | WebAssembly | None beyond the workloads above |
 | `net10.0-windows10.0.26100` | Windows, WinAppSDK | Windows + the Windows SDK |
-| `net10.0-android` | Android | Android workload |
-| `net10.0-ios` | iOS | iOS workload, and a Mac to build against |
-| `net10.0-tvos` | tvOS (Apple TV) | tvOS workload; a Mac for anything past compiling. See [tvos.md](./tvos.md) |
+| `net10.0-android` | Android | Android SDK |
+| `net10.0-ios` | iOS | A Mac to build against |
+| `net10.0-tvos` | tvOS (Apple TV) | A Mac for anything past compiling. See [tvos.md](./tvos.md) |
 
 Prefer a single-target build. The default multi-target build pulls the Android SDK, which fails on
 network-restricted machines and is rarely what you want while iterating.

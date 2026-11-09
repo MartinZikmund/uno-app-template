@@ -14,7 +14,8 @@ dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-tvos
 dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-tvos -t:Run -p:RuntimeIdentifier=tvossimulator-arm64
 ```
 
-You need the `tvos` workload (`dotnet workload restore`). A Windows build stops after compiling:
+Because restore evaluates every target framework, the `tvos` workload is needed for all heads, not
+just this one - see [building.md](./building.md#restore-workloads). A Windows build stops after compiling:
 bundling, the asset catalog and AOT all need Xcode, so a green Windows build says nothing about them.
 
 ## Icon and launch screen
