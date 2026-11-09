@@ -21,7 +21,7 @@ Not copied: `SettingsExpander`, the other converters and triggers, `CornerRadius
 
 ## Local edits
 
-Every `.cs` file is byte-identical to upstream. Only these differ:
+Every `.cs` file is identical to upstream apart from line endings. Only these differ:
 
 - `GlobalUsings.cs` (new): the global usings upstream's build tooling provides.
 - `SettingsControls/SettingsCard/SettingsCard.xaml`: reformatted by XamlStyler, which CI enforces.
