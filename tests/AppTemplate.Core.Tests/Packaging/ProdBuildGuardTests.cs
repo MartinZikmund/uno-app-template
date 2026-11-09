@@ -1,5 +1,7 @@
 using System.Diagnostics;
+//#if (packaging)
 using System.Text.RegularExpressions;
+//#endif
 using System.Xml.Linq;
 using AwesomeAssertions;
 
@@ -102,13 +104,26 @@ public partial class ProdBuildGuardTests
         result.Identity.Should().Be(("Original", "CN=Original", "Original Ltd."));
     }
 
+    //#if (packaging)
     [TestMethod]
+    //#if (hasAndroid)
     [DataRow("_build-android.yml")]
+    //#endif
+    //#if (hasIos)
     [DataRow("_build-ios.yml")]
+    //#endif
+    //#if (hasTvos)
     [DataRow("_build-tvos.yml")]
+    //#endif
+    //#if (hasWindows)
     [DataRow("_build-windows.yml")]
+    //#endif
+    //#if (hasDesktop)
     [DataRow("_build-desktop.yml")]
+    //#endif
+    //#if (hasWasm)
     [DataRow("_build-wasm.yml")]
+    //#endif
     public void BuildWorkflow_EveryPackagingCommand_InjectsTheVersion(string workflow)
     {
         var yaml = File.ReadAllText(Path.Combine(FindRepoRoot(), ".github", "workflows", workflow));
@@ -122,6 +137,7 @@ public partial class ProdBuildGuardTests
             .And.Contain("-p:ApplicationVersion="));
     }
 
+    //#endif
     [TestMethod]
     public void NbgvAndroidTarget_CiVersionInjected_KeepsTheInjectedVersion()
     {
@@ -283,16 +299,18 @@ public partial class ProdBuildGuardTests
     private static string FindRepoRoot()
     {
         DirectoryInfo? dir = new(AppContext.BaseDirectory);
-        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "AGENTS.md")))
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "version.json")))
         {
             dir = dir.Parent;
         }
 
-        return dir?.FullName ?? throw new DirectoryNotFoundException("Repository root (AGENTS.md) not found.");
+        return dir?.FullName ?? throw new DirectoryNotFoundException("Repository root (version.json) not found.");
     }
 
+    //#if (packaging)
     [GeneratedRegex(@"dotnet (?:publish|build)\b(?:[^\n]*\\\r?\n)*[^\n]*")]
     private static partial Regex PackagingCommand();
 
+    //#endif
     private sealed record RunResult(int ExitCode, string Output, (string Name, string Publisher, string DisplayName) Identity);
 }

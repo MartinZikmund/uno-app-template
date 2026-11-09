@@ -1,0 +1,39 @@
+name: Template Upgrade Note
+
+# A change that reaches apps has to tell those apps how to follow along. See .claude/rules/template-upgrades.md.
+# Template repository only: apps don't receive this file.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches:
+      - main
+      - release/**
+
+permissions:
+  contents: read
+
+jobs:
+  upgrade_note:
+    name: Upgrade note present
+    if: github.repository == 'MartinZikmund/uno-app-template'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # The description goes through an environment variable, so its text can never run as part of the script.
+      - name: Check
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.txt"
+          dotnet run --project tools/Wizard.Cli/MZikmund.UnoApp.Cli.csproj -- check-upgrade-note --base "$BASE_SHA" --pr-body-file "$RUNNER_TEMP/pr-body.txt"

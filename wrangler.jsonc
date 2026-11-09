@@ -9,9 +9,8 @@
 // flags straight after `dotnet publish`. CI downloads the release-wasm artifact into
 // this same path before deploying, so there is one source of truth for it.
 //
-// Adopting this template: rename `app-template` to your own Worker name. The name is
-// the only thing here that is app-specific, and it decides the deployed hostname
-// (https://<name>.<your-subdomain>.workers.dev). See docs/deployment.md.
+// `name` is the only thing here that is app-specific, and it decides the deployed
+// hostname (https://<name>.<your-subdomain>.workers.dev). See docs/deployment.md.
 //
 // Production (release/v*) is deployed by release.yml with `wrangler deploy`; every PR
 // uploads a non-live version aliased `pr-<number>` instead (wasm-pr-preview.yml).

@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))\</RepoRoot>
+    <!-- These carry their own versions; a Directory.Packages.props above the repository must not change that. -->
+    <ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Authors>Martin Zikmund</Authors>
+    <RepositoryUrl>https://github.com/MartinZikmund/uno-app-template</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/MartinZikmund/uno-app-template</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <!-- The packages share the repo's version.json, so a template and its wizard always version together. -->
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.10.94" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

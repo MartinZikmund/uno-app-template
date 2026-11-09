@@ -1,0 +1,12 @@
+<Project>
+
+  <!--
+    Tests sit outside src/, so without this file MSBuild keeps walking up the disk. A Directory.Packages.props
+    anywhere above the repository would switch these projects to Central Package Management and fail restore
+    with NU1008, because they carry their own versions.
+  -->
+  <PropertyGroup>
+    <ImportDirectoryPackagesProps>false</ImportDirectoryPackagesProps>
+  </PropertyGroup>
+
+</Project>

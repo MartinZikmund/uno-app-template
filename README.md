@@ -5,7 +5,7 @@ Five platform heads from a single project, plain WinUI/XAML with CommunityToolki
 plumbing you would otherwise rebuild every time: navigation, dependency injection, theming,
 localization, dialogs, versioning, and release pipelines.
 
-Copy it, rename it, delete what you don't need.
+Pick the parts you want, and pick up later improvements when you're ready.
 
 ## What's in the box
 
@@ -15,69 +15,58 @@ Copy it, rename it, delete what you don't need.
 | **MVVM with CommunityToolkit.Mvvm** | `ObservableObject`, `[ObservableProperty]` partial properties, and `[RelayCommand]`. View models live in `AppTemplate.Core` so they unit-test without a UI head. See [docs/views.md](./docs/views.md). |
 | **Type-driven navigation** | `INavigationService.Navigate<TViewModel>()`, with views registered explicitly rather than by reflection. |
 | **DI with the guardrails on** | Scope validation enabled, so a captive dependency fails at startup instead of in production. Per-window scopes for window-bound services. |
-| **Services already wired** | Theming, preferences, dialogs and confirmations, app rating, share, launcher, display-request, and app-update checks. |
+| **Services already wired** | Theming, preferences, dialogs and confirmations, app rating, share, launcher, display-request, and app-update checks. Keep only the ones you want. |
+| **A feature picker** | A visual wizard, a terminal wizard, or plain `dotnet new`, all from one template. See [docs/template-wizard.md](./docs/template-wizard.md). |
+| **An upgrade path** | Every template change leaves a note for existing apps, and a command to merge the code. See [docs/template-upgrades.md](./docs/template-upgrades.md). |
 | **Localization from the start** | `{markup:Localize Key=...}` in XAML, `IStringLocalizer` in code, English and Czech resources included. |
 | **Side-by-side Dev builds** | Nerdbank.GitVersioning with Dev and Prod channels that install alongside each other, with a DEV badge generated onto your icon and splash ([docs/dev-assets.md](./docs/dev-assets.md)). See [docs/versioning.md](./docs/versioning.md). Each git worktree gets its own identity too, so two can run at once — see [docs/worktree-identity.md](./docs/worktree-identity.md). |
 | **CI that packages** | Every push to `main` packages all six heads and publishes nothing. XAML formatting is enforced on every PR — see [docs/xaml-styler.md](./docs/xaml-styler.md). |
 | **Automated multi-store releases** | `release/vX.Y` branches ship to Google Play, TestFlight / App Store, the Microsoft Store and Cloudflare Workers, with staged rollouts and one-click approval gates. See [docs/release-pipeline.md](./docs/release-pipeline.md). |
 | **Written for coding agents** | [`AGENTS.md`](./AGENTS.md) and [`.claude/rules/`](./.claude/rules/) carry the conventions an agent needs before it writes a line. |
 
-## Using this template
+## Create an app
 
-There is no rename script — the steps below are the whole job, and doing them by hand once is
-clearer than debugging a script that half-worked.
+```bash
+dotnet tool install -g MZikmund.UnoApp.Cli
 
-1. **Start your repo.** Use this repository as a GitHub template, or clone it and point `origin`
-   at your own remote.
+mzuno-app wizard     # visual, in your browser
+mzuno-app new        # guided, in your terminal
+```
 
-2. **Rename `AppTemplate` to your app.** It appears in roughly 59 C# namespace declarations plus:
+Or use the template directly, which also makes it available in Visual Studio's and Rider's new project dialogs:
 
-   ```text
-   src/AppTemplate/                          folder + AppTemplate.csproj
-   src/AppTemplate.Core/                     folder + AppTemplate.Core.csproj
-   tests/AppTemplate.Core.Tests/             folder + .csproj
-   src/AppTemplate.slnx
-   src/.run/AppTemplate.run.xml
-   src/.vscode/launch.json, tasks.json
-   src/AppTemplate/Properties/launchSettings.json
-   src/AppTemplate/Platforms/WebAssembly/LinkerConfig.xml
-   ```
+```bash
+dotnet new install MZikmund.UnoApp.Templates
+dotnet new mzuno-app -n MyApp --platforms windows --platforms desktop --rating false
+```
 
-   A find-and-replace of `AppTemplate` → `YourApp` across the repo, then renaming the folders and
-   project files, covers all of it.
+Pick your platforms and leave out what you don't need. The name, namespaces, package ids and CI configuration are all
+set for you, and the app's own `README.md` lists what's left before a first release. See
+[docs/template-wizard.md](./docs/template-wizard.md).
 
-3. **Claim your identity.** In `src/AppTemplate/AppTemplate.csproj`, set `ApplicationPublisher`,
-   and set `ApplicationTitle` and `ApplicationId` for **both** the `Prod` and `Dev` channel
-   property groups — they must differ, that's what lets Dev install side by side. Then update the
-   display names in `src/AppTemplate/Platforms/Android/Resources/values*/Strings.xml`.
+## Keep an app up to date
 
-4. **Replace the artwork.** Drop your own SVGs into `src/AppTemplate/Assets/Icons` and
-   `src/AppTemplate/Assets/Splash`. Keep `icon_transparent.svg` and `icon.svg` as the background
-   filenames unless you also update the `UnoIcon*` properties — the generated Android
-   `@mipmap/icon` resource name is derived from them.
-   Dev builds badge them automatically, so there's no Dev variant to draw. See
-   [docs/dev-assets.md](./docs/dev-assets.md).
+Apps remember which template version and features they came from, so they can pick up later fixes:
 
-5. **Reset the version.** `version.json` starts at `0.1-dev`. Set it to whatever your first
-   release should be; git height supplies the patch component. **Keep the `-dev` suffix** — a
-   bare `"0.1"` makes `nbgv prepare-release` find nothing to cut, and the release workflow
-   refuses to run. See [docs/versioning.md](./docs/versioning.md).
+```bash
+mzuno-app upgrade            # what's new for this app
+mzuno-app upgrade --patch    # three-way merge the template's changes into your code
+```
 
-6. **Translate or trim.** Keep both `src/AppTemplate/Strings/en` and `.../cs`, or delete the `cs`
-   folder and its Android `values-cs` counterpart if you only ship one language.
+See [docs/template-upgrades.md](./docs/template-upgrades.md). An app copied from this repository by hand can join in with
+`mzuno-app adopt`.
 
-7. **Delete what you don't need.** Sample views, the Czech resources, the rating service — none of
-   it is load-bearing. Removing a service means deleting its files and its registration in
-   `App.RegisterServices`. Delete `tests/Template.SelfTests` (and its `/Template/` folder in
-   `src/AppTemplate.slnx`) and `.github/workflows/template-selftest.yml` too: they test the
-   template's own build machinery, not your app.
+## Working on the template
+
+This repository is both a working app and the template source. Changing it means leaving existing apps a way to follow:
+see [docs/template-authoring.md](./docs/template-authoring.md).
 
 ### If you're a coding agent
 
 Read [`AGENTS.md`](./AGENTS.md) first — it points at [`.claude/rules/`](./.claude/rules/), which
 carries the conventions this repo actually enforces: code style, the Core/head split, testing, git,
-and documentation. Adding a feature means adding a page under [`docs/`](./docs/), never appending
-prose to this file.
+documentation, and how template changes reach existing apps. Adding a feature means adding a page under
+[`docs/`](./docs/), never appending prose to this file.
 
 ## Quickstart
 

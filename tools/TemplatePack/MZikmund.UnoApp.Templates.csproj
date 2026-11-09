@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Packs the repository root as a `dotnet new` template. Nothing compiles here. -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>MZikmund.UnoApp.Templates</PackageId>
+    <PackageType>Template</PackageType>
+    <Title>Uno App template (MVVM, production-shaped)</Title>
+    <Description>A production-shaped cross-platform Uno Platform app with a feature picker: dotnet new mzuno-app, or run the mzuno-app wizard.</Description>
+    <PackageTags>dotnet-new;templates;uno;unoplatform;winui;mvvm;android;ios;wasm</PackageTags>
+    <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <!-- NuGet drops dotfiles by default, and most of the template's config is dotfiles. -->
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <NoWarn>$(NoWarn);NU5128;NU5110;NU5111;NU5119</NoWarn>
+    <_TemplateContentRoot>content/UnoApp/</_TemplateContentRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <_TemplateFile Include="$(RepoRoot)**/*"
+                   Exclude="$(RepoRoot).git;
+                            $(RepoRoot).git/**;
+                            $(RepoRoot)LICENSE;
+                            $(RepoRoot).vs/**;
+                            $(RepoRoot).claude/worktrees/**;
+                            $(RepoRoot).claude/settings.local.json;
+                            $(RepoRoot)**/bin/**;
+                            $(RepoRoot)**/obj/**;
+                            $(RepoRoot)artifacts/**;
+                            $(RepoRoot)TestResults/**;
+                            $(RepoRoot).screenshots/**;
+                            $(RepoRoot).playwright-mcp/**;
+                            $(RepoRoot)tools/**;
+                            $(RepoRoot)tests/Template.*/**;
+                            $(RepoRoot)docs/superpowers/**;
+                            $(RepoRoot)docs/upgrades/**;
+                            $(RepoRoot)template/overlay/.template-state.json;
+                            $(RepoRoot)**/*.user" />
+    <!-- The root only: NuGet appends RecursiveDir itself, and reads a PackagePath with no extension as a folder. -->
+    <None Include="@(_TemplateFile)" Pack="true" PackagePath="$(_TemplateContentRoot)" />
+    <None Include="PACKAGE.md" Pack="true" PackagePath="PACKAGE.md" />
+    <_UpgradeNote Include="$(RepoRoot)docs/upgrades/*.md" Exclude="$(RepoRoot)docs/upgrades/README.md;$(RepoRoot)docs/upgrades/_TEMPLATE.md" />
+  </ItemGroup>
+
+  <!-- An app starts with every upgrade note published so far already applied: it was generated from that state. -->
+  <Target Name="StampTemplateState" BeforeTargets="_GetPackageFiles" DependsOnTargets="GetBuildVersion">
+    <ItemGroup>
+      <_UpgradeId Include="@(_UpgradeNote->'&quot;%(Filename)&quot;')" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_StampedState>$(MSBuildProjectDirectory)/$(IntermediateOutputPath)stamped/.template-state.json</_StampedState>
+      <_StateText>$([System.IO.File]::ReadAllText('$(RepoRoot)template/overlay/.template-state.json'))</_StateText>
+      <_StateText>$(_StateText.Replace('__TEMPLATE_VERSION__', '$(PackageVersion)'))</_StateText>
+      <_UpgradeIdList>@(_UpgradeId, ', ')</_UpgradeIdList>
+      <_StateText>$(_StateText.Replace('"__APPLIED_UPGRADES__"', '$(_UpgradeIdList)'))</_StateText>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_StampedState)" Lines="$(_StateText)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <None Include="$(_StampedState)" Pack="true" PackagePath="$(_TemplateContentRoot)template/overlay/.template-state.json" />
+    </ItemGroup>
+  </Target>
+
+</Project>

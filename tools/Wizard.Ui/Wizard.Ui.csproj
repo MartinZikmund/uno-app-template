@@ -1,0 +1,21 @@
+<Project Sdk="Uno.Sdk">
+  <!-- The wizard's browser UI. Its own global.json lets it move Uno.Sdk separately from the apps the template generates. -->
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-browserwasm</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+    <RootNamespace>MZikmund.UnoApp.WizardUi</RootNamespace>
+    <ApplicationTitle>Uno App Wizard</ApplicationTitle>
+    <ApplicationId>dev.mzikmund.unoappwizard</ApplicationId>
+    <IsPackable>false</IsPackable>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wizard.Core\Wizard.Core.csproj" />
+  </ItemGroup>
+</Project>

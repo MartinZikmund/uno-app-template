@@ -1,0 +1,31 @@
+{
+  "template": "MZikmund.UnoApp.Templates",
+  "templateVersion": "__TEMPLATE_VERSION__",
+  "upgradesUrl": "https://github.com/MartinZikmund/uno-app-template/tree/main/docs/upgrades",
+  "name": "AppTemplate",
+  "options": {
+    "title": "App Template",
+    "appId": "dev.mzikmund.apptemplate",
+    "publisher": "Martin Zikmund",
+    "githubRepo": "__opt_githubRepo__",
+    "platforms": "__opt_platforms__",
+    "http": "__opt_http__",
+    "sqlite": "__opt_sqlite__",
+    "dialogs": "__opt_dialogs__",
+    "launcher": "__opt_launcher__",
+    "rating": "__opt_rating__",
+    "share": "__opt_share__",
+    "displayRequest": "__opt_displayRequest__",
+    "czech": "__opt_czech__",
+    "devAssets": "__opt_devAssets__",
+    "worktreeIdentity": "__opt_worktreeIdentity__",
+    "xamlStyler": "__opt_xamlStyler__",
+    "tests": "__opt_tests__",
+    "ci": "__opt_ci__",
+    "packaging": "__opt_packaging__",
+    "agents": "__opt_agents__",
+    "specKit": "__opt_specKit__",
+    "community": "__opt_community__"
+  },
+  "appliedUpgrades": [ "__APPLIED_UPGRADES__" ]
+}

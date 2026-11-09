@@ -33,10 +33,13 @@ jobs:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
 
+      #if (hasIos || hasAndroid)
       - run: pip install --quiet google-auth pyjwt cryptography requests
+      #endif
 
       # No continue-on-error: a probe that fails IS the finding. Each probe writes its own
       # section and returns 0, so one broken store cannot hide another's result.
+      #if (hasIos)
       - name: App Store version states
         id: apple
         env:
@@ -77,7 +80,9 @@ jobs:
               echo ""
             } >> "$RUNNER_TEMP/report.md"
           fi
+      #endif
 
+      #if (hasAndroid)
       - name: Play production rollout state
         id: play
         env:
@@ -119,6 +124,7 @@ jobs:
               echo ""
             } >> "$RUNNER_TEMP/report.md"
           fi
+      #endif
 
       - name: Open or update the health issue
         env:

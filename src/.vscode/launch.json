@@ -4,6 +4,7 @@
   // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
   "version": "0.2.0",
   "configurations": [
+    //#if (hasAndroid || hasIos)
     {
       "name": "Uno Platform Mobile Debug",
       "type": "Uno",
@@ -11,6 +12,8 @@
       // any Uno* task will do, this is simply to satisfy vscode requirement when a launch.json is present
       "preLaunchTask": "Uno: android | Debug | android-x64"
     },
+    //#endif
+    //#if (hasWasm)
     {
       // Use IntelliSense to find out which attributes exist for C# debugging
       // Use hover for the description of the existing attributes
@@ -53,6 +56,8 @@
         "cwd": "${workspaceFolder}/AppTemplate"
       }
     },
+    //#endif
+    //#if (hasDesktop)
     {
       // Use IntelliSense to find out which attributes exist for C# debugging
       // Use hover for the description of the existing attributes
@@ -73,5 +78,6 @@
       "console": "internalConsole",
       "stopAtEntry": false
     },
+    //#endif
   ]
 }

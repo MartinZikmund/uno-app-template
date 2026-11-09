@@ -69,6 +69,7 @@ jobs:
 
   # ---------------------------------------------------------------- build
 
+  #if (hasAndroid)
   build-android:
     needs: version
     if: vars.ENABLE_ANDROID != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'android'))
@@ -83,7 +84,9 @@ jobs:
       ANDROID_KEY_ALIAS:       ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD:    ${{ secrets.ANDROID_KEY_PASSWORD }}
       ANDROID_STORE_PASSWORD:  ${{ secrets.ANDROID_STORE_PASSWORD }}
+  #endif
 
+  #if (hasIos)
   build-ios:
     needs: version
     if: vars.ENABLE_IOS != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'ios'))
@@ -99,7 +102,9 @@ jobs:
       APPLE_CODESIGN_KEY:                ${{ secrets.APPLE_CODESIGN_KEY }}
       APPLE_TEAM_ID:                     ${{ secrets.APPLE_TEAM_ID }}
       KEYCHAIN_PASSWORD:                 ${{ secrets.KEYCHAIN_PASSWORD }}
+  #endif
 
+  #if (hasTvos)
   build-tvos:
     needs: version
     if: vars.ENABLE_TVOS != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'tvos'))
@@ -115,7 +120,9 @@ jobs:
       APPLE_CODESIGN_KEY:                     ${{ secrets.APPLE_CODESIGN_KEY }}
       APPLE_TEAM_ID:                          ${{ secrets.APPLE_TEAM_ID }}
       KEYCHAIN_PASSWORD:                      ${{ secrets.KEYCHAIN_PASSWORD }}
+  #endif
 
+  #if (hasWindows)
   build-windows:
     needs: version
     if: vars.ENABLE_WINDOWS != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'windows'))
@@ -126,7 +133,9 @@ jobs:
       version_store4: ${{ needs.version.outputs.store4 }}
       artifact_name:  release-windows
       smoke_launch:   false
+  #endif
 
+  #if (hasDesktop)
   build-desktop:
     needs: version
     if: vars.ENABLE_DESKTOP != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'desktop'))
@@ -136,7 +145,9 @@ jobs:
       version_simple: ${{ needs.version.outputs.simple }}
       artifact_name:  release-desktop
       include_macos:  true
+  #endif
 
+  #if (hasWasm)
   build-wasm:
     needs: version
     if: vars.ENABLE_WASM != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'wasm'))
@@ -145,11 +156,13 @@ jobs:
       channel:        Prod
       version_simple: ${{ needs.version.outputs.simple }}
       artifact_name:  release-wasm
+  #endif
 
   # ------------------------------------------------- publish (automatic)
   # Each publish job needs ONLY the build job whose artifact it consumes, so a red
   # desktop leg can never block Play, and a Play failure can never block TestFlight.
 
+  #if (hasAndroid)
   publish-play-internal:
     needs: [version, build-android]
     runs-on: ubuntu-24.04
@@ -205,7 +218,9 @@ jobs:
           environment: play-internal
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+  #endif
 
+  #if (hasIos)
   publish-testflight:
     needs: [version, build-ios]
     runs-on: ubuntu-24.04          # the appstore-api backend needs no macOS minutes
@@ -273,7 +288,9 @@ jobs:
           environment: testflight
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+  #endif
 
+  #if (hasWindows)
   publish-msstore-draft:
     needs: [version, build-windows]
     runs-on: windows-2025
@@ -351,7 +368,9 @@ jobs:
           environment: ms-store-draft
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+  #endif
 
+  #if (hasWasm)
   publish-web:
     needs: [version, build-wasm]
     runs-on: ubuntu-24.04
@@ -400,6 +419,7 @@ jobs:
           environment: web-production
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+  #endif
 
   # ------------------------------------------------------------ tag + release page
   # `tag` needs every build and every automatic publish, because a failed build only makes
@@ -411,16 +431,28 @@ jobs:
   tag:
     needs:
       - version
+      #if (hasAndroid)
       - build-android
-      - build-ios
-      - build-tvos
-      - build-windows
-      - build-desktop
-      - build-wasm
       - publish-play-internal
+      #endif
+      #if (hasIos)
+      - build-ios
       - publish-testflight
+      #endif
+      #if (hasTvos)
+      - build-tvos
+      #endif
+      #if (hasWindows)
+      - build-windows
       - publish-msstore-draft
+      #endif
+      #if (hasDesktop)
+      - build-desktop
+      #endif
+      #if (hasWasm)
+      - build-wasm
       - publish-web
+      #endif
     if: >-
       !cancelled() && needs.version.result == 'success' && needs.version.outputs.only == ''
       && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
@@ -456,7 +488,15 @@ jobs:
           git push origin "$t"
 
   publish-github-release:
-    needs: [version, tag, build-desktop, build-windows]
+    needs:
+      - version
+      - tag
+      #if (hasDesktop)
+      - build-desktop
+      #endif
+      #if (hasWindows)
+      - build-windows
+      #endif
     if: ${{ !cancelled() && needs.tag.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -465,18 +505,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      #if (hasDesktop)
       - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: release-desktop-*
           path: assets
           merge-multiple: true
+      #endif
 
+      #if (hasWindows)
       - uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: release-windows
           path: assets
+      #endif
 
       - name: Create or update the GitHub Release
         env:
@@ -496,6 +540,7 @@ jobs:
   # ------------------------------------------------------- publish (gated)
   # Rule: gate on "a member of the public sees this", not on "a store received a file".
 
+  #if (hasAndroid)
   promote-play-production:
     needs: [version, build-android, publish-play-internal]
     if: needs.publish-play-internal.outputs.published == 'true'
@@ -545,7 +590,9 @@ jobs:
           environment: play-production
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+  #endif
 
+  #if (hasIos)
   submit-appstore:
     needs: [version, publish-testflight]
     if: needs.publish-testflight.outputs.published == 'true'
@@ -595,7 +642,9 @@ jobs:
           environment: appstore-production
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+  #endif
 
+  #if (hasWindows)
   commit-msstore:
     needs: [version, publish-msstore-draft]
     if: needs.publish-msstore-draft.outputs.published == 'true'
@@ -650,3 +699,6 @@ jobs:
           environment: ms-store-production
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+  #endif
+
+# Keep this line last: the template engine can't close a block on a file's final line.

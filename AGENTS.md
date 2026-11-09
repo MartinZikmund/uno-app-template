@@ -10,6 +10,19 @@ Detailed, auto-loaded conventions live in **`.claude/rules/`** — read them bef
 `testing.md` (MSTest/MTP, run command, fakes + AwesomeAssertions), `git.md` (commits, branches, versioning),
 and `docs.md` (feature docs go in `docs/<topic>.md` — **never** appended to `README.md`).
 
+<!--#if (false)-->
+## This repository is a template
+
+It's a working app **and** the source of the `mzuno-app` `dotnet new` template, so a change here can
+reach apps that already exist. Before opening a PR, read **`.claude/rules/template-upgrades.md`**:
+
+- A change to anything an app receives needs an upgrade note in `docs/upgrades/` (CI checks this).
+- An optional feature needs a symbol in `.template.config/template.json` and `wizard.json`, with
+  markers around its code. See [docs/template-authoring.md](docs/template-authoring.md).
+- Tests of the template itself go in `tests/Template.SelfTests` or `tests/Template.GenerationTests`.
+
+<!--#endif-->
+
 ## Skills & external resources
 
 Lean on installed skills and skill collections instead of reinventing — reach for them proactively:
@@ -24,6 +37,7 @@ Lean on installed skills and skill collections instead of reinventing — reach 
 
 This app is plain WinUI/XAML + CommunityToolkit.Mvvm by design. **Do not introduce Uno.Extensions Navigation, C# Markup, or MVUX.** More generally, prefer a WinUI / CommunityToolkit alternative over **Uno.Extensions**, **Uno Toolkit**, or **Uno Themes** whenever one exists. (The hosting/configuration/localization/serialization features already wired in `UnoFeatures` are fine to keep — this is about not adding *new* dependencies on those stacks.)
 
+<!--#if (hasWindows)-->
 ## Running & automating the WinUI (Windows) app
 
 The app is an Uno single-project app; the WinUI (WinAppSDK) head can be built, launched **fully
@@ -62,15 +76,21 @@ mandatory on `dotnet run` (without it you get the WebAssembly head); don't backg
 PowerShell `Start-Job` (it doesn't survive across tool calls) — `winapp run --detach` is the right
 primitive. Requires the `winapp` CLI (`winget install Microsoft.WinAppCli`).
 
+<!--#if (worktreeIdentity)-->
 **Don't hardcode the package id or window title.** A build from a git worktree gets its own
 identity (`…apptemplate.dev.wt…`) and its own window title so two worktrees can run side by side —
 see [docs/worktree-identity.md](docs/worktree-identity.md). Read `ApplicationId` from MSBuild and
 the PID from `winapp run --json`.
+<!--#endif-->
 
+<!--#endif-->
 ## Testing new features in the running app
 
-To verify a new feature end-to-end in the live app, use the **`/run-winui-app` skill** (build →
-launch packaged → inspect/act/screenshot → clean up) together with the **`uno-app` MCP**
+To verify a new feature end-to-end in the live app, use the
+<!--#if (hasWindows)-->
+**`/run-winui-app` skill** (build → launch packaged → inspect/act/screenshot → clean up) together with the
+<!--#endif-->
+**`uno-app` MCP**
 (`uno_app_select_solution`, then `uno_discover_tools` / `uno_execute_tool`) to drive and inspect the
 running app at runtime. Reach for these instead of guessing whether UI changes work — see the change
 actually render before reporting it done.
@@ -81,7 +101,7 @@ actually render before reporting it done.
 dotnet tool restore                                                  # once after cloning (XAML Styler)
 dotnet workload restore src/AppTemplate.slnx                         # once after cloning (every head needs them)
 
-# Build a head (TFM is per-platform; WinUI TFM is the *-windows* entry in the csproj)
+# Build a head (TFM is per-platform; the csproj lists the ones this repository has)
 dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-desktop
 dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100
 
@@ -90,9 +110,12 @@ dotnet test tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj
 ```
 
 Logic worth testing lives in **`AppTemplate.Core`** (view models, services, navigation) and belongs
-under **`AppTemplate.Core.Tests`** — keep testable code there so it stays head-independent. Tests of the
-template's own dev tooling (Dev assets, worktree identity, including the About page's worktree label) go in
-**`tests/Template.SelfTests`** instead, because apps delete that project (see `.claude/rules/testing.md`).
+under **`AppTemplate.Core.Tests`** — keep testable code there so it stays head-independent.
+<!--#if (false)-->
+Tests of the template's own dev tooling (Dev assets, worktree identity, including the About page's worktree
+label) go in **`tests/Template.SelfTests`** instead, because apps don't receive that project (see
+`.claude/rules/testing.md`).
+<!--#endif-->
 
 ## Working style
 
@@ -102,8 +125,10 @@ template's own dev tooling (Dev assets, worktree identity, including the About p
   constructors, pattern matching, etc.) where they make the code clearer — not for their own sake.
 - **Keep comments lean.** No walls of text. Comment the *why* in a line or two; let clear names and
   small methods carry the *what*.
+<!--#if (xamlStyler)-->
 - **XAML formatting is CI-enforced.** Run `dotnet xstyler -c Settings.XamlStyler -r -d ./src` before
   committing XAML, or the **XAML Style Check** workflow fails the PR.
+<!--#endif-->
 - **Report Uno divergences upstream.** WinUI is the reference behavior. If during development you find
   something that's buggy or behaves differently on an Uno target (e.g. `net10.0-desktop`) than on
   WinUI, point it out and offer to file an issue at [`unoplatform/uno`](https://github.com/unoplatform/uno)

@@ -1,12 +1,24 @@
 <Project Sdk="Uno.Sdk">
     <PropertyGroup>
         <TargetFrameworks>
+            <!--#if (hasAndroid)-->
             net10.0-android;
+            <!--#endif-->
+            <!--#if (hasIos)-->
             net10.0-ios;
+            <!--#endif-->
+            <!--#if (hasTvos)-->
             net10.0-tvos;
+            <!--#endif-->
+            <!--#if (hasWindows)-->
             net10.0-windows10.0.26100;
+            <!--#endif-->
+            <!--#if (hasDesktop)-->
             net10.0-desktop;
+            <!--#endif-->
+            <!--#if (hasWasm)-->
             net10.0-browserwasm;
+            <!--#endif-->
         </TargetFrameworks>
 
         <OutputType>Exe</OutputType>
@@ -17,6 +29,7 @@
         <Description>AppTemplate by Martin Zikmund</Description>
     </PropertyGroup>
 
+    <!--#if (hasTvos)-->
     <!-- Full AOT binds every P/Invoke at native link time, including Windows-only ones in Uno.UI and
          Silk.NET, and the link fails. Uno's own tvOS head interprets for the same reason. See docs/tvos.md. -->
     <PropertyGroup Condition="'$(IsTvOS)' == 'true'">
@@ -24,6 +37,7 @@
         <UseInterpreter>true</UseInterpreter>
         <MtouchInterpreter>all</MtouchInterpreter>
     </PropertyGroup>
+    <!--#endif-->
 
     <!-- Channel-specific identity. See docs/versioning.md. -->
     <PropertyGroup Condition="'$(AppChannel)' == 'Prod'">
@@ -44,8 +58,10 @@
         <UnoIconBackgroundFile>Assets/Icons/icon_transparent.svg</UnoIconBackgroundFile>
         <UnoIconBackgroundFile Condition="'$(IsIOS)' == 'true' or '$(IsTvOS)' == 'true' or '$(IsAndroid)' == 'true'">Assets/Icons/icon.svg</UnoIconBackgroundFile>
 
+        <!--#if (devAssets)-->
         <!-- Dev builds badge the icon and splash below at build time (src/DevAssets.targets). -->
 
+        <!--#endif-->
         <UnoIconForegroundScale>1</UnoIconForegroundScale>
         <UnoIconForegroundScale Condition="'$(IsAndroid)' == 'true'">0.6</UnoIconForegroundScale>
         <UnoSplashScreenScale>0.85</UnoSplashScreenScale>
@@ -55,11 +71,15 @@
         <PackageReference Include="MZikmund.Toolkit.WinUI" />
     </ItemGroup>
 
+    <!--#if (sqlite)-->
+    <!--#if (hasTvos)-->
     <!-- SourceGear.sqlite3 has no tvOS binary, so its P/Invokes would fail the native link. See docs/tvos.md. -->
+    <!--#endif-->
     <ItemGroup Condition="'$(IsTvOS)' != 'true'">
         <PackageReference Include="sqlite-net-e" />
         <PackageReference Include="SourceGear.sqlite3" />
     </ItemGroup>
+    <!--#endif-->
 
     <ItemGroup>
         <ProjectReference Include="..\AppTemplate.Core\AppTemplate.Core.csproj" />
@@ -69,6 +89,7 @@
         <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" PrivateAssets="all" />
     </ItemGroup>
 
+    <!--#if (hasWindows)-->
     <!-- Nothing here uses Windows ML (39 MB of natives); an app that adopts it must remove these two. -->
     <!-- Nothing draws with Skia on Windows, but MZikmund.Toolkit.WinUI pulls SkiaSharp.Views.WinUI in. Prune only the
          natives (~230 MB with PDBs); trimming removes the managed side. Drop these two prunes once that package stops
@@ -93,6 +114,7 @@
     <ItemGroup Condition="'$(IsWinAppSdk)' == 'true'">
         <TrimmerRootDescriptor Include="TrimmerRoots.xml" />
     </ItemGroup>
+    <!--#endif-->
 
     <ItemGroup>
       <Page Update="Resources\DataTemplates.xaml">

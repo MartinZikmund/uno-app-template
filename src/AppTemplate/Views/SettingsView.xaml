@@ -51,12 +51,14 @@
                     </toolkit:SettingsCard.HeaderIcon>
                     <StackPanel HorizontalAlignment="Right" Spacing="2">
                         <TextBlock HorizontalAlignment="Right" Text="{x:Bind ViewModel.AppVersion}" />
+                        <!--  #if (worktreeIdentity)  -->
                         <TextBlock
                             HorizontalAlignment="Right"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Text="{x:Bind ViewModel.WorktreeLabel}"
                             Visibility="{x:Bind ViewModel.WorktreeLabel, Converter={StaticResource StringVisibilityConverter}}" />
+                        <!--  #endif  -->
                     </StackPanel>
                 </toolkit:SettingsCard>
 

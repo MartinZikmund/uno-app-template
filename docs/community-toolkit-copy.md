@@ -24,6 +24,11 @@ likeliest next one. Prefer waiting for the package if you only need it later.
 
 ## Going back to the packages
 
-Follow "Removing the copy" in the folder README: delete the folder, drop the `App.xaml` merge, restore the package
-references, drop `src/AppTemplate/TrimmerRoots.xml` and check the trimmed Windows app still launches (see
-[windows-packaging.md](./windows-packaging.md)). `CommunityToolkit.Mvvm` is unaffected throughout, it works with Uno 7.
+Follow "Removing the copy" in the folder README: delete the folder, drop the `App.xaml` merge and restore the package
+references.
+<!--#if (hasWindows)-->
+Then drop `src/AppTemplate/TrimmerRoots.xml` and check the trimmed Windows app still launches (see
+[windows-packaging.md](./windows-packaging.md)).
+<!--#endif-->
+
+`CommunityToolkit.Mvvm` is unaffected throughout, it works with Uno 7.

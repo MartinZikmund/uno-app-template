@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>MZikmund.UnoApp.Cli</RootNamespace>
+    <AssemblyName>mzuno-app</AssemblyName>
+    <PackageId>MZikmund.UnoApp.Cli</PackageId>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>mzuno-app</ToolCommandName>
+    <Title>Uno App wizard</Title>
+    <Description>Create Uno Platform apps from the Uno App template with a guided or visual feature picker, and upgrade existing apps to newer template versions.</Description>
+    <PackageTags>uno;unoplatform;winui;template;wizard;scaffolding</PackageTags>
+    <PackageReadmeFile>PACKAGE.md</PackageReadmeFile>
+    <RollForward>Major</RollForward>
+    <!-- NuGet's default excludes drop a .nupkg nested in a package, and the template ships that way. -->
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <_BundleRoot>$(MSBuildProjectDirectory)/obj/bundle/</_BundleRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Template.GenerationTests" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Spectre.Console" Version="0.57.2" />
+    <PackageReference Include="System.CommandLine" Version="2.0.14" />
+    <ProjectReference Include="..\Wizard.Core\Wizard.Core.csproj" />
+  </ItemGroup>
+
+  <!-- The tool reads the template's own config and notes, so it can't drift from the template it ships with. -->
+  <ItemGroup>
+    <EmbeddedResource Include="$(RepoRoot).template.config/template.json" LogicalName="template.json" />
+    <EmbeddedResource Include="$(RepoRoot).template.config/dotnetcli.host.json" LogicalName="dotnetcli.host.json" />
+    <EmbeddedResource Include="$(RepoRoot).template.config/wizard.json" LogicalName="wizard.json" />
+    <EmbeddedResource Include="$(RepoRoot)docs/upgrades/*.md"
+                      Exclude="$(RepoRoot)docs/upgrades/README.md;$(RepoRoot)docs/upgrades/_TEMPLATE.md"
+                      LogicalName="upgrades/%(Filename).md" />
+    <None Include="PACKAGE.md" Pack="true" PackagePath="PACKAGE.md" />
+  </ItemGroup>
+
+  <!-- The UI has its own SDK and global.json, so these run as their own processes, from their own folders. -->
+  <Target Name="BundleTemplateAndUi" BeforeTargets="_GetPackageFiles" Condition="'$(SkipBundle)' != 'true'">
+    <RemoveDir Directories="$(_BundleRoot)" />
+    <Exec Command="dotnet pack MZikmund.UnoApp.Templates.csproj -c $(Configuration) -o &quot;$(_BundleRoot)template&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)/../TemplatePack" />
+    <Exec Command="dotnet publish Wizard.Ui.csproj -c Release -f net10.0-browserwasm -o &quot;$(_BundleRoot)ui-publish&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)/../Wizard.Ui" />
+    <ItemGroup>
+      <_BundledTemplate Include="$(_BundleRoot)template/*.nupkg" />
+      <!-- The precompressed copies are for production web servers. A loopback server doesn't need them. -->
+      <_BundledUi Include="$(_BundleRoot)ui-publish/wwwroot/**/*" Exclude="$(_BundleRoot)ui-publish/wwwroot/**/*.br;$(_BundleRoot)ui-publish/wwwroot/**/*.gz" />
+      <None Include="@(_BundledTemplate)" Pack="true" PackagePath="tools/$(TargetFramework)/any/template/%(Filename)%(Extension)" />
+      <None Include="@(_BundledUi)" Pack="true" PackagePath="tools/$(TargetFramework)/any/ui/%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
+
+</Project>

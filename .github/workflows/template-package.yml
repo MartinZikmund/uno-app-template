@@ -1,0 +1,120 @@
+name: Template Package
+
+# Generates apps from the packed template, compiles them, packs the template and the wizard, and publishes on request.
+# Template repository only: apps don't receive this file.
+
+on:
+  push:
+    branches: [ "main", "release/**" ]
+  pull_request:
+    branches:
+      - main
+      - release/**
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish both packages to nuget.org"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  output:
+    name: Generated output and upgrades
+    if: github.repository == 'MartinZikmund/uno-app-template'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Output, leak, link and upgrade tests
+        shell: pwsh
+        run: dotnet test tests/Template.GenerationTests/Template.GenerationTests.csproj --filter "TestCategory!=Build"
+
+  builds:
+    name: Generated apps compile
+    if: github.repository == 'MartinZikmund/uno-app-template'
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install workloads
+        shell: pwsh
+        run: dotnet workload install android ios tvos wasm-tools
+
+      - name: Compile the feature matrix
+        shell: pwsh
+        run: dotnet test tests/Template.GenerationTests/Template.GenerationTests.csproj --filter "TestCategory=Build"
+
+  pack:
+    name: Pack
+    needs: [ output, builds ]
+    if: github.repository == 'MartinZikmund/uno-app-template' && github.event_name != 'pull_request'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install workloads
+        shell: pwsh
+        run: dotnet workload install wasm-tools
+
+      - name: Pack the template and the wizard
+        shell: pwsh
+        run: |
+          dotnet pack tools/TemplatePack/MZikmund.UnoApp.Templates.csproj -c Release -o artifacts
+          dotnet pack tools/Wizard.Cli/MZikmund.UnoApp.Cli.csproj -c Release -o artifacts
+
+      # NuGet silently drops files from a package, so only installing the real thing proves it's complete.
+      - name: Install the tool and create an app with it
+        shell: pwsh
+        run: |
+          $version = (Get-ChildItem artifacts/MZikmund.UnoApp.Cli.*.nupkg).BaseName -replace '^MZikmund\.UnoApp\.Cli\.', ''
+          dotnet tool install MZikmund.UnoApp.Cli --tool-path "$env:RUNNER_TEMP/tool" --add-source artifacts --version $version
+          $app = Join-Path $env:RUNNER_TEMP 'SmokeApp'
+          & "$env:RUNNER_TEMP/tool/mzuno-app" new SmokeApp -o $app --yes --platforms desktop --no-git
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          if (-not (Test-Path (Join-Path $app '.template-state.json'))) { throw 'The bundled template did not generate an app.' }
+          $ui = Get-ChildItem "$env:RUNNER_TEMP/tool/.store" -Recurse -Filter index.html | Select-Object -First 1
+          if (-not $ui) { throw 'The wizard UI is missing from the package.' }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: artifacts/*.nupkg
+          if-no-files-found: error
+
+      - name: Publish to nuget.org
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate

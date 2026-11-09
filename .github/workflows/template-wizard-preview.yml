@@ -1,0 +1,130 @@
+name: Wizard PR preview
+
+# Uploads a per-PR preview of the wizard to its own Cloudflare Worker, as a non-live version aliased `pr-<number>`, and
+# posts the URL as a sticky comment. Hosted, the wizard is read-only: it has no server, so it builds the command but
+# can't create the app. See docs/template-wizard.md.
+# Template repository only: apps don't receive this file.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ main ]
+
+concurrency:
+  group: wizard-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  wizard-preview:
+    name: Wizard preview
+    if: github.repository == 'MartinZikmund/uno-app-template' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      DOTNET_NOLOGO: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      WORKER: uno-app-wizard
+      PUBLISH_DIR: tools/Wizard.Ui/bin/Release/net10.0-browserwasm/publish/wwwroot
+      # The `secrets` context isn't usable in a step-level `if:`, and forks don't get these.
+      HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Install wasm-tools
+        run: dotnet workload install wasm-tools
+
+      - name: Publish the wizard
+        working-directory: tools/Wizard.Ui
+        run: dotnet publish Wizard.Ui.csproj -c Release -f net10.0-browserwasm
+
+      # From the same config the tool reads, so the preview can't drift from the template on this branch.
+      # The cache policy is the app's: both are published with the same fingerprinted layout.
+      - name: Add the read-only API and the cache policy
+        run: |
+          dotnet run --project tools/Wizard.Cli/MZikmund.UnoApp.Cli.csproj -c Release -- write-preview --output "$PUBLISH_DIR"
+          cp src/AppTemplate/Platforms/WebAssembly/wwwroot/_headers "$PUBLISH_DIR/_headers"
+
+      - uses: ./.github/actions/prepare-wasm-assets
+        with:
+          publish-dir: ${{ env.PUBLISH_DIR }}
+
+      - name: Skip - Cloudflare credentials incomplete
+        if: env.HAS_CLOUDFLARE != 'true'
+        run: echo "::warning::Skipping the preview upload - it needs both CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID."
+
+      # `versions upload` needs a Worker that already exists, and only a deploy creates one. wrangler.jsonc keeps
+      # that deploy off the Worker's own address, so this leaves nothing live.
+      - name: Check whether the Worker exists
+        id: worker
+        if: env.HAS_CLOUDFLARE == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/$WORKER/settings")
+          echo "Cloudflare answered $status for $WORKER"
+          case "$status" in
+            200) echo "exists=true" >> "$GITHUB_OUTPUT" ;;
+            404) echo "exists=false" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::Unexpected $status from Cloudflare while looking for $WORKER."; exit 1 ;;
+          esac
+
+      - name: Create the Worker
+        if: steps.worker.outputs.exists == 'false'
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: tools/Wizard.Ui
+          command: deploy
+
+      - name: Upload the preview
+        id: preview
+        if: env.HAS_CLOUDFLARE == 'true'
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: tools/Wizard.Ui
+          command: versions upload --preview-alias pr-${{ github.event.pull_request.number }}
+
+      - name: Resolve the preview URL
+        id: url
+        if: steps.preview.outcome == 'success'
+        env:
+          # The action's `deployment-url` output is the per-version URL, which changes on every push.
+          COMMAND_OUTPUT: ${{ steps.preview.outputs.command-output }}
+          DEPLOYMENT_URL: ${{ steps.preview.outputs.deployment-url }}
+          ALIAS: pr-${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          url=$(grep -oE -m1 "https://${ALIAS}-[A-Za-z0-9.-]+\.workers\.dev" <<<"$COMMAND_OUTPUT" || true)
+          if [[ -z "$url" ]]; then
+            echo "::warning::Could not find the ${ALIAS} alias URL in wrangler output; falling back to the per-version URL."
+            url="$DEPLOYMENT_URL"
+          fi
+          echo "resolved preview URL: $url"
+          echo "value=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment the preview URL
+        if: steps.url.outputs.value != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: wizard-preview
+          message: |
+            ### 🧙 Wizard preview
+
+            **${{ steps.url.outputs.value }}** — read-only: it builds the `dotnet new` command but can't create the app. This URL is stable; every push to this PR refreshes it in place.

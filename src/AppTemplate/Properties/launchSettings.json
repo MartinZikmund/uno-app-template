@@ -8,6 +8,7 @@
     }
   },
   "profiles": {
+    //#if (hasWasm)
     // This profile is first in order for dotnet run to pick it up by default
     "App Template (WebAssembly)": {
       "commandName": "Project",
@@ -26,7 +27,12 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
-    },
+    }
+    //#endif
+    //#if (hasWasm && (hasWindows || hasDesktop))
+    ,
+    //#endif
+    //#if (hasWindows)
     // Packaged is listed first so `dotnet run -f net10.0-windows10.0.26100` defaults to it.
     "App Template (WinAppSDK Packaged)": {
       "commandName": "MsixPackage",
@@ -37,7 +43,12 @@
     "App Template (WinAppSDK Unpackaged)": {
       "commandName": "Project",
       "compatibleTargetFramework": "windows"
-    },
+    }
+    //#endif
+    //#if (hasWindows && hasDesktop)
+    ,
+    //#endif
+    //#if (hasDesktop)
     "App Template (Desktop)": {
       "commandName": "Project",
       "compatibleTargetFramework": "desktop"
@@ -48,5 +59,6 @@
       "distributionName": "",
       "compatibleTargetFramework": "desktop"
     }
+    //#endif
   }
 }

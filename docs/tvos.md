@@ -28,8 +28,10 @@ Uno.Resizetizer generates both from the same `UnoIcon` and `UnoSplashScreen` as 
 - A launch storyboard, referenced from the generated `UILaunchStoryboardName`.
 
 Tune the sizing with `TvOSForegroundScale` and `TvOSScale`. The Top Shelf images are the logo on the
-icon background, which is a placeholder: replace them with real artwork before shipping. The Dev
-badge stays inside the icon's parallax safe zone - see [dev-assets.md](./dev-assets.md).
+icon background, which is a placeholder: replace them with real artwork before shipping.
+<!--#if (devAssets)-->
+The Dev badge stays inside the icon's parallax safe zone - see [dev-assets.md](./dev-assets.md).
+<!--#endif-->
 
 ## What behaves differently on Apple TV
 
@@ -39,26 +41,39 @@ badge stays inside the icon's parallax safe zone - see [dev-assets.md](./dev-ass
 - **Input is focus-driven.** People use the Siri Remote, not touch or a pointer, so check that every
   page can be reached and used with focus alone. The template's pages have not been reviewed for this
   yet, and the smoke test below only proves the app starts.
+<!--#if (share)-->
 - **There is no share sheet.** `ShareService.ShareAsync` does nothing on tvOS.
+<!--#endif-->
+<!--#if (useLauncher)-->
 - **Opening links doesn't work yet.** `Launcher.LaunchUriAsync` returns `false` on tvOS
   ([unoplatform/uno#24650](https://github.com/unoplatform/uno/issues/24650)), so `LauncherService` and
   the rating prompt's store link do nothing.
+<!--#endif-->
 - **Local storage is not durable.** Apple only guarantees small key-value storage, which is what
   `ApplicationData.Current.LocalSettings` uses. Files can be purged by the system, so keep anything
   important in the cloud.
+<!--#if (sqlite)-->
 - **SQLite isn't referenced.** `SourceGear.sqlite3` ships no tvOS binaries, and Apple's system SQLite
   lacks `sqlite3_enable_load_extension`, which SQLitePCLRaw binds to. So both csproj files leave
   `sqlite-net-e` and `SourceGear.sqlite3` out on this head, and shared code using them must be
   excluded from it or given another provider.
+<!--#endif-->
 - **No OSLog logging provider.** `Uno.Extensions.Logging.OSLog` has no tvOS build, so the SDK leaves it
   out on this head.
 
-Worktree and channel display names work as on iOS. See [worktree-identity.md](./worktree-identity.md).
+Worktree and channel display names work as on iOS.
+<!--#if (worktreeIdentity)-->
+See [worktree-identity.md](./worktree-identity.md).
+<!--#endif-->
 
+<!--#if (ci || packaging)-->
 ## CI
 
-`ci.yml` compiles the head on Windows for every PR, which is cheap. `_build-tvos.yml`, called from
-`build-main.yml` and `release.yml`, does the real build on a Mac:
+<!--#if (ci)-->
+`ci.yml` compiles the head on Windows for every PR, which is cheap.
+<!--#endif-->
+<!--#if (packaging)-->
+`_build-tvos.yml`, called from `build-main.yml` and `release.yml`, does the real build on a Mac:
 
 | Signing configured | Result |
 |---|---|
@@ -76,7 +91,9 @@ separate from iOS ones:
 
 Publishing is not wired up: the `.ipa` is an artifact only and never reaches TestFlight or the App
 Store. `release.yml` still builds it, and a failed tvOS build blocks the release tag, like any other head.
+<!--#endif-->
 
+<!--#endif-->
 ## Dropping tvOS
 
 If your app has no use for Apple TV, remove `net10.0-tvos` from `AppTemplate.csproj` and

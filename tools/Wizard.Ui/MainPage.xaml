@@ -1,0 +1,457 @@
+﻿<Page
+    x:Class="MZikmund.UnoApp.WizardUi.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MZikmund.UnoApp.WizardUi"
+    xmlns:models="using:MZikmund.UnoApp.WizardUi.Models"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <FontFamily x:Key="CodeFontFamily">Cascadia Mono, Consolas, Courier New, monospace</FontFamily>
+
+        <!--  The generated command with a Copy button; used in the sidebar and on the Review step.  -->
+        <DataTemplate x:Key="CommandTemplate" x:DataType="local:WizardViewModel">
+            <Grid RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Border
+                    Padding="12"
+                    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{ThemeResource ControlCornerRadius}">
+                    <TextBlock
+                        AutomationProperties.AutomationId="CommandText"
+                        FontFamily="{StaticResource CodeFontFamily}"
+                        IsTextSelectionEnabled="True"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind CommandLine, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                </Border>
+                <Button
+                    Grid.Row="1"
+                    AutomationProperties.AutomationId="CopyButton"
+                    Command="{x:Bind CopyCommand}"
+                    Content="{x:Bind CopyLabel, Mode=OneWay}" />
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <!--  Loading and failure  -->
+        <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="16"
+            Visibility="{x:Bind local:MainPage.Show(ViewModel.IsLoading), Mode=OneWay}">
+            <ProgressRing
+                Width="48"
+                Height="48"
+                AutomationProperties.AutomationId="LoadingRing"
+                IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
+            <TextBlock Style="{StaticResource BodyTextBlockStyle}" Text="Loading the template" />
+        </StackPanel>
+
+        <InfoBar
+            Title="The wizard couldn't start"
+            Margin="24"
+            VerticalAlignment="Top"
+            AutomationProperties.AutomationId="LoadErrorBar"
+            IsClosable="False"
+            IsOpen="{x:Bind local:MainPage.HasText(ViewModel.LoadError), Mode=OneWay}"
+            Message="{x:Bind ViewModel.LoadError, Mode=OneWay}"
+            Severity="Error" />
+
+        <Grid Visibility="{x:Bind local:MainPage.Show(ViewModel.IsLoaded), Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <NavigationView
+                x:Name="Navigation"
+                AutomationProperties.AutomationId="StepNavigation"
+                IsBackButtonVisible="Collapsed"
+                IsPaneToggleButtonVisible="False"
+                IsSettingsVisible="False"
+                MenuItemsSource="{x:Bind ViewModel.Steps, Mode=OneWay}"
+                OpenPaneLength="224"
+                PaneDisplayMode="Left"
+                SelectionChanged="OnStepSelectionChanged">
+                <NavigationView.MenuItemTemplate>
+                    <DataTemplate x:DataType="models:StepItem">
+                        <NavigationViewItem AutomationProperties.AutomationId="{x:Bind AutomationId}" Content="{x:Bind Title}">
+                            <NavigationViewItem.Icon>
+                                <FontIcon Glyph="{x:Bind Glyph}" />
+                            </NavigationViewItem.Icon>
+                        </NavigationViewItem>
+                    </DataTemplate>
+                </NavigationView.MenuItemTemplate>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <InfoBar
+                        Title="This is a preview, so it can't create apps"
+                        Margin="24,12,24,0"
+                        AutomationProperties.AutomationId="PreviewBar"
+                        IsClosable="False"
+                        IsOpen="{x:Bind ViewModel.IsPreview, Mode=OneWay}"
+                        Message="To use the command it builds, first run: dotnet new install MZikmund.UnoApp.Templates. For the full wizard, run: dotnet tool install -g MZikmund.UnoApp.Cli, then: mzuno-app wizard."
+                        Severity="Informational" />
+
+                    <!--  Project  -->
+                    <ScrollViewer Grid.Row="1" Visibility="{x:Bind local:MainPage.Show(ViewModel.IsProjectStep), Mode=OneWay}">
+                        <StackPanel
+                            MaxWidth="800"
+                            Padding="24"
+                            Spacing="4">
+                            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Project" />
+                            <TextBlock
+                                Margin="0,0,0,16"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind ViewModel.ProjectIntro, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+
+                            <local:SettingsRow Header="Project name">
+                                <local:SettingsRow.Description>
+                                    <StackPanel>
+                                        <TextBlock Text="Becomes the solution, the folder and the root namespace." TextWrapping="Wrap" />
+                                        <TextBlock
+                                            AutomationProperties.AutomationId="NameProblem"
+                                            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                            Text="{x:Bind ViewModel.NameProblem, Mode=OneWay}"
+                                            TextWrapping="Wrap"
+                                            Visibility="{x:Bind local:MainPage.HasTextVisibility(ViewModel.NameProblem), Mode=OneWay}" />
+                                    </StackPanel>
+                                </local:SettingsRow.Description>
+                                <TextBox
+                                    Width="280"
+                                    AutomationProperties.AutomationId="NameTextBox"
+                                    PlaceholderText="MyApp"
+                                    Text="{x:Bind ViewModel.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </local:SettingsRow>
+
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.Parameters, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Spacing="4" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ParameterItem">
+                                        <local:SettingsRow Header="{x:Bind DisplayName}">
+                                            <local:SettingsRow.Description>
+                                                <StackPanel>
+                                                    <TextBlock Text="{x:Bind Description}" TextWrapping="Wrap" />
+                                                    <TextBlock
+                                                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                        Text="{x:Bind Problem, Mode=OneWay}"
+                                                        TextWrapping="Wrap"
+                                                        Visibility="{x:Bind local:MainPage.Show(HasProblem), Mode=OneWay}" />
+                                                </StackPanel>
+                                            </local:SettingsRow.Description>
+                                            <TextBox
+                                                Width="280"
+                                                AutomationProperties.AutomationId="{x:Bind AutomationId}"
+                                                PlaceholderText="{x:Bind Placeholder}"
+                                                Text="{x:Bind Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </local:SettingsRow>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <local:SettingsRow
+                                Description="The app is created in a folder with the project name inside this one."
+                                Header="Output folder"
+                                Visibility="{x:Bind local:MainPage.Hide(ViewModel.IsPreview), Mode=OneWay}">
+                                <TextBox
+                                    Width="280"
+                                    AutomationProperties.AutomationId="OutputTextBox"
+                                    Text="{x:Bind ViewModel.OutputDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </local:SettingsRow>
+
+                            <local:SettingsRow
+                                Description="Runs git init and makes a first commit."
+                                Header="Create a git repository"
+                                Visibility="{x:Bind local:MainPage.Hide(ViewModel.IsPreview), Mode=OneWay}">
+                                <ToggleSwitch
+                                    MinWidth="0"
+                                    AutomationProperties.AutomationId="GitToggle"
+                                    AutomationProperties.Name="Create a git repository"
+                                    IsOn="{x:Bind ViewModel.InitializeGit, Mode=TwoWay}"
+                                    OffContent=""
+                                    OnContent="" />
+                            </local:SettingsRow>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!--  Platforms  -->
+                    <ScrollViewer Grid.Row="1" Visibility="{x:Bind local:MainPage.Show(ViewModel.IsPlatformsStep), Mode=OneWay}">
+                        <StackPanel
+                            MaxWidth="800"
+                            Padding="24"
+                            Spacing="4">
+                            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Platforms" />
+                            <TextBlock
+                                Margin="0,0,0,16"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="Choose where the app runs. Anything you switch off is left out of the project."
+                                TextWrapping="Wrap" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.PlatformItems, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Spacing="4" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:PlatformItem">
+                                        <local:SettingsRow Description="{x:Bind Description}" Header="{x:Bind DisplayName}">
+                                            <ToggleSwitch
+                                                MinWidth="0"
+                                                AutomationProperties.AutomationId="{x:Bind AutomationId}"
+                                                AutomationProperties.Name="{x:Bind DisplayName}"
+                                                IsOn="{x:Bind IsOn, Mode=TwoWay}"
+                                                OffContent=""
+                                                OnContent="" />
+                                        </local:SettingsRow>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!--  Feature groups  -->
+                    <ScrollViewer Grid.Row="1" Visibility="{x:Bind local:MainPage.Show(ViewModel.IsGroupStep), Mode=OneWay}">
+                        <StackPanel
+                            MaxWidth="800"
+                            Padding="24"
+                            Spacing="4">
+                            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="{x:Bind ViewModel.SelectedStep.Title, Mode=OneWay}" />
+                            <TextBlock
+                                Margin="0,0,0,16"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind ViewModel.SelectedStep.Group.Description, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.CurrentFeatures, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Spacing="4" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:FeatureItem">
+                                        <local:SettingsRow Header="{x:Bind DisplayName}">
+                                            <local:SettingsRow.Description>
+                                                <StackPanel>
+                                                    <TextBlock Text="{x:Bind Description}" TextWrapping="Wrap" />
+                                                    <TextBlock
+                                                        Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                                        Text="{x:Bind Note, Mode=OneWay}"
+                                                        Visibility="{x:Bind local:MainPage.Show(HasNote), Mode=OneWay}" />
+                                                </StackPanel>
+                                            </local:SettingsRow.Description>
+                                            <ToggleSwitch
+                                                MinWidth="0"
+                                                AutomationProperties.AutomationId="{x:Bind AutomationId}"
+                                                AutomationProperties.Name="{x:Bind DisplayName}"
+                                                IsOn="{x:Bind IsOn, Mode=TwoWay}"
+                                                OffContent=""
+                                                OnContent="" />
+                                        </local:SettingsRow>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!--  Review  -->
+                    <ScrollViewer Grid.Row="1" Visibility="{x:Bind local:MainPage.Show(ViewModel.IsReviewStep), Mode=OneWay}">
+                        <StackPanel
+                            MaxWidth="800"
+                            Padding="24"
+                            Spacing="4">
+                            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Review" />
+                            <TextBlock
+                                Margin="0,0,0,16"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind ViewModel.ReviewIntro, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.Problems, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Spacing="4" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <InfoBar
+                                            IsClosable="False"
+                                            IsOpen="True"
+                                            Message="{x:Bind}"
+                                            Severity="Warning" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <local:SettingsRow Description="{x:Bind ViewModel.PlatformsText, Mode=OneWay}" Header="Platforms" />
+                            <local:SettingsRow Description="{x:Bind ViewModel.FeaturesOnText, Mode=OneWay}" Header="Included" />
+                            <local:SettingsRow Description="{x:Bind ViewModel.FeaturesOffText, Mode=OneWay}" Header="Left out" />
+
+                            <TextBlock
+                                Margin="0,16,0,4"
+                                Style="{StaticResource BodyStrongTextBlockStyle}"
+                                Text="Command" />
+                            <ContentControl
+                                HorizontalContentAlignment="Stretch"
+                                Content="{x:Bind ViewModel}"
+                                ContentTemplate="{StaticResource CommandTemplate}" />
+
+                            <StackPanel
+                                Margin="0,16,0,0"
+                                Orientation="Horizontal"
+                                Spacing="12"
+                                Visibility="{x:Bind local:MainPage.Hide(ViewModel.IsPreview), Mode=OneWay}">
+                                <Button
+                                    AutomationProperties.AutomationId="CreateButton"
+                                    Command="{x:Bind ViewModel.CreateCommand}"
+                                    Content="Create app"
+                                    Style="{StaticResource AccentButtonStyle}" />
+                                <ProgressRing
+                                    Width="20"
+                                    Height="20"
+                                    AutomationProperties.AutomationId="CreateProgress"
+                                    IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+                            </StackPanel>
+
+                            <InfoBar
+                                x:Name="SuccessBar"
+                                Title="Your app is ready"
+                                Margin="0,8,0,0"
+                                AutomationProperties.AutomationId="SuccessBar"
+                                IsClosable="False"
+                                IsOpen="{x:Bind ViewModel.IsCreated, Mode=OneWay}"
+                                Severity="Success">
+                                <TextBlock
+                                    Margin="0,0,0,12"
+                                    FontFamily="{StaticResource CodeFontFamily}"
+                                    IsTextSelectionEnabled="True"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind ViewModel.NextSteps, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </InfoBar>
+
+                            <InfoBar
+                                x:Name="ErrorBar"
+                                Title="Couldn't create the app"
+                                Margin="0,8,0,0"
+                                AutomationProperties.AutomationId="ErrorBar"
+                                IsClosable="False"
+                                IsOpen="{x:Bind local:MainPage.HasText(ViewModel.CreateError), Mode=OneWay}"
+                                Severity="Error">
+                                <ScrollViewer MaxHeight="240" Margin="0,0,0,12">
+                                    <TextBlock
+                                        FontFamily="{StaticResource CodeFontFamily}"
+                                        IsTextSelectionEnabled="True"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind ViewModel.CreateError, Mode=OneWay}"
+                                        TextWrapping="Wrap" />
+                                </ScrollViewer>
+                            </InfoBar>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!--  Footer  -->
+                    <Grid
+                        Grid.Row="2"
+                        Padding="24,12"
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="0,1,0,0"
+                        ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Button
+                            AutomationProperties.AutomationId="BackButton"
+                            Command="{x:Bind ViewModel.BackCommand}"
+                            Content="Back" />
+                        <Button
+                            Grid.Column="2"
+                            AutomationProperties.AutomationId="NextButton"
+                            Command="{x:Bind ViewModel.NextCommand}"
+                            Content="Next"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Visibility="{x:Bind local:MainPage.Show(ViewModel.CanGoNext), Mode=OneWay}" />
+                    </Grid>
+                </Grid>
+            </NavigationView>
+
+            <!--  Live summary  -->
+            <Border
+                x:Name="Sidebar"
+                Grid.Column="1"
+                Width="340"
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="1,0,0,0"
+                Visibility="Collapsed">
+                <ScrollViewer>
+                    <StackPanel Padding="24" Spacing="16">
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Summary" />
+                        <StackPanel Spacing="4">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="Name" />
+                            <TextBlock
+                                AutomationProperties.AutomationId="SummaryName"
+                                Style="{StaticResource BodyStrongTextBlockStyle}"
+                                Text="{x:Bind local:MainPage.NameOrPlaceholder(ViewModel.Name), Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="Selected" />
+                            <TextBlock AutomationProperties.AutomationId="SummaryCounts" Text="{x:Bind ViewModel.Summary, Mode=OneWay}" />
+                        </StackPanel>
+                        <Rectangle Height="1" Fill="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                        <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Command" />
+                        <ContentControl
+                            HorizontalContentAlignment="Stretch"
+                            Content="{x:Bind ViewModel}"
+                            ContentTemplate="{StaticResource CommandTemplate}" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind local:MainPage.VersionText(ViewModel.Version), Mode=OneWay}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="LayoutStates">
+                <VisualState x:Name="NarrowLayout" />
+                <VisualState x:Name="WideLayout">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="1000" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="Sidebar.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+    </Grid>
+</Page>

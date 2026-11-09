@@ -503,5 +503,8 @@ solution-config.props
 # winapp ui screenshots (local app-automation captures)
 .screenshots/
 
-# Local wrangler state from `wrangler dev` / `wrangler deploy` (see docs/deployment.md).
+# Local wrangler state from `wrangler dev` / `wrangler deploy`
 .wrangler/
+
+# Playwright MCP output
+.playwright-mcp/
