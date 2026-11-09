@@ -162,7 +162,7 @@ push and triggers `release.yml` the normal way.
 | `APPLE_DISTRIBUTION_P12_BASE64`, `APPLE_P12_PASSWORD`, `APPLE_PROVISIONING_PROFILE_BASE64`, `APPLE_CODESIGN_KEY`, `APPLE_TEAM_ID` | iOS build, with `vars.APPLE_PROVISIONING_PROFILE_NAME` | any one missing ⇒ simulator build; TestFlight and App Store jobs skip |
 | `KEYCHAIN_PASSWORD` | iOS build | optional: a random one is generated |
 | `APPLE_ADHOC_PROVISIONING_PROFILE_BASE64` | iOS build on `main` | `main` falls back to a simulator build |
-| `APPLE_TVOS_PROVISIONING_PROFILE_BASE64`, `APPLE_TVOS_ADHOC_PROVISIONING_PROFILE_BASE64` | tvOS build, see [tvos.md](./tvos.md) | simulator build with a smoke test |
+| `APPLE_TVOS_PROVISIONING_PROFILE_BASE64`, `APPLE_TVOS_ADHOC_PROVISIONING_PROFILE_BASE64` | tvOS build | simulator build with a smoke test |
 | `APPSTORE_ISSUER_ID`, `APPSTORE_API_KEY_ID`, `APPSTORE_API_PRIVATE_KEY` | TestFlight, and review submission with `vars.APPSTORE_APP_ID` | any one missing ⇒ those jobs skip green |
 | `MS_STORE_TENANT_ID`, `MS_STORE_SELLER_ID`, `MS_STORE_CLIENT_ID`, `MS_STORE_CLIENT_SECRET` | Microsoft Store, with `vars.MS_STORE_PRODUCT_ID` | any one missing ⇒ Store jobs skip; the `.msixbundle` artifact stays available for manual upload |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | web deploy, PR previews | both skip green |
@@ -188,6 +188,9 @@ Microsoft account will not authenticate.
 <!--#endif-->
 - [release-runbook.md](./release-runbook.md) — cutting, patching, halting: the operational steps.
 - [versioning.md](./versioning.md) — how a version number becomes each store's version.
+<!--#if (hasTvos)-->
+- [tvos.md](./tvos.md) — the Apple TV head and its signing setup.
+<!--#endif-->
 <!--#if (hasWindows)-->
 - [windows-packaging.md](./windows-packaging.md) — the MSIX path and Microsoft Store identity.
 <!--#endif-->

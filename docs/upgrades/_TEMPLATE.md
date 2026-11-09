@@ -13,7 +13,7 @@ impact:    breaking    - apps stop building or working on a new toolkit or SDK u
            recommended - a fix or improvement every app should take
            optional    - nice to have, or only relevant to some apps
 features:  feature ids from .template.config/wizard.json. Empty means it concerns every app.
-platforms: android, ios, windows, desktop, wasm. Empty means every platform.
+platforms: android, ios, tvos, windows, desktop, wasm. Empty means every platform.
 
 The reader is a developer or agent working in an app that has drifted from the template. They don't have your
 context and they've renamed AppTemplate. Write AppTemplate anyway; they know to read it as their app's name.

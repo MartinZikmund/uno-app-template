@@ -29,6 +29,7 @@
         <Description>AppTemplate by Martin Zikmund</Description>
     </PropertyGroup>
 
+    <!--#if (hasTvos)-->
     <!-- Full AOT binds every P/Invoke at native link time, including Windows-only ones in Uno.UI and
          Silk.NET, and the link fails. Uno's own tvOS head interprets for the same reason. See docs/tvos.md. -->
     <PropertyGroup Condition="'$(IsTvOS)' == 'true'">
@@ -36,6 +37,7 @@
         <UseInterpreter>true</UseInterpreter>
         <MtouchInterpreter>all</MtouchInterpreter>
     </PropertyGroup>
+    <!--#endif-->
 
     <!-- Channel-specific identity. See docs/versioning.md. -->
     <PropertyGroup Condition="'$(AppChannel)' == 'Prod'">

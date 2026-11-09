@@ -13,7 +13,7 @@ If the change touches anything an app receives, **add an upgrade note in the sam
 
 1. Copy `docs/upgrades/_TEMPLATE.md` to `docs/upgrades/YYYY-MM-DD-short-slug.md`, using today's date.
 2. Fill in the front matter and the four sections: Why, Who is affected, Steps, Verify.
-3. Use feature ids from `.template.config/wizard.json` in `features`, and `android`, `ios`, `windows`, `desktop`
+3. Use feature ids from `.template.config/wizard.json` in `features`, and `android`, `ios`, `tvos`, `windows`, `desktop`
    or `wasm` in `platforms`, so apps without that feature never see the note. Leave a list empty if it concerns every app.
 
 Write for someone whose app has drifted from the template and who has none of your context:

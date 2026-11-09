@@ -18,7 +18,9 @@
 		<key>CFBundleLocalizations</key>
 		<array>
 			<string>en</string>
+			<!--#if (czech)-->
 			<string>cs</string>
+			<!--#endif-->
 		</array>
 		<key>CFBundleDisplayName</key>
 		<string>App Template</string>

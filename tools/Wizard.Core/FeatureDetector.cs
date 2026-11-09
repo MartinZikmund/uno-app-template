@@ -10,6 +10,7 @@ public static class FeatureDetector
     [
         ("android", "/Platforms/Android/"),
         ("ios", "/Platforms/iOS/"),
+        ("tvos", "/Platforms/tvOS/"),
         ("windows", "/Platforms/Windows/"),
         ("desktop", "/Platforms/Desktop/"),
         ("wasm", "/Platforms/WebAssembly/"),

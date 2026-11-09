@@ -24,11 +24,12 @@
       "enableQuotelessLiterals": true,
       "displayName": "Platforms",
       "description": "The platform heads to include.",
-      "defaultValue": "android|ios|windows|desktop|wasm",
+      "defaultValue": "android|ios|tvos|windows|desktop|wasm",
       "replaces": "__opt_platforms__",
       "choices": [
         { "choice": "android", "displayName": "Android", "description": "Android phones and tablets. Needs the android workload." },
         { "choice": "ios", "displayName": "iOS", "description": "iPhone and iPad. Needs the ios workload and a Mac to build against." },
+        { "choice": "tvos", "displayName": "tvOS", "description": "Apple TV. Needs the tvos workload, and a Mac for anything past compiling." },
         { "choice": "windows", "displayName": "Windows (WinAppSDK)", "description": "Native WinUI on Windows with MSIX packaging." },
         { "choice": "desktop", "displayName": "Desktop (Skia)", "description": "Windows, macOS and Linux from one Skia-rendered head. The fastest head to build." },
         { "choice": "wasm", "displayName": "WebAssembly", "description": "Runs in the browser, deployed to Cloudflare Workers when release workflows are included." }
@@ -36,6 +37,7 @@
     },
     "hasAndroid": { "type": "computed", "value": "(platforms == android)" },
     "hasIos": { "type": "computed", "value": "(platforms == ios)" },
+    "hasTvos": { "type": "computed", "value": "(platforms == tvos)" },
     "hasWindows": { "type": "computed", "value": "(platforms == windows)" },
     "hasDesktop": { "type": "computed", "value": "(platforms == desktop)" },
     "hasWasm": { "type": "computed", "value": "(platforms == wasm)" },
@@ -448,6 +450,14 @@
           ]
         },
         {
+          "condition": "(!hasTvos)",
+          "exclude": [
+            "src/AppTemplate/Platforms/tvOS/**",
+            ".github/workflows/_build-tvos.yml",
+            "docs/tvos.md"
+          ]
+        },
+        {
           "condition": "(!hasWindows)",
           "exclude": [
             "src/AppTemplate/Platforms/Windows/**",
@@ -523,7 +533,8 @@
           "exclude": [
             "src/AppTemplate/Strings/cs/**",
             "src/AppTemplate/Platforms/Android/Resources/values-cs/**",
-            "src/AppTemplate/Platforms/iOS/Resources/cs.lproj/**"
+            "src/AppTemplate/Platforms/iOS/Resources/cs.lproj/**",
+            "src/AppTemplate/Platforms/tvOS/Resources/cs.lproj/**"
           ]
         },
         {

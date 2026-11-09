@@ -34,8 +34,12 @@ selects which one, and `TargetFrameworks` in the project file lists the heads th
 | `net10.0-windows10.0.26100` | Windows, WinAppSDK | Windows + the Windows SDK |
 | `net10.0-android` | Android | Android SDK |
 | `net10.0-ios` | iOS | A Mac to build against |
-| `net10.0-tvos` | tvOS (Apple TV) | A Mac for anything past compiling. See [tvos.md](./tvos.md) |
+| `net10.0-tvos` | tvOS (Apple TV) | A Mac for anything past compiling |
 
+<!--#if (hasTvos)-->
+The Apple TV head has its own page: [tvos.md](./tvos.md).
+
+<!--#endif-->
 Prefer a single-target build. The default multi-target build pulls the Android SDK, which fails on
 network-restricted machines and is rarely what you want while iterating.
 
