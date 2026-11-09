@@ -43,3 +43,6 @@ description: Project layout, MVVM, DI, navigation, and localization conventions
 ## Localization
 - **Never hardcode user-facing strings.** Add the key to **both** `src/AppTemplate/Strings/en/Resources.resw` and `src/AppTemplate/Strings/cs/Resources.resw`.
 - In XAML: `{markup:Localize Key=MyKey}`. In code: inject `IStringLocalizer` (constructor) or use `Localizer.Instance["MyKey"]`.
+
+## Cross-head gotchas
+- Before writing touch handling, list templates, activation/clock logic, or network features, skim [`docs/gotchas.md`](../../docs/gotchas.md) — behaviours that differ between WinUI, Skia, Android and WASM.
