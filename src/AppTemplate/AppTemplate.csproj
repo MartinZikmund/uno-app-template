@@ -23,6 +23,8 @@
         <MtouchUseLlvm>false</MtouchUseLlvm>
         <UseInterpreter>true</UseInterpreter>
         <MtouchInterpreter>all</MtouchInterpreter>
+        <!-- SourceGear.sqlite3 ships no tvOS binary, so SQLitePCLRaw binds to the system library. -->
+        <MtouchExtraArgs>$(MtouchExtraArgs) --gcc_flags=-lsqlite3</MtouchExtraArgs>
     </PropertyGroup>
 
     <!-- Channel-specific identity. See docs/versioning.md. -->

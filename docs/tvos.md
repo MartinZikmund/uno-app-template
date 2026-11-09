@@ -40,6 +40,9 @@ badge stays inside the icon's parallax safe zone - see [dev-assets.md](./dev-ass
   page can be reached and used with focus alone. The template's pages have not been reviewed for this
   yet, and the smoke test below only proves the app starts.
 - **There is no share sheet.** `ShareService.ShareAsync` does nothing on tvOS.
+- **Opening links doesn't work yet.** `Launcher.LaunchUriAsync` returns `false` on tvOS
+  ([unoplatform/uno#24650](https://github.com/unoplatform/uno/issues/24650)), so `LauncherService` and
+  the rating prompt's store link do nothing.
 - **Local storage is not durable.** Apple only guarantees small key-value storage, which is what
   `ApplicationData.Current.LocalSettings` uses. Files can be purged by the system, so keep anything
   important in the cloud.
