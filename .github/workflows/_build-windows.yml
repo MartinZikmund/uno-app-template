@@ -3,12 +3,10 @@ name: Build Windows
 # Reusable: publishes the WinAppSDK head for each architecture, then packages them into a
 # single multi-architecture .msixbundle with the winapp CLI.
 #
-# WHY winapp AND NOT MSBUILD: WinAppSDK 1.7 (what Uno.Sdk 6.7 pins) ships NO bundling
-# targets - `_CreateBundle`, `_CreateAppStoreContainerForUAP` and `_GenerateAppxUploadPackageFile`
-# live only in the standalone Microsoft.Windows.SDK.BuildTools.MSIX package, which is not in
-# this repo's restore graph, and `UapAppxPackageBuildMode` appears zero times in the targets
-# that ARE imported. So `/p:AppxBundle=Always` cannot produce a bundle here and the old
-# `/p:UapAppxPackageBuildMode=CI` was a flag nothing read. winapp is the supported path.
+# WHY winapp: it turns the per-architecture publish layouts straight into one multi-architecture
+# .msixbundle. WinAppSDK 2.x ships no bundling targets itself; the ones Uno.Sdk 7 imports
+# (`_CreateBundle`, `_CreateAppStoreContainerForUAP`) come from the transitively restored
+# Microsoft.Windows.SDK.BuildTools.MSIX and are not used here.
 #
 # Prod bundles are left UNSIGNED on purpose - the Microsoft Store re-signs every package and
 # replaces any existing signature. Dev bundles are signed with a certificate generated in the
@@ -264,10 +262,21 @@ jobs:
             Where-Object { $_.Architecture -eq 'X64' -and [version]$_.Version -ge [version]$runtime.MinVersion })
           if ($runtime -and -not $hasRuntime) {
             $packages = (dotnet nuget locals global-packages --list) -replace '^global-packages:\s*', ''
-            $msix = Get-ChildItem (Join-Path $packages 'microsoft.windowsappsdk') -Recurse -Filter "$($runtime.Name).msix" |
-              Where-Object FullName -like '*win10-x64*' | Sort-Object FullName | Select-Object -Last 1
-            if (-not $msix) { throw "no $($runtime.Name).msix in $packages" }
-            Add-AppxPackage -Path $msix.FullName
+            # WinAppSDK 2.x ships the runtime in its own package. Pick the newest one that satisfies MinVersion.
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            $msix = Get-ChildItem (Join-Path $packages 'microsoft.windowsappsdk.runtime') -Recurse -Filter "$($runtime.Name).msix" |
+              Where-Object FullName -like '*win10-x64*' |
+              ForEach-Object {
+                $zip = [IO.Compression.ZipFile]::OpenRead($_.FullName)
+                try {
+                  $reader = [IO.StreamReader]::new($zip.GetEntry('AppxManifest.xml').Open())
+                  [pscustomobject]@{ Path = $_.FullName; Version = [version]([xml]$reader.ReadToEnd()).Package.Identity.Version }
+                }
+                finally { $zip.Dispose() }
+              } |
+              Where-Object Version -ge ([version]$runtime.MinVersion) | Sort-Object Version | Select-Object -Last 1
+            if (-not $msix) { throw "no $($runtime.Name).msix >= $($runtime.MinVersion) in $packages" }
+            Add-AppxPackage -Path $msix.Path
           }
 
           $app = winapp run $layout --manifest $manifest --exe "$env:APP_NAME.exe" --detach --json | ConvertFrom-Json
