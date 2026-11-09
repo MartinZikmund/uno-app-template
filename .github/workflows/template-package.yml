@@ -112,9 +112,35 @@ jobs:
           path: artifacts/*.nupkg
           if-no-files-found: error
 
-      - name: Publish to nuget.org
-        if: github.event_name == 'workflow_dispatch' && inputs.publish
-        shell: pwsh
+  # Separate from pack, which runs what it builds on every push: only this job can get a NuGet key, and it runs none of
+  # the repository's code. The policy on nuget.org names this file and environment, see docs/template-authoring.md.
+  publish:
+    name: Publish to nuget.org
+    needs: pack
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: nuget-publish
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: artifacts
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Get a short-lived NuGet key
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push the packages
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: dotnet nuget push "artifacts/*.nupkg" --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
