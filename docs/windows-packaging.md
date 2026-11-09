@@ -10,11 +10,11 @@ Store submission. It replaces the older arrangement of
 `msbuild /p:GenerateAppxPackageOnBuild=true` in a three-architecture matrix plus a
 third-party bundler action.
 
-This is not merely tidier — it is the only path that works here. WinAppSDK 1.7, which
-Uno.Sdk 6.7 pins, ships **no bundling targets at all**: `_CreateBundle` and friends live
-only in the standalone `Microsoft.Windows.SDK.BuildTools.MSIX` package, which this project
-does not restore, and `UapAppxPackageBuildMode` appears zero times in the targets it does
-import. `/p:AppxBundle=Always` cannot produce a bundle on this SDK.
+WinAppSDK 2.x itself ships no bundling targets. Since Uno.Sdk 7 the standalone
+`Microsoft.Windows.SDK.BuildTools.MSIX` package is restored transitively, so `_CreateBundle` and
+`_CreateAppStoreContainerForUAP` are imported, but this pipeline has not been moved onto them: `winapp`
+already produces the bundle from the per-architecture publish layouts, and it needs no MSBuild
+packaging pass per architecture.
 
 Pin the CLI version (`microsoft/setup-WinAppCli@v0.2` with `version: 'v0.8.0'`): winapp is
 a 0.x preview and bundling only appeared in 0.3.2.
@@ -57,15 +57,13 @@ Store submits the **bare unsigned `.msixbundle`**:
 - The Store Developer CLI accepts it: its `PackageFilesExtensionInclude` is
   `[".msix", ".msixbundle", ".msixupload"]`.
 
-Nothing in this repo could produce a `.msixupload` anyway. MakeAppx's own documentation
-states it "does not create an app package upload file", and the MSBuild target that does
-(`_CreateAppStoreContainerForUAP`) lives only in the standalone
-`Microsoft.Windows.SDK.BuildTools.MSIX` package, which is not in this project's restore
-graph — which is also why the old `/p:UapAppxPackageBuildMode=CI` was a flag nothing read.
+MakeAppx's own documentation states it "does not create an app package upload file". The MSBuild target
+that does (`_CreateAppStoreContainerForUAP`) lives in `Microsoft.Windows.SDK.BuildTools.MSIX`; this
+pipeline does not call it.
 
 The one thing given up is Partner Center crash symbolication. If you want it back,
-WinAppSDK 1.7 does emit a per-architecture `.msixsym`; rename it to `.appxsym` and zip it
-together with the bundle into a `.msixupload`.
+If you want it back, produce a per-architecture `.appxsym` and zip it together with the bundle into
+a `.msixupload`. That has not been tried on WinAppSDK 2.x.
 
 ## Per-architecture publish
 
@@ -104,25 +102,39 @@ intermediate `obj/…/unoresizetizer/m/Package.appxmanifest`, which lacks it, or
 
 ## Package size
 
-The x64 package is 49.5 MB installed (187.7 MB before this setup), and an x64 + ARM64 bundle
-is a 43.8 MB download.
+The x64 publish layout is 61.7 MB (a Release publish with the flags the workflow uses, measured on
+Uno.Sdk 7.0.0-dev.179). The same publish with none of the settings below is 405.2 MB.
 
-- **Framework-dependent Windows App SDK.** Uno.Sdk sets `WindowsAppSDKSelfContained=true`
-  ([unoplatform/uno#24578](https://github.com/unoplatform/uno/issues/24578)), which bundles
-  the whole runtime into every architecture's package. The app sets it back to `false`, the
-  Windows App SDK default; the Store installs `Microsoft.WindowsAppRuntime.1.x` itself.
+| Step | Layout |
+|---|---|
+| Nothing below | 405.2 MB |
+| Prune the Windows ML packages (`onnxruntime.dll`, `DirectML.dll`) | 364.7 MB |
+| Also prune the SkiaSharp native assets | 121.7 MB |
+| Also `WindowsAppSDKSelfContained=false` | 47.0 MB |
+| Also root `Microsoft.WinUI` for the trimmer | 61.7 MB |
+
+- **Framework-dependent Windows App SDK.** Uno.Sdk 7.0.0-dev.179 still defaults
+  `WindowsAppSDKSelfContained` to `true`, which bundles the whole runtime into every architecture's
+  package. The app sets it to `false`; the Store installs `Microsoft.WindowsAppRuntime.2` itself. A later
+  Uno.Sdk defaults it to `false` for MSIX heads, and the setting can then go.
+- **Pruned natives.** `PrunePackageReference` drops packages the app does not use, with no code change:
+  the Windows ML packages (an app that adopts Windows ML must remove those two lines), and
+  `SkiaSharp.NativeAssets.Win32` / `.WinUI`, whose libraries and PDBs are about 230 MB. Nothing draws with Skia
+  on Windows; `MZikmund.Toolkit.WinUI` references `SkiaSharp.Views.WinUI` for its Windows target, which is
+  what brings them in.
 - **Partial trimming.** The publish profiles turn trimming on; `TrimMode=partial` trims the
   framework but not the app, because full trimming strips what XAML reaches through WinRT
-  (markup extensions, converters, `{Binding}` sources). Reflection-based JSON is still off in
+  (markup extensions, converters, `{Binding}` sources). Full trimming still crashes at startup on Uno 7
+  (`0xc000027b` in `Microsoft.UI.Xaml.dll`). Reflection-based JSON is still off in
   a trimmed build, so serialize through source-generated metadata
   ([json-aot-serialization.md](./json-aot-serialization.md)).
-- **Workarounds in `src/Directory.Build.targets`**, each linked to its Uno issue:
-  - `DropUnusedSkiaNative` drops `libSkiaSharp.dll` and its 80 MB native PDB, which
-    `Uno.WinUI.Graphics2DSK` brings in although nothing draws with Skia on Windows
-    ([unoplatform/uno#24576](https://github.com/unoplatform/uno/issues/24576)).
-  - `SaveNuGetUnoWinUIReferences` / `RestoreNuGetUnoWinUIReferences` undo Uno.WinUI's swap to
-    its net9 `Uno.UI.Toolkit.dll`, which skips the trimmer and crashes the trimmed app at
-    startup ([unoplatform/uno#24577](https://github.com/unoplatform/uno/issues/24577)).
+- **`Microsoft.WinUI` is a trimmer root.** Even in partial mode, a trimmed `Microsoft.WinUI.dll` makes the app
+  fail in `InitializeComponent` with `Markup extension could not provide value`. Rooting `WinRT.Runtime` alone
+  does not help; rooting `Microsoft.WinUI` does, for 14.7 MB.
+
+The workarounds that earlier versions of this repo carried for Uno.WinUI 6 (`DropUnusedSkiaNative`,
+`Save/RestoreNuGetUnoWinUIReferences`) are gone: Uno.WinUI 7.1 keeps NuGet's own Windows assemblies, and the
+Skia natives are pruned in the project instead.
 
 ## Signing
 

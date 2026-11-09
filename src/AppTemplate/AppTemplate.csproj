@@ -1,4 +1,4 @@
-﻿<Project Sdk="Uno.Sdk">
+<Project Sdk="Uno.Sdk">
     <PropertyGroup>
         <TargetFrameworks>
             net10.0-android;
@@ -56,12 +56,30 @@
         <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" PrivateAssets="all" />
     </ItemGroup>
 
+    <!-- Nothing here uses Windows ML (39 MB of natives); an app that adopts it must remove these two. -->
+    <!-- Nothing draws with Skia on Windows, but MZikmund.Toolkit.WinUI pulls SkiaSharp.Views.WinUI in. Prune only the
+         natives (~230 MB with PDBs); trimming removes the managed side. -->
+    <!-- A later Uno.Sdk is meant to turn Skia off on WinAppSDK; revisit then. -->
+    <ItemGroup Condition="'$(IsWinAppSdk)' == 'true'">
+        <PrunePackageReference Include="Microsoft.WindowsAppSDK.ML" Version="99.0.0" />
+        <PrunePackageReference Include="Microsoft.Windows.AI.MachineLearning" Version="99.0.0" />
+        <PrunePackageReference Include="SkiaSharp.NativeAssets.Win32" Version="99.0.0" />
+        <PrunePackageReference Include="SkiaSharp.NativeAssets.WinUI" Version="99.0.0" />
+    </ItemGroup>
+
     <PropertyGroup Condition="'$(IsWinAppSdk)' == 'true'">
+        <!-- Uno.Sdk 7.0.0-dev.179 bundles the runtime into the MSIX; a later SDK defaults this to false for MSIX heads. Drop then. -->
         <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
 
         <!-- Full trimming strips what XAML reaches through WinRT: the Localize extension, converters and {Binding} sources. -->
         <TrimMode>partial</TrimMode>
     </PropertyGroup>
+
+    <!-- Trimming Microsoft.WinUI breaks markup extensions: the app dies in InitializeComponent
+         ("Markup extension could not provide value", 0xc000027b). Costs ~14.7 MB. -->
+    <ItemGroup Condition="'$(IsWinAppSdk)' == 'true'">
+        <TrimmerRootAssembly Include="Microsoft.WinUI" />
+    </ItemGroup>
 
     <ItemGroup>
       <Page Update="Resources\DataTemplates.xaml">

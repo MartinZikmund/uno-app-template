@@ -145,18 +145,4 @@
                Text="ApplicationVersion was not passed on the command line (it resolved to '$(ApplicationVersion)') - CI did not inject a real version." />
     </Target>
 
-    <!--
-      Uno.Sdk always references Uno.WinUI.Graphics2DSK, which brings SkiaSharp's native library
-      (11 MB, plus an 80 MB native PDB). Nothing draws with Skia on Windows, and trimming already
-      removes the managed side.
-      https://github.com/unoplatform/uno/issues/24576
-    -->
-    <Target Name="DropUnusedSkiaNative"
-            Condition="'$(IsWinAppSdk)' == 'true'"
-            AfterTargets="ResolvePackageAssets">
-        <ItemGroup>
-            <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition="'%(Filename)' == 'libSkiaSharp'" />
-        </ItemGroup>
-    </Target>
-
 </Project>
