@@ -5,6 +5,7 @@
             net10.0;
             net10.0-android;
             net10.0-ios;
+            net10.0-tvos;
             net10.0-windows10.0.26100;
             net10.0-desktop;
             net10.0-browserwasm;
@@ -20,6 +21,10 @@
 
     <ItemGroup>
         <PackageReference Include="MZikmund.Toolkit.WinUI" />
+    </ItemGroup>
+
+    <!-- SourceGear.sqlite3 has no tvOS binary, so its P/Invokes would fail the native link. See docs/tvos.md. -->
+    <ItemGroup Condition="'$(IsTvOS)' != 'true'">
         <PackageReference Include="sqlite-net-e" />
         <PackageReference Include="SourceGear.sqlite3" />
     </ItemGroup>

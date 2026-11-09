@@ -41,6 +41,7 @@ body:
         - Linux
         - Android (phone or tablet)
         - iOS (iPhone or iPad)
+        - Apple TV
         - Web browser
     validations:
       required: true

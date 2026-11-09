@@ -22,6 +22,7 @@ public enum DevBadgeMask
     AndroidAdaptive,
     AndroidSplash,
     IosIcon,
+    TvIcon,
 }
 
 /// <summary>A rounded rectangle.</summary>
@@ -92,6 +93,7 @@ public static class DevBadge
     const double AndroidAdaptiveSafeRadius = 33.0 / 108.0; // 66dp safe zone of the 108dp adaptive layer
     const double AndroidSplashRadius = 0.484;              // measured: Android 12+ crops the splash drawable to this radius
     const double IosCornerRatio = 0.2237;
+    const double TvIconSafeHalfHeight = 111.0 / 240.0;     // parallax crops the icon: Apple's safe zone is 222 of its 240 height
     const double Margin = 0.01;
     const double PullStep = 0.0025;
 
@@ -263,6 +265,7 @@ public static class DevBadge
         DevBadgeMask.AndroidAdaptive => InsideCircle(badge, AndroidAdaptiveSafeRadius / scale - Margin),
         DevBadgeMask.AndroidSplash => InsideCircle(badge, AndroidSplashRadius / scale - Margin),
         DevBadgeMask.IosIcon => InsideRoundedSquare(badge, 0.5 / scale - Margin, Math.Max(0, IosCornerRatio / scale - Margin)),
+        DevBadgeMask.TvIcon => InsideRoundedSquare(badge, TvIconSafeHalfHeight / scale - Margin, 0),
         _ => true,
     };
 
@@ -314,6 +317,7 @@ public sealed class DevAssetPlacement(DevBadgeMask mask, double scale)
             ("android", true) => DevBadgeMask.AndroidAdaptive,
             ("android", false) => DevBadgeMask.AndroidSplash,
             ("ios", true) => DevBadgeMask.IosIcon,
+            ("tvos", true) => DevBadgeMask.TvIcon,
             _ => DevBadgeMask.None,
         };
         return new DevAssetPlacement(mask, scale);
@@ -323,6 +327,7 @@ public sealed class DevAssetPlacement(DevBadgeMask mask, double scale)
     {
         "android" => "Android",
         "ios" => "IOS",
+        "tvos" => "TvOS",
         "windows" => "Windows",
         "browserwasm" => "Wasm",
         _ => "Skia",

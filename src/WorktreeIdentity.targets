@@ -112,7 +112,7 @@
     </Target>
 
     <!--
-        iOS. CFBundleDisplayName (home screen) keeps the localized name plus the full suffix;
+        iOS and tvOS. CFBundleDisplayName (home screen) keeps the localized name plus the full suffix;
         CFBundleName gets the short fixed form because of Apple's 16-character limit.
 
         UNVERIFIED - this machine cannot build the iOS head. Note this swaps @(BundleResource)
@@ -121,14 +121,19 @@
         ContinueOnError keeps a mistake from blocking a local build. Verify on a Mac; if the label
         comes out untagged, write over the staged copy the way ApplyMobileLabelAndroid does.
 
-        Forward slashes throughout: iOS builds only ever run on macOS.
+        Forward slashes work on every host, and tvOS compiles on Windows too.
     -->
-    <ItemGroup Condition="'$(MSBuildProjectName)' == 'AppTemplate' and '$(_MobileLabelSuffix)' != '' and '$(TargetPlatformIdentifier)' == 'ios'">
-        <_MobileLabelIosSrc Include="$(MSBuildProjectDirectory)/Platforms/iOS/Resources/**/InfoPlist.strings" />
+    <PropertyGroup>
+        <_MobileLabelAppleFolder Condition="'$(TargetPlatformIdentifier)' == 'ios'">iOS</_MobileLabelAppleFolder>
+        <_MobileLabelAppleFolder Condition="'$(TargetPlatformIdentifier)' == 'tvos'">tvOS</_MobileLabelAppleFolder>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(MSBuildProjectName)' == 'AppTemplate' and '$(_MobileLabelSuffix)' != '' and '$(_MobileLabelAppleFolder)' != ''">
+        <_MobileLabelIosSrc Include="$(MSBuildProjectDirectory)/Platforms/$(_MobileLabelAppleFolder)/Resources/**/InfoPlist.strings" />
     </ItemGroup>
 
     <Target Name="ApplyMobileLabelIos"
-            Condition="'$(MSBuildProjectName)' == 'AppTemplate' and '$(_MobileLabelSuffix)' != '' and '$(TargetPlatformIdentifier)' == 'ios'"
+            Condition="'$(MSBuildProjectName)' == 'AppTemplate' and '$(_MobileLabelSuffix)' != '' and '$(_MobileLabelAppleFolder)' != ''"
             Outputs="%(_MobileLabelIosSrc.RecursiveDir)"
             BeforeTargets="_CompileAppManifest;CompileAppManifest;_CopyResourcesToBundle">
         <PropertyGroup>

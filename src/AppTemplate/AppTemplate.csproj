@@ -3,6 +3,7 @@
         <TargetFrameworks>
             net10.0-android;
             net10.0-ios;
+            net10.0-tvos;
             net10.0-windows10.0.26100;
             net10.0-desktop;
             net10.0-browserwasm;
@@ -14,6 +15,14 @@
         <!-- Application metadata -->
         <ApplicationPublisher>Martin Zikmund</ApplicationPublisher>
         <Description>AppTemplate by Martin Zikmund</Description>
+    </PropertyGroup>
+
+    <!-- Full AOT binds every P/Invoke at native link time, including Windows-only ones in Uno.UI and
+         Silk.NET, and the link fails. Uno's own tvOS head interprets for the same reason. See docs/tvos.md. -->
+    <PropertyGroup Condition="'$(IsTvOS)' == 'true'">
+        <MtouchUseLlvm>false</MtouchUseLlvm>
+        <UseInterpreter>true</UseInterpreter>
+        <MtouchInterpreter>all</MtouchInterpreter>
     </PropertyGroup>
 
     <!-- Channel-specific identity. See docs/versioning.md. -->
@@ -33,7 +42,7 @@
              from the background file (Uno maps UnoIcon.Include = UnoIconBackgroundFile),
              so the background must stay constant or Android's @mipmap/icon breaks. -->
         <UnoIconBackgroundFile>Assets/Icons/icon_transparent.svg</UnoIconBackgroundFile>
-        <UnoIconBackgroundFile Condition="'$(IsIOS)' == 'true' or '$(IsAndroid)' == 'true'">Assets/Icons/icon.svg</UnoIconBackgroundFile>
+        <UnoIconBackgroundFile Condition="'$(IsIOS)' == 'true' or '$(IsTvOS)' == 'true' or '$(IsAndroid)' == 'true'">Assets/Icons/icon.svg</UnoIconBackgroundFile>
 
         <!-- Dev builds badge the icon and splash below at build time (src/DevAssets.targets). -->
 
@@ -44,6 +53,10 @@
 
     <ItemGroup>
         <PackageReference Include="MZikmund.Toolkit.WinUI" />
+    </ItemGroup>
+
+    <!-- SourceGear.sqlite3 has no tvOS binary, so its P/Invokes would fail the native link. See docs/tvos.md. -->
+    <ItemGroup Condition="'$(IsTvOS)' != 'true'">
         <PackageReference Include="sqlite-net-e" />
         <PackageReference Include="SourceGear.sqlite3" />
     </ItemGroup>

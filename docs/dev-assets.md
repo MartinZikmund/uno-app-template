@@ -16,6 +16,7 @@ The badge copies the in-app `DevChannelBadge` from the title bar: a gold (`#FFB9
 | Android launcher | lifted into the 66dp safe zone that every launcher mask keeps |
 | Android 12+ splash | bottom-centre of the logo, clear of the circle the system crops the splash to |
 | iOS home screen | lifted clear of the rounded corners |
+| tvOS home screen | lifted inside the parallax safe zone |
 | Splash on Windows, Desktop, WebAssembly, iOS | bottom-centre of the logo |
 
 At 16–24px the word is unreadable, but the gold bar still marks the build.

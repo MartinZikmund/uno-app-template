@@ -7,8 +7,8 @@ version:
 |---|---|---|
 | PR to `main` | tests, guards, a Release build of four heads | nothing (plus a WASM preview site) |
 | PR to `release/**` | tests, guards, a Release build of four heads | nothing |
-| `main` | **all five heads, packaged, Dev channel** | **nothing** |
-| `release/vX.Y` | all five heads, packaged, Prod channel | test tracks automatically, public stores after approval |
+| `main` | **all six heads, packaged, Dev channel** | **nothing** |
+| `release/vX.Y` | all six heads, packaged, Prod channel | test tracks automatically, public stores after approval |
 
 `main` never publishes. That is the whole point of the split: every push to `main`
 produces installable artifacts you can download from the run, and no store ever hears
@@ -18,9 +18,9 @@ about them.
 
 | File | Trigger | What it does |
 |---|---|---|
-| `ci.yml` | PR, push to `main` | Unit tests, the `Package.appxmanifest` pin guard, a version sanity check, and a Release build of desktop / wasm / android / windows. |
-| `build-main.yml` | push to `main` | Packages all five heads in the **Dev** channel. Publishes nothing. |
-| `release.yml` | push to `release/v**` | Builds all five heads in the **Prod** channel, publishes, tags, and drafts a GitHub Release. |
+| `ci.yml` | PR, push to `main` | Unit tests, the `Package.appxmanifest` pin guard, a version sanity check, and a Release build of desktop / wasm / android / windows, and a compile of tvOS. |
+| `build-main.yml` | push to `main` | Packages all six heads in the **Dev** channel. Publishes nothing. |
+| `release.yml` | push to `release/v**` | Builds all six heads in the **Prod** channel, publishes, tags, and drafts a GitHub Release. |
 | `prepare-release.yml` | manual | Cuts `release/vX.Y` from `main` and moves `main` to the next minor. |
 | `forward-merge.yml` | push to `release/v**` | Keeps one open `release/vX.Y → main` PR so a hotfix is never lost. |
 | `store-ops.yml` | manual | Break-glass: halt or walk a rollout, pause a phased release, unblock a stuck submission, re-push an old run's bits. |
@@ -129,7 +129,7 @@ Repo variables, no YAML edit:
 
 | Variable | Effect |
 |---|---|
-| `ENABLE_ANDROID`, `ENABLE_IOS`, `ENABLE_WINDOWS`, `ENABLE_DESKTOP`, `ENABLE_WASM` | set any to `false` to skip that head's **packaging** in `build-main.yml` and `release.yml`. `ci.yml`'s PR build matrix is not affected — edit it directly to stop compiling a head altogether. |
+| `ENABLE_ANDROID`, `ENABLE_IOS`, `ENABLE_TVOS`, `ENABLE_WINDOWS`, `ENABLE_DESKTOP`, `ENABLE_WASM` | set any to `false` to skip that head's **packaging** in `build-main.yml` and `release.yml`. `ci.yml`'s PR build matrix is not affected — edit it directly to stop compiling a head altogether. |
 | `ENABLE_DESKTOP_MACOS_ON_MAIN` | `true` adds `osx-arm64` to `main` builds (macOS runners bill at 10×; off by default, always on for releases) |
 
 `workflow_dispatch` on `build-main.yml` and `release.yml` also takes an `only` input
@@ -162,6 +162,7 @@ push and triggers `release.yml` the normal way.
 | `APPLE_DISTRIBUTION_P12_BASE64`, `APPLE_P12_PASSWORD`, `APPLE_PROVISIONING_PROFILE_BASE64`, `APPLE_CODESIGN_KEY`, `APPLE_TEAM_ID` | iOS build, with `vars.APPLE_PROVISIONING_PROFILE_NAME` | any one missing ⇒ simulator build; TestFlight and App Store jobs skip |
 | `KEYCHAIN_PASSWORD` | iOS build | optional: a random one is generated |
 | `APPLE_ADHOC_PROVISIONING_PROFILE_BASE64` | iOS build on `main` | `main` falls back to a simulator build |
+| `APPLE_TVOS_PROVISIONING_PROFILE_BASE64`, `APPLE_TVOS_ADHOC_PROVISIONING_PROFILE_BASE64` | tvOS build, see [tvos.md](./tvos.md) | simulator build with a smoke test |
 | `APPSTORE_ISSUER_ID`, `APPSTORE_API_KEY_ID`, `APPSTORE_API_PRIVATE_KEY` | TestFlight, and review submission with `vars.APPSTORE_APP_ID` | any one missing ⇒ those jobs skip green |
 | `MS_STORE_TENANT_ID`, `MS_STORE_SELLER_ID`, `MS_STORE_CLIENT_ID`, `MS_STORE_CLIENT_SECRET` | Microsoft Store, with `vars.MS_STORE_PRODUCT_ID` | any one missing ⇒ Store jobs skip; the `.msixbundle` artifact stays available for manual upload |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | web deploy, PR previews | both skip green |

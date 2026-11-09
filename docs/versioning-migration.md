@@ -81,7 +81,7 @@ interdependent. See [release-pipeline.md](./release-pipeline.md) for what each f
 - `.github/actions/{setup-dotnet-build,app-version,publish-once}/` — the shared composites.
 - `.github/workflows/_build-*.yml` — one reusable workflow per head. These are the only
   place a head is compiled, and they never publish.
-- `.github/workflows/build-main.yml` — packages all five heads on `main`, publishes nothing.
+- `.github/workflows/build-main.yml` — packages all six heads on `main`, publishes nothing.
 - `.github/workflows/release.yml` — builds and publishes on `release/v**`.
 - `.github/workflows/{prepare-release,forward-merge,store-ops,store-health}.yml`.
 - `.github/scripts/{play_track_op,asc_op}.py`.

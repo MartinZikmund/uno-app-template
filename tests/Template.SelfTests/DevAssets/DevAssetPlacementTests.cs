@@ -12,6 +12,8 @@ public sealed class DevAssetPlacementTests
     [DataRow(false, "android", DevBadgeMask.AndroidSplash)]
     [DataRow(true, "ios", DevBadgeMask.IosIcon)]
     [DataRow(false, "ios", DevBadgeMask.None)]
+    [DataRow(true, "tvos", DevBadgeMask.TvIcon)]
+    [DataRow(false, "tvos", DevBadgeMask.None)]
     [DataRow(true, "windows", DevBadgeMask.None)]
     [DataRow(true, "browserwasm", DevBadgeMask.None)]
     [DataRow(true, "", DevBadgeMask.None)]
@@ -48,6 +50,29 @@ public sealed class DevAssetPlacementTests
 
         DevAssetPlacement.Resolve(false, "android", splash).Scale.Should().Be(0.7);
         DevAssetPlacement.Resolve(false, "ios", splash).Scale.Should().Be(0.85);
+    }
+
+    [TestMethod]
+    public void Resolve_IconWithTvOSOverride_OverrideWins()
+    {
+        TaskItem icon = new("a.svg");
+        icon.SetMetadata("ForegroundScale", "1");
+        icon.SetMetadata("TvOSForegroundScale", "0.7");
+
+        DevAssetPlacement.Resolve(true, "tvos", icon).Scale.Should().Be(0.7);
+    }
+
+    [TestMethod]
+    public void Place_TvIcon_StaysInsideTheParallaxSafeZone()
+    {
+        // Apple's safe zone is 222 of the icon's 240 height; an icon is fitted to the frame's height.
+        const double safeMargin = (240.0 - 222.0) / 2 / 240.0;
+
+        var badge = DevBadge.Place(0, 0, 100, 100, DevBadgeMask.TvIcon, 1.0, BadgeLabel.Dev, out bool fits);
+
+        fits.Should().BeTrue();
+        badge.Bottom.Should().BeLessThanOrEqualTo(100 * (1 - safeMargin));
+        badge.Y.Should().BeGreaterThanOrEqualTo(100 * safeMargin);
     }
 
     [TestMethod]
