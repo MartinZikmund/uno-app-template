@@ -8,7 +8,7 @@
     <!--#if (sqlite)-->
     <!-- SQLite -->
     <PackageVersion Include="sqlite-net-e" Version="1.11.0" />
-    <PackageVersion Include="SourceGear.sqlite3" Version="3.50.4.5" />
+    <PackageVersion Include="SourceGear.sqlite3" Version="3.53.4" />
     <!--#endif-->
     <!-- Test packages -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
