@@ -171,7 +171,9 @@ public sealed partial class WindowShell : Page, IWindowShell
         }
 #endif
 
-        if (ApiInformation.IsPropertyPresent("Microsoft.UI.Xaml.Window", "SystemBackdrop"))
+        // With a backdrop set, the macOS desktop head leaves stale frames on screen while scrolling and navigating
+        // (https://github.com/unoplatform/uno/issues/24495), so the page keeps its own background there.
+        if (ApiInformation.IsPropertyPresent("Microsoft.UI.Xaml.Window", "SystemBackdrop") && !OperatingSystem.IsMacOS())
         {
             _associatedWindow.SystemBackdrop = new MicaBackdrop();
             Background = null;
