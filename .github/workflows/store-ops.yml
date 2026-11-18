@@ -33,6 +33,12 @@ on:
           - appstore-resume
           - appstore-cancel-review
           #endif
+          #if (useMacAppStore)
+          - macappstore-status
+          - macappstore-pause
+          - macappstore-resume
+          - macappstore-cancel-review
+          #endif
           #if (hasWindows)
           - msstore-status
           - msstore-rollout-update
@@ -102,9 +108,9 @@ jobs:
           python .github/scripts/play_track_op.py "$op" "${args[@]}"
   #endif
 
-  #if (hasIos)
+  #if (hasIos || useMacAppStore)
   appstore:
-    if: startsWith(inputs.action, 'appstore-')
+    if: startsWith(inputs.action, 'appstore-') || startsWith(inputs.action, 'macappstore-')
     runs-on: ubuntu-24.04
     environment: store-ops
     env:
@@ -122,6 +128,13 @@ jobs:
           set -euo pipefail
           # WARNING: appstore-cancel-review DEVELOPER-REJECTS the submission and sends you
           # to the BACK of the review queue. Never automatic, always a deliberate choice.
+          #if (useMacAppStore)
+          # The macappstore-* levers act on the macOS platform of the same app record.
+          if [[ "$ACTION" == macappstore-* ]]; then
+            export APPSTORE_PLATFORM=MAC_OS
+            ACTION="appstore-${ACTION#macappstore-}"
+          fi
+          #endif
           case "$ACTION" in
             appstore-status)        op=status ;;
             appstore-pause)         op=phased-pause ;;

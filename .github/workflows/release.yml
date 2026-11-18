@@ -2,10 +2,10 @@ name: Release
 
 # A push to release/v** builds every head in the Prod channel and publishes it.
 #
-# Automatic (no approval): Play *internal*, TestFlight, a Microsoft Store *draft*
+# Automatic (no approval): Play *internal*, TestFlight (iOS and macOS), a Microsoft Store *draft*
 #   submission (uploaded but certification NOT started), the Cloudflare Workers
 #   production deploy, the git tag and a draft GitHub Release.
-# Gated (required reviewer): Play production rollout, App Store "submit for review",
+# Gated (required reviewer): Play production rollout, App Store "submit for review" (iOS and macOS),
 #   Microsoft Store commit. The rule is: gate on "a member of the public sees this",
 #   not on "a store received a file".
 #
@@ -147,6 +147,24 @@ jobs:
       include_macos:  true
   #endif
 
+  #if (useMacAppStore)
+  build-macos:
+    needs: version
+    if: vars.ENABLE_MACOS != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'macos'))
+    uses: ./.github/workflows/_build-macos.yml
+    with:
+      channel:        Prod
+      version_simple: ${{ needs.version.outputs.simple }}
+      artifact_name:  release-macos
+    secrets:
+      APPLE_DISTRIBUTION_P12_BASE64:           ${{ secrets.APPLE_DISTRIBUTION_P12_BASE64 }}
+      APPLE_P12_PASSWORD:                      ${{ secrets.APPLE_P12_PASSWORD }}
+      APPLE_MAC_INSTALLER_P12_BASE64:          ${{ secrets.APPLE_MAC_INSTALLER_P12_BASE64 }}
+      APPLE_MACOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_MACOS_PROVISIONING_PROFILE_BASE64 }}
+      APPLE_CODESIGN_KEY:                      ${{ secrets.APPLE_CODESIGN_KEY }}
+      KEYCHAIN_PASSWORD:                       ${{ secrets.KEYCHAIN_PASSWORD }}
+  #endif
+
   #if (hasWasm)
   build-wasm:
     needs: version
@@ -286,6 +304,75 @@ jobs:
         with:
           mode: record
           environment: testflight
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+  #endif
+
+  #if (useMacAppStore)
+  # The same environment and App Store Connect key as iOS, but its own publish-once marker: the iOS upload of the
+  # same commit must not make this one skip.
+  publish-mac-testflight:
+    needs: [version, build-macos]
+    runs-on: macos-26              # a .pkg needs altool; the appstore-api backend takes only an .ipa
+    timeout-minutes: 90
+    environment: testflight
+    outputs:
+      published: ${{ steps.once.outputs.skip == 'true' || steps.upload.outcome == 'success' }}
+    env:
+      HAS_ASC: ${{ secrets.APPSTORE_ISSUER_ID != '' && secrets.APPSTORE_API_KEY_ID != '' && secrets.APPSTORE_API_PRIVATE_KEY != '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: once
+        uses: ./.github/actions/publish-once
+        with:
+          environment: testflight-macos
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip - App Store Connect credentials incomplete
+        if: env.HAS_ASC != 'true'
+        run: echo "::warning::Skipping the macOS App Store Connect upload - it needs APPSTORE_ISSUER_ID, APPSTORE_API_KEY_ID and APPSTORE_API_PRIVATE_KEY. The macOS artifact is unaffected."
+
+      - uses: actions/download-artifact@v8
+        if: steps.once.outputs.skip != 'true' && env.HAS_ASC == 'true'
+        with:
+          name: release-macos
+          path: pkg
+
+      - name: Locate the .pkg
+        id: pkg
+        if: steps.once.outputs.skip != 'true' && env.HAS_ASC == 'true'
+        run: |
+          set -euo pipefail
+          f="$(find pkg -maxdepth 1 -name '*.pkg' | head -1)"
+          if [ -z "$f" ]; then
+            echo "::warning::No .pkg in the build artifact (the macOS build ran without signing material). Skipping the upload."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "path=$f"    >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload to App Store Connect
+        id: upload
+        if: steps.once.outputs.skip != 'true' && env.HAS_ASC == 'true' && steps.pkg.outputs.found == 'true'
+        uses: Apple-Actions/upload-testflight-build@v5
+        with:
+          app-path: ${{ steps.pkg.outputs.path }}
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          app-type: macos
+          backend: altool
+          uses-non-exempt-encryption: 'false'
+          wait-for-processing: 'true'
+
+      - name: Record the publish
+        if: steps.upload.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: testflight-macos
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
   #endif
@@ -448,6 +535,10 @@ jobs:
       #endif
       #if (hasDesktop)
       - build-desktop
+      #endif
+      #if (useMacAppStore)
+      - build-macos
+      - publish-mac-testflight
       #endif
       #if (hasWasm)
       - build-wasm
@@ -640,6 +731,57 @@ jobs:
         with:
           mode: record
           environment: appstore-production
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+  #endif
+
+  #if (useMacAppStore)
+  submit-mac-appstore:
+    needs: [version, publish-mac-testflight]
+    if: needs.publish-mac-testflight.outputs.published == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment: appstore-production  # REQUIRED REVIEWER
+    env:
+      HAS_ASC: ${{ secrets.APPSTORE_ISSUER_ID != '' && secrets.APPSTORE_API_KEY_ID != '' && secrets.APPSTORE_API_PRIVATE_KEY != '' && vars.APPSTORE_APP_ID != '' }}
+      APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+      APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+      APPSTORE_APP_ID: ${{ vars.APPSTORE_APP_ID }}
+      # The macOS platform of the same app record as iOS.
+      APPSTORE_PLATFORM: MAC_OS
+    steps:
+      - uses: actions/checkout@v7
+      - id: once
+        uses: ./.github/actions/publish-once
+        with:
+          environment: appstore-production-macos
+          sha: ${{ github.sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip - App Store Connect credentials incomplete
+        if: env.HAS_ASC != 'true'
+        run: echo "::warning::Skipping the Mac App Store submission - it needs APPSTORE_ISSUER_ID, APPSTORE_API_KEY_ID, APPSTORE_API_PRIVATE_KEY and vars.APPSTORE_APP_ID."
+
+      - name: Install App Store Connect client
+        if: steps.once.outputs.skip != 'true' && env.HAS_ASC == 'true'
+        run: pip install --quiet pyjwt cryptography requests
+
+      - name: Refuse if a review submission is already in flight
+        if: steps.once.outputs.skip != 'true' && env.HAS_ASC == 'true'
+        run: python .github/scripts/asc_op.py guard
+
+      - name: Submit for review
+        id: upload
+        if: steps.once.outputs.skip != 'true' && env.HAS_ASC == 'true'
+        run: python .github/scripts/asc_op.py submit --version "${{ needs.version.outputs.simple }}"
+
+      - name: Record the publish
+        if: steps.upload.outcome == 'success'
+        uses: ./.github/actions/publish-once
+        with:
+          mode: record
+          environment: appstore-production-macos
           sha: ${{ github.sha }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
   #endif

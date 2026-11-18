@@ -33,7 +33,7 @@ jobs:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
 
-      #if (hasIos || hasAndroid)
+      #if (hasIos || hasAndroid || useMacAppStore)
       - run: pip install --quiet google-auth pyjwt cryptography requests
       #endif
 
@@ -76,6 +76,49 @@ jobs:
               echo ""
               echo '```'
               cat "$RUNNER_TEMP/apple.txt"
+              echo '```'
+              echo ""
+            } >> "$RUNNER_TEMP/report.md"
+          fi
+      #endif
+
+      #if (useMacAppStore)
+      - name: Mac App Store version states
+        env:
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          APPSTORE_APP_ID: ${{ vars.APPSTORE_APP_ID }}
+          APPSTORE_PLATFORM: MAC_OS
+        run: |
+          set -euo pipefail
+          if [ -z "${APPSTORE_API_PRIVATE_KEY:-}" ]; then
+            echo "::notice::No App Store Connect key configured - skipping."
+            exit 0
+          fi
+          if ! python .github/scripts/asc_op.py status > "$RUNNER_TEMP/mac.txt" 2>&1; then
+            {
+              echo "### Mac App Store"
+              echo ""
+              echo "- [ ] **The App Store Connect probe for macOS failed.** The key may have been revoked,"
+              echo "      or the app record may have no macOS platform yet. Mac releases will not submit."
+              echo ""
+              echo '```'
+              cat "$RUNNER_TEMP/mac.txt"
+              echo '```'
+              echo ""
+            } >> "$RUNNER_TEMP/report.md"
+            exit 0
+          fi
+          cat "$RUNNER_TEMP/mac.txt"
+          if grep -qE 'REJECTED|DEVELOPER_REJECTED|METADATA_REJECTED|INVALID_BINARY' "$RUNNER_TEMP/mac.txt"; then
+            {
+              echo "### Mac App Store"
+              echo ""
+              echo "A macOS version is in a rejected state:"
+              echo ""
+              echo '```'
+              cat "$RUNNER_TEMP/mac.txt"
               echo '```'
               echo ""
             } >> "$RUNNER_TEMP/report.md"

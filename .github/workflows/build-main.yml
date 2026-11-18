@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: "Comma-separated heads to build (blank = all enabled): android,ios,tvos,windows,desktop,wasm"
+        description: "Comma-separated heads to build (blank = all enabled): android,ios,tvos,windows,desktop,macos,wasm"
         required: false
         default: ""
 
@@ -128,6 +128,18 @@ jobs:
       version_simple: ${{ needs.version.outputs.simple }}
       artifact_name:  dev-desktop
       include_macos:  ${{ vars.ENABLE_DESKTOP_MACOS_ON_MAIN == 'true' }}
+  #endif
+
+  #if (useMacAppStore)
+  # Unsigned on main: the Mac App Store profile is bound to the Prod bundle id, and a Dev build has its own.
+  build-macos:
+    needs: version
+    if: vars.ENABLE_MACOS != 'false' && (needs.version.outputs.only == '' || contains(needs.version.outputs.only, 'macos'))
+    uses: ./.github/workflows/_build-macos.yml
+    with:
+      channel:        ${{ needs.version.outputs.channel }}
+      version_simple: ${{ needs.version.outputs.simple }}
+      artifact_name:  dev-macos
   #endif
 
   #if (hasWasm)
