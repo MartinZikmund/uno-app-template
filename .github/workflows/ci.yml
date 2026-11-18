@@ -69,7 +69,7 @@ jobs:
           if-no-files-found: warn
   #endif
 
-  #if (hasDesktop || hasWasm || hasAndroid || hasWindows)
+  #if (hasDesktop || hasWasm || hasAndroid || hasWindows || hasIos || hasTvos)
   build:
     if: github.event.repository.private == false || github.event_name == 'workflow_dispatch'
     timeout-minutes: 60
@@ -89,12 +89,15 @@ jobs:
           #if (hasWindows)
           - { name: windows, tfm: net11.0-windows10.0.26100, os: windows-2025 }
           #endif
+          #if (hasIos)
+          # Compile only, on Windows: macOS runners bill at 10x, and signing, bundling and
+          # AOT run on every push to main (build-main.yml).
+          - { name: ios,     tfm: net11.0-ios,               os: windows-2025 }
+          #endif
           #if (hasTvos)
           # Compile only: bundling, AOT and the simulator smoke test need a Mac (build-main.yml).
           - { name: tvos,    tfm: net11.0-tvos,              os: windows-2025 }
           #endif
-          # iOS is deliberately absent: macOS runners bill at 10x and every push to main
-          # already builds the iOS head in build-main.yml.
     runs-on: ${{ matrix.os }}
     env:
       DOTNET_NOLOGO: 1
