@@ -16,7 +16,7 @@
 [CmdletBinding()]
 param(
     [string]$Project = 'src/AppTemplate/AppTemplate.csproj',
-    [string]$TargetFramework = 'net10.0-desktop',
+    [string]$TargetFramework = 'net11.0-desktop',
     [switch]$IncludeAndroid
 )
 
@@ -182,12 +182,12 @@ try {
     Assert-That 'D3  Editing the prod icon re-renders the Dev icon on an incremental build' (-not (Test-SameBytes $before.Files[$icon] $after.Files[$icon]))
 
     if ($IncludeAndroid) {
-        Write-Host 'Rendering net10.0-android...'
+        Write-Host 'Rendering net11.0-android...'
         $foregroundPng = 'AppIcons/mipmap-xxxhdpi/icon_foreground.png'
         $splashXml = 'sp/drawable-v31/uno_splash_image.xml'
-        $androidPlain = Get-Render -Label 'android-optout' -Tfm 'net10.0-android' -MSBuildArgs @('-p:AppChannel=Dev', '-p:GenerateDevAssets=false') -Files @($foregroundPng)
-        $androidDev = Get-Render -Label 'android-dev' -Tfm 'net10.0-android' -MSBuildArgs @('-p:AppChannel=Dev') -Files @($foregroundPng, $splashXml)
-        $androidBack = Get-Render -Label 'android-optout-again' -Tfm 'net10.0-android' -MSBuildArgs @('-p:AppChannel=Dev', '-p:GenerateDevAssets=false') -Files @($foregroundPng)
+        $androidPlain = Get-Render -Label 'android-optout' -Tfm 'net11.0-android' -MSBuildArgs @('-p:AppChannel=Dev', '-p:GenerateDevAssets=false') -Files @($foregroundPng)
+        $androidDev = Get-Render -Label 'android-dev' -Tfm 'net11.0-android' -MSBuildArgs @('-p:AppChannel=Dev') -Files @($foregroundPng, $splashXml)
+        $androidBack = Get-Render -Label 'android-optout-again' -Tfm 'net11.0-android' -MSBuildArgs @('-p:AppChannel=Dev', '-p:GenerateDevAssets=false') -Files @($foregroundPng)
         $diff = Compare-Render -Badged $androidDev.Files[$foregroundPng] -Plain $androidPlain.Files[$foregroundPng]
         $keepsSplash = (Get-Content -Raw $androidDev.Files[$splashXml]).Contains('@drawable/splash_screen')
         Assert-That 'D5  Android badges the adaptive icon and keeps @drawable/splash_screen' ((Test-Badged $diff) -and $keepsSplash) "changed=$($diff.Changed) bottomCentre=$($diff.BottomCentre) dominant=$($diff.Dominant) keepsSplash=$keepsSplash"

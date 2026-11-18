@@ -96,7 +96,7 @@ To work on the visual wizard, publish it and point the tool at the result:
 
 ```bash
 cd tools/Wizard.Ui
-dotnet publish Wizard.Ui.csproj -c Release -f net10.0-browserwasm -o ../../artifacts/ui
+dotnet publish Wizard.Ui.csproj -c Release -f net11.0-browserwasm -o ../../artifacts/ui
 cd ../..
 dotnet run --project tools/Wizard.Cli/MZikmund.UnoApp.Cli.csproj -- wizard --ui-root artifacts/ui/wwwroot --template-source artifacts/MZikmund.UnoApp.Templates.<version>.nupkg
 ```

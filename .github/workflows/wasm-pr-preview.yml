@@ -29,7 +29,7 @@ jobs:
     env:
       DOTNET_NOLOGO: 1
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
-      TFM: net10.0-browserwasm
+      TFM: net11.0-browserwasm
       # Surfaced as an env var so the deploy step can skip itself when no Cloudflare
       # credentials are configured (forks) and still leave the workflow green - the
       # `secrets` context is not usable in a step-level `if:`.

@@ -8,7 +8,7 @@ inputs:
   publish-dir:
     description: "The published wwwroot to prepare, relative to the workspace."
     required: false
-    default: src/AppTemplate/bin/Release/net10.0-browserwasm/publish/wwwroot
+    default: src/AppTemplate/bin/Release/net11.0-browserwasm/publish/wwwroot
   source-headers:
     description: "Fallback source for `_headers` if the publish glob dropped it."
     required: false

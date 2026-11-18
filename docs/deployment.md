@@ -89,7 +89,7 @@ between publish and upload in both `_build-wasm.yml` and `wasm-pr-preview.yml`. 
 ## Local dry run
 
 ```bash
-dotnet publish src/AppTemplate/AppTemplate.csproj -c Release -f net10.0-browserwasm
+dotnet publish src/AppTemplate/AppTemplate.csproj -c Release -f net11.0-browserwasm
 npx wrangler dev                      # serve the built output locally
 npx wrangler versions upload --dry-run
 ```

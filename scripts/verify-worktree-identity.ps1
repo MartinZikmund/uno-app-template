@@ -19,7 +19,7 @@
 [CmdletBinding()]
 param(
     [string]$Project = 'src/AppTemplate/AppTemplate.csproj',
-    [string]$TargetFramework = 'net10.0-desktop'
+    [string]$TargetFramework = 'net11.0-desktop'
 )
 
 $ErrorActionPreference = 'Stop'

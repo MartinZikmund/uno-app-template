@@ -75,7 +75,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
 
       # A CI checkout is a plain clone, so this covers the main-checkout side (I1-I3, kill switch).
       - name: Verify from the clone
@@ -104,11 +104,11 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
 
-      # Restoring AppTemplate.Core evaluates every TFM, and the runner image has no tvOS workload.
-      - name: Install tvOS workload
-        run: dotnet workload install tvos
+      # Restoring AppTemplate.Core evaluates every TFM, so every head's workload has to be there.
+      - name: Restore workloads
+        run: dotnet workload restore src/AppTemplate.slnx
 
       - name: Unit tests
         shell: pwsh
@@ -127,11 +127,11 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
 
-      # Restoring the project evaluates every TFM, and the runner image has no tvOS workload.
-      - name: Install tvOS workload
-        run: dotnet workload install tvos
+      # Restoring the project evaluates every TFM, so every head's workload has to be there.
+      - name: Restore workloads
+        run: dotnet workload restore src/AppTemplate.slnx
 
       # Desktop head only: it renders the same icon and splash outputs as the Windows head.
       - name: Verify rendered assets

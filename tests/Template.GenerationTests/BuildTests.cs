@@ -8,7 +8,7 @@ namespace Template.GenerationTests;
 [DoNotParallelize]
 public class BuildTests
 {
-    private const string _desktop = "net10.0-desktop";
+    private const string _desktop = "net11.0-desktop";
 
     private static void Build(GeneratedApp app, string framework)
     {
@@ -120,10 +120,10 @@ public class BuildTests
     }
 
     [TestMethod]
-    [DataRow("wasm", "net10.0-browserwasm")]
-    [DataRow("windows", "net10.0-windows10.0.26100")]
-    [DataRow("android", "net10.0-android")]
-    [DataRow("tvos", "net10.0-tvos")]
+    [DataRow("wasm", "net11.0-browserwasm")]
+    [DataRow("windows", "net11.0-windows10.0.26100")]
+    [DataRow("android", "net11.0-android")]
+    [DataRow("tvos", "net11.0-tvos")]
     public void SinglePlatform_Builds(string platform, string framework)
     {
         var app = TemplateFixture.Generate($"b-only-{platform}", "Contoso", "--platforms", platform);
@@ -138,6 +138,6 @@ public class BuildTests
         var app = TemplateFixture.Generate("b-win-nowt", "Contoso", "--platforms", "windows", "--worktree-identity", "false", "--dev-assets", "false");
         GitInit(app);
 
-        Build(app, "net10.0-windows10.0.26100");
+        Build(app, "net11.0-windows10.0.26100");
     }
 }

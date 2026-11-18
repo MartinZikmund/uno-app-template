@@ -69,9 +69,9 @@ a `.msixupload`. That has not been tried on WinAppSDK 2.x.
 
 ```powershell
 dotnet publish src/AppTemplate/AppTemplate.csproj `
-  -c Release -f net10.0-windows10.0.26100 `
+  -c Release -f net11.0-windows10.0.26100 `
   -r win-arm64 -p:Platform=ARM64 `
-  -p:TargetFrameworks=net10.0-windows10.0.26100 `
+  -p:TargetFrameworks=net11.0-windows10.0.26100 `
   -p:GenerateAppxPackageOnBuild=false
 ```
 
@@ -113,7 +113,7 @@ Uno.Sdk 7.0.0-dev.179). The same publish with none of the settings below is 405.
 | Also `WindowsAppSDKSelfContained=false` | 47.0 MB (crashes at launch without the descriptor) |
 | Also the `TrimmerRoots.xml` descriptor | 47.1 MB |
 
-- **Framework-dependent Windows App SDK.** Uno.Sdk 7.0.0-dev.179 still defaults
+- **Framework-dependent Windows App SDK.** Uno.Sdk 7.0.22 still defaults
   `WindowsAppSDKSelfContained` to `true`, which bundles the whole runtime into every architecture's
   package. The app sets it to `false`; the Store installs `Microsoft.WindowsAppRuntime.2` itself. A later
   Uno.Sdk defaults it to `false` for MSIX heads, and the setting can then go.

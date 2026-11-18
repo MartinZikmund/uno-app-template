@@ -18,7 +18,7 @@
   "name": "app-template",
   "compatibility_date": "2026-09-08",
   "assets": {
-    "directory": "./src/AppTemplate/bin/Release/net10.0-browserwasm/publish/wwwroot",
+    "directory": "./src/AppTemplate/bin/Release/net11.0-browserwasm/publish/wwwroot",
     "not_found_handling": "single-page-application"
   }
 }

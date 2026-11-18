@@ -44,7 +44,7 @@ paths** (`D:\...`), never bash `/d/...` paths.
 ### 1. Find the WinUI target framework
 
 It is the `*-windows*` entry in `<TargetFrameworks>` of `src/AppTemplate/AppTemplate.csproj`
-(currently `net10.0-windows10.0.26100`, but read it from the csproj in case it has bumped). Call
+(currently `net11.0-windows10.0.26100`, but read it from the csproj in case it has bumped). Call
 it `$TFM` below. The output folder is `src/AppTemplate/bin/Debug/$TFM/` and the launchable exe is
 `AppTemplate.exe` (it matches the project/assembly name — note `RestartAgent.exe` also sits in
 that folder, which is why we disambiguate with `--exe` below).
@@ -52,7 +52,7 @@ that folder, which is why we disambiguate with `--exe` below).
 ### 2. Build the head
 
 ```powershell
-dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100 -c Debug
+dotnet build src/AppTemplate/AppTemplate.csproj -f net11.0-windows10.0.26100 -c Debug
 ```
 
 `AppChannel` defaults to `Dev` (see `src/Directory.Build.props`), so the package identity and the
@@ -66,7 +66,7 @@ but a build from a **git worktree** appends a per-worktree segment
 need it:
 
 ```powershell
-dotnet msbuild src/AppTemplate/AppTemplate.csproj -getProperty:ApplicationId -p:TargetFramework=net10.0-windows10.0.26100
+dotnet msbuild src/AppTemplate/AppTemplate.csproj -getProperty:ApplicationId -p:TargetFramework=net11.0-windows10.0.26100
 ```
 
 ### 3. Launch — pick the path that fits
@@ -76,7 +76,7 @@ package, launches it, and **returns immediately** with the AUMID and PID, so you
 to automate or screenshot it:
 
 ```powershell
-$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"   # swap the TFM if it bumped
+$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net11.0-windows10.0.26100"   # swap the TFM if it bumped
 $app = winapp run $out --exe AppTemplate.exe --detach --json | ConvertFrom-Json
 $AppPid = $app.ProcessId
 # $app -> { "AUMID": "<ApplicationId>_<publisherhash>!App", "ProcessId": 470772 }
@@ -93,10 +93,10 @@ chance exceptions; can't be combined with `--detach`).
 app closes, so don't use it when you need to run more commands afterward:
 
 ```powershell
-dotnet run --project src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100 -c Debug
+dotnet run --project src/AppTemplate/AppTemplate.csproj -f net11.0-windows10.0.26100 -c Debug
 ```
 
-The `-f net10.0-windows10.0.26100` is **required**: `launchSettings.json` lists the WebAssembly
+The `-f net11.0-windows10.0.26100` is **required**: `launchSettings.json` lists the WebAssembly
 profile first, so a bare `dotnet run` would launch WASM. Passing the Windows TFM makes `dotnet
 run` auto-select the compatible `MsixPackage` profile and launch the packaged WinUI app.
 

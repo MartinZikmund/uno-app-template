@@ -241,7 +241,7 @@ public class WorkflowTests
 
         var directory = WorkerConfig(app).GetProperty("assets").GetProperty("directory").GetString();
 
-        directory.Should().Be("./src/ContosoNotes/bin/Release/net10.0-browserwasm/publish/wwwroot");
+        directory.Should().Be("./src/ContosoNotes/bin/Release/net11.0-browserwasm/publish/wwwroot");
     }
 
     [TestMethod]

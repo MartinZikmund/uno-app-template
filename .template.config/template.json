@@ -458,6 +458,12 @@
           ]
         },
         {
+          "condition": "(!hasIos && !hasTvos)",
+          "exclude": [
+            ".github/actions/select-xcode/**"
+          ]
+        },
+        {
           "condition": "(!hasWindows)",
           "exclude": [
             "src/AppTemplate/Platforms/Windows/**",

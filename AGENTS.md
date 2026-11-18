@@ -51,10 +51,10 @@ reference (PowerShell; the WinUI TFM is the `*-windows*` entry in
 
 ```powershell
 # 1. Build the Windows head
-dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100 -c Debug
+dotnet build src/AppTemplate/AppTemplate.csproj -f net11.0-windows10.0.26100 -c Debug
 
 # 2. Launch packaged + detached (returns AUMID + PID; stays non-blocking so you can automate)
-$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"   # run from the worktree you mean
+$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net11.0-windows10.0.26100"   # run from the worktree you mean
 $app = winapp run $out --exe AppTemplate.exe --detach --json | ConvertFrom-Json
 $AppPid = $app.ProcessId
 
@@ -102,10 +102,10 @@ dotnet tool restore                                                  # once afte
 dotnet workload restore src/AppTemplate.slnx                         # once after cloning (every head needs them)
 
 # Build a head (TFM is per-platform; the csproj lists the ones this repository has)
-dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-desktop
-dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100
+dotnet build src/AppTemplate/AppTemplate.csproj -f net11.0-desktop
+dotnet build src/AppTemplate/AppTemplate.csproj -f net11.0-windows10.0.26100
 
-# Run the unit tests (MSTest on Microsoft.Testing.Platform, net10.0)
+# Run the unit tests (MSTest on Microsoft.Testing.Platform, net11.0)
 dotnet test tests/AppTemplate.Core.Tests/AppTemplate.Core.Tests.csproj
 ```
 
@@ -130,6 +130,6 @@ label) go in **`tests/Template.SelfTests`** instead, because apps don't receive 
   committing XAML, or the **XAML Style Check** workflow fails the PR.
 <!--#endif-->
 - **Report Uno divergences upstream.** WinUI is the reference behavior. If during development you find
-  something that's buggy or behaves differently on an Uno target (e.g. `net10.0-desktop`) than on
+  something that's buggy or behaves differently on an Uno target (e.g. `net11.0-desktop`) than on
   WinUI, point it out and offer to file an issue at [`unoplatform/uno`](https://github.com/unoplatform/uno)
   (with a minimal repro and the affected target). Don't open it silently — confirm with the user first.

@@ -9,6 +9,6 @@
   "workers_dev": false,
   "preview_urls": true,
   "assets": {
-    "directory": "./bin/Release/net10.0-browserwasm/publish/wwwroot"
+    "directory": "./bin/Release/net11.0-browserwasm/publish/wwwroot"
   }
 }

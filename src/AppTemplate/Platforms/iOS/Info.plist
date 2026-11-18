@@ -33,6 +33,22 @@
 		<string>Assets.xcassets/icon.appiconset</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
+		<!-- iOS 27 SDK apps must use the scene lifecycle. No delegate class: Uno uses UnoUISceneDelegate. -->
+		<key>UIApplicationSceneManifest</key>
+		<dict>
+			<key>UIApplicationSupportsMultipleScenes</key>
+			<false/>
+			<key>UISceneConfigurations</key>
+			<dict>
+				<key>UIWindowSceneSessionRoleApplication</key>
+				<array>
+					<dict>
+						<key>UISceneConfigurationName</key>
+						<string>Default Configuration</string>
+					</dict>
+				</array>
+			</dict>
+		</dict>
 
 		<key>CFBundleLocalizations</key>
 		<array>

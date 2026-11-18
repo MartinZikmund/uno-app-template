@@ -10,7 +10,7 @@
         "build",
         "${workspaceFolder}/AppTemplate/AppTemplate.csproj",
         "/property:GenerateFullPaths=true",
-        "/property:TargetFramework=net10.0-browserwasm",
+        "/property:TargetFramework=net11.0-browserwasm",
         "/consoleloggerparameters:NoSummary"
       ],
       "problemMatcher": "$msCompile"
@@ -23,7 +23,7 @@
         "publish",
         "${workspaceFolder}/AppTemplate/AppTemplate.csproj",
         "/property:GenerateFullPaths=true",
-        "/property:TargetFramework=net10.0-browserwasm",
+        "/property:TargetFramework=net11.0-browserwasm",
         "/consoleloggerparameters:NoSummary"
       ],
       "problemMatcher": "$msCompile"
@@ -38,7 +38,7 @@
         "build",
         "${workspaceFolder}/AppTemplate/AppTemplate.csproj",
         "/property:GenerateFullPaths=true",
-        "/property:TargetFramework=net10.0-desktop",
+        "/property:TargetFramework=net11.0-desktop",
         "/consoleloggerparameters:NoSummary"
       ],
       "problemMatcher": "$msCompile"
@@ -51,7 +51,7 @@
         "publish",
         "${workspaceFolder}/AppTemplate/AppTemplate.csproj",
         "/property:GenerateFullPaths=true",
-        "/property:TargetFramework=net10.0-desktop",
+        "/property:TargetFramework=net11.0-desktop",
         "/consoleloggerparameters:NoSummary"
       ],
       "problemMatcher": "$msCompile"

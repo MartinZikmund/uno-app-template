@@ -15,7 +15,7 @@ This installs [XAML Styler](./xaml-styler.md), which CI enforces on every pull r
 ## Restore workloads
 
 Restoring a project evaluates all of its target frameworks, so every build needs the workloads of
-every head, even with `-f net10.0-desktop`. Without them you get `NETSDK1147`. Install them once
+every head, even with `-f net11.0-desktop`. Without them you get `NETSDK1147`. Install them once
 after cloning, and again after adding a head:
 
 ```bash
@@ -29,12 +29,12 @@ selects which one, and `TargetFrameworks` in the project file lists the heads th
 
 | TFM | Platform | Prerequisites |
 |---|---|---|
-| `net10.0-desktop` | Cross-platform desktop (Windows, macOS, Linux), Skia-rendered | None beyond the workloads above — the fastest head to build |
-| `net10.0-browserwasm` | WebAssembly | None beyond the workloads above |
-| `net10.0-windows10.0.26100` | Windows, WinAppSDK | Windows + the Windows SDK |
-| `net10.0-android` | Android | Android SDK |
-| `net10.0-ios` | iOS | A Mac to build against |
-| `net10.0-tvos` | tvOS (Apple TV) | A Mac for anything past compiling |
+| `net11.0-desktop` | Cross-platform desktop (Windows, macOS, Linux), Skia-rendered | None beyond the workloads above — the fastest head to build |
+| `net11.0-browserwasm` | WebAssembly | None beyond the workloads above |
+| `net11.0-windows10.0.26100` | Windows, WinAppSDK | Windows + the Windows SDK |
+| `net11.0-android` | Android | Android SDK |
+| `net11.0-ios` | iOS | A Mac to build against |
+| `net11.0-tvos` | tvOS (Apple TV) | A Mac for anything past compiling |
 
 <!--#if (hasTvos)-->
 The Apple TV head has its own page: [tvos.md](./tvos.md).
@@ -47,11 +47,11 @@ network-restricted machines and is rarely what you want while iterating.
 
 ```bash
 # Cross-platform desktop — the quickest feedback loop
-dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-desktop
-dotnet run   --project src/AppTemplate/AppTemplate.csproj -f net10.0-desktop
+dotnet build src/AppTemplate/AppTemplate.csproj -f net11.0-desktop
+dotnet run   --project src/AppTemplate/AppTemplate.csproj -f net11.0-desktop
 
 # Windows (WinAppSDK)
-dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100
+dotnet build src/AppTemplate/AppTemplate.csproj -f net11.0-windows10.0.26100
 ```
 
 `-f` is mandatory on `dotnet run`. Without it you get the WebAssembly head.
@@ -64,7 +64,7 @@ the command line — no Visual Studio. It needs the [`winapp`](https://www.nuget
 CLI (`winget install Microsoft.WinAppCli`):
 
 ```powershell
-$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"
+$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net11.0-windows10.0.26100"
 $app = winapp run $out --exe AppTemplate.exe --detach --json | ConvertFrom-Json   # non-blocking
 $AppPid = $app.ProcessId
 

@@ -1,6 +1,6 @@
 # Windows (WinAppSDK) head
 
-On the `net10.0-windows10.0.26100` target framework the app is compiled as a plain
+On the `net11.0-windows10.0.26100` target framework the app is compiled as a plain
 WinUI / Windows App SDK application using Microsoft's own tooling (Uno Platform is not
 involved at runtime on this head). See
 [How Uno Platform Works](https://platform.uno/docs/articles/how-uno-works.html#windows-using-winappsdk).
@@ -17,7 +17,7 @@ loose-layout package, register it with Windows (like a real MSIX install) and la
 
 ```powershell
 # From the src/AppTemplate folder
-dotnet run -f net10.0-windows10.0.26100
+dotnet run -f net11.0-windows10.0.26100
 ```
 
 The project defaults to a packaged build (`WindowsPackageType=MSIX`), so no extra flags
@@ -43,7 +43,7 @@ Windows-compatible profile):
 
 ```powershell
 # From the src/AppTemplate folder
-dotnet run -f net10.0-windows10.0.26100 -p:WindowsPackageType=None --launch-profile "App Template (WinAppSDK Unpackaged)"
+dotnet run -f net11.0-windows10.0.26100 -p:WindowsPackageType=None --launch-profile "App Template (WinAppSDK Unpackaged)"
 ```
 
 The matching launch profile is **App Template (WinAppSDK Unpackaged)** in
@@ -56,7 +56,7 @@ Windows App SDK:
 
 ```powershell
 # From the src/AppTemplate folder
-dotnet run -f net10.0-desktop
+dotnet run -f net11.0-desktop
 ```
 
 ## IDE

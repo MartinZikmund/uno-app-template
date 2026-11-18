@@ -30,7 +30,7 @@ public class OutputTests
         app.Exists("src/WorktreeIdentity.props").Should().BeTrue();
         app.Exists("AGENTS.md").Should().BeTrue();
         app.Exists(".specify").Should().BeTrue();
-        app.Read("src/ContosoNotes/ContosoNotes.csproj").Should().Contain("net10.0-android").And.Contain("net10.0-browserwasm");
+        app.Read("src/ContosoNotes/ContosoNotes.csproj").Should().Contain("net11.0-android").And.Contain("net11.0-browserwasm");
     }
 
     [TestMethod]
@@ -224,7 +224,7 @@ public class OutputTests
     {
         var app = TemplateFixture.Generate("ide-files", "App1", "--platforms", "windows");
 
-        app.Read("src/.vscode/launch.json").Should().NotContain("net10.0-desktop").And.NotContain("browserwasm").And.NotContain("android");
+        app.Read("src/.vscode/launch.json").Should().NotContain("net11.0-desktop").And.NotContain("browserwasm").And.NotContain("android");
         app.Read("src/.vscode/tasks.json").Should().NotContain("build-wasm").And.NotContain("build-desktop");
         app.Read("src/.run/App1.run.xml").Should().Contain("WinAppSDK").And.NotContain("Desktop").And.NotContain("WebAssembly");
     }
@@ -269,12 +269,12 @@ public class OutputTests
     }
 
     [TestMethod]
-    [DataRow("android", "Platforms/Android", "net10.0-android", ".github/workflows/_build-android.yml")]
-    [DataRow("ios", "Platforms/iOS", "net10.0-ios", ".github/workflows/_build-ios.yml")]
-    [DataRow("tvos", "Platforms/tvOS", "net10.0-tvos", ".github/workflows/_build-tvos.yml")]
-    [DataRow("windows", "Platforms/Windows", "net10.0-windows", ".github/workflows/_build-windows.yml")]
-    [DataRow("desktop", "Platforms/Desktop", "net10.0-desktop", ".github/workflows/_build-desktop.yml")]
-    [DataRow("wasm", "Platforms/WebAssembly", "net10.0-browserwasm", ".github/workflows/_build-wasm.yml")]
+    [DataRow("android", "Platforms/Android", "net11.0-android", ".github/workflows/_build-android.yml")]
+    [DataRow("ios", "Platforms/iOS", "net11.0-ios", ".github/workflows/_build-ios.yml")]
+    [DataRow("tvos", "Platforms/tvOS", "net11.0-tvos", ".github/workflows/_build-tvos.yml")]
+    [DataRow("windows", "Platforms/Windows", "net11.0-windows", ".github/workflows/_build-windows.yml")]
+    [DataRow("desktop", "Platforms/Desktop", "net11.0-desktop", ".github/workflows/_build-desktop.yml")]
+    [DataRow("wasm", "Platforms/WebAssembly", "net11.0-browserwasm", ".github/workflows/_build-wasm.yml")]
     public void PlatformOff_RemovesItsHead(string platform, string folder, string tfm, string? workflow)
     {
         string[] all = ["android", "ios", "tvos", "windows", "desktop", "wasm"];
@@ -294,12 +294,12 @@ public class OutputTests
         {
             app.Read("src/App1/App1.csproj").Should().Contain(other switch
             {
-                "android" => "net10.0-android",
-                "ios" => "net10.0-ios",
-                "tvos" => "net10.0-tvos",
-                "windows" => "net10.0-windows",
-                "desktop" => "net10.0-desktop",
-                _ => "net10.0-browserwasm",
+                "android" => "net11.0-android",
+                "ios" => "net11.0-ios",
+                "tvos" => "net11.0-tvos",
+                "windows" => "net11.0-windows",
+                "desktop" => "net11.0-desktop",
+                _ => "net11.0-browserwasm",
             });
         }
     }
@@ -313,7 +313,20 @@ public class OutputTests
         project.Should().NotContain("MtouchInterpreter").And.NotContain("docs/tvos.md");
         app.Read("src/App1.Core/App1.Core.csproj").Should().NotContain("docs/tvos.md");
         app.Exists("docs/tvos.md").Should().BeFalse();
-        app.Read(".github/workflows/ci.yml").Should().NotContain("net10.0-tvos");
+        app.Read(".github/workflows/ci.yml").Should().NotContain("net11.0-tvos");
+    }
+
+    [TestMethod]
+    [DataRow("ios", true)]
+    [DataRow("desktop", false)]
+    public void PrBuildMatrix_CompilesIosOnlyWhenTheAppHasIt(string platforms, bool expected)
+    {
+        var app = TemplateFixture.Generate($"pr-matrix-{platforms}", "App1", "--platforms", platforms);
+
+        var ci = app.Read(".github/workflows/ci.yml");
+
+        ci.Contains("tfm: net11.0-ios").Should().Be(expected);
+        ci.Contains("  build:").Should().BeTrue();
     }
 
     [TestMethod]

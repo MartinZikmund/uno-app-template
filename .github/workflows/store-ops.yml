@@ -255,7 +255,7 @@ jobs:
           run-id: ${{ inputs.value }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           name: release-wasm
-          path: src/AppTemplate/bin/Release/net10.0-browserwasm/publish/wwwroot
+          path: src/AppTemplate/bin/Release/net11.0-browserwasm/publish/wwwroot
       #endif
 
       #if (hasWindows)
@@ -269,7 +269,7 @@ jobs:
       #endif
 
       - name: Show what was recovered
-        run: find pkg-android pkg-windows src/AppTemplate/bin/Release/net10.0-browserwasm/publish/wwwroot -type f 2>/dev/null | head -50 || true
+        run: find pkg-android pkg-windows src/AppTemplate/bin/Release/net11.0-browserwasm/publish/wwwroot -type f 2>/dev/null | head -50 || true
 
       #if (hasAndroid)
       - name: Re-upload to Play (internal)
