@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<!-- Left empty, Uno fills these from the project -->
+		<key>CFBundleDisplayName</key>
+		<string></string>
+		<key>CFBundleExecutable</key>
+		<string></string>
+		<key>CFBundleIconFile</key>
+		<string></string>
+		<key>CFBundleIdentifier</key>
+		<string></string>
+		<key>CFBundleName</key>
+		<string></string>
+		<key>CFBundleShortVersionString</key>
+		<string></string>
+		<key>CFBundleVersion</key>
+		<string></string>
+
+		<!-- The Mac App Store rejects a bundle without a category. Pick yours from
+		     https://developer.apple.com/documentation/bundleresources/information-property-list/lsapplicationcategorytype -->
+		<key>LSApplicationCategoryType</key>
+		<string>public.app-category.productivity</string>
+
+		<!-- The languages in Strings/, so macOS and the Mac App Store list them -->
+		<key>CFBundleLocalizations</key>
+		<array>
+			<string>en</string>
+			<!--#if (czech)-->
+			<string>cs</string>
+			<!--#endif-->
+		</array>
+
+		<key>NSHumanReadableCopyright</key>
+		<string>© Martin Zikmund</string>
+
+		<!-- Export compliance. HTTPS alone is exempt; set true if the app adds encryption of its own. -->
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
+	</dict>
+</plist>

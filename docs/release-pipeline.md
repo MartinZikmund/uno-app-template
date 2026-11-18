@@ -55,6 +55,9 @@ Automatic on every `release/v*` push:
 
 - **Google Play** → `internal` track
 - **TestFlight** → uploaded and processed
+<!--#if (useMacAppStore)-->
+- **App Store Connect, macOS** → the `.pkg` uploaded and processed, the same way. See [mac-app-store.md](./mac-app-store.md)
+<!--#endif-->
 - **Microsoft Store** → draft submission, uploaded with `--noCommit` so certification has
   *not* started
 - **Cloudflare Workers** → production
@@ -131,6 +134,7 @@ Repo variables, no YAML edit:
 |---|---|
 | `ENABLE_ANDROID`, `ENABLE_IOS`, `ENABLE_TVOS`, `ENABLE_WINDOWS`, `ENABLE_DESKTOP`, `ENABLE_WASM` | set any to `false` to skip that head's **packaging** in `build-main.yml` and `release.yml`. `ci.yml`'s PR build matrix is not affected — edit it directly to stop compiling a head altogether. |
 | `ENABLE_DESKTOP_MACOS_ON_MAIN` | `true` adds `osx-arm64` to `main` builds (macOS runners bill at 10×; off by default, always on for releases) |
+| `ENABLE_MACOS` | `false` skips the Mac App Store build (`_build-macos.yml`) on `main` and on releases |
 
 `workflow_dispatch` on `build-main.yml` and `release.yml` also takes an `only` input
 (`android,windows`) to build a single head while iterating. On `release.yml` that head still
@@ -164,6 +168,7 @@ push and triggers `release.yml` the normal way.
 | `APPLE_ADHOC_PROVISIONING_PROFILE_BASE64` | iOS build on `main` | `main` falls back to a simulator build |
 | `APPLE_TVOS_PROVISIONING_PROFILE_BASE64`, `APPLE_TVOS_ADHOC_PROVISIONING_PROFILE_BASE64` | tvOS build | simulator build with a smoke test |
 | `APPSTORE_ISSUER_ID`, `APPSTORE_API_KEY_ID`, `APPSTORE_API_PRIVATE_KEY` | TestFlight, and review submission with `vars.APPSTORE_APP_ID` | any one missing ⇒ those jobs skip green |
+| `APPLE_MAC_INSTALLER_P12_BASE64`, `APPLE_MACOS_PROVISIONING_PROFILE_BASE64` | Mac App Store build, with `APPLE_DISTRIBUTION_P12_BASE64` and `APPLE_P12_PASSWORD` | any one missing ⇒ unsigned universal `.app` zip; the Mac App Store jobs skip |
 | `MS_STORE_TENANT_ID`, `MS_STORE_SELLER_ID`, `MS_STORE_CLIENT_ID`, `MS_STORE_CLIENT_SECRET` | Microsoft Store, with `vars.MS_STORE_PRODUCT_ID` | any one missing ⇒ Store jobs skip; the `.msixbundle` artifact stays available for manual upload |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | web deploy, PR previews | both skip green |
 | `RELEASE_APP_PRIVATE_KEY` | release cut, tag | degrades to the `GITHUB_TOKEN` + dispatch path |
@@ -188,6 +193,9 @@ Microsoft account will not authenticate.
 <!--#endif-->
 - [release-runbook.md](./release-runbook.md) — cutting, patching, halting: the operational steps.
 - [versioning.md](./versioning.md) — how a version number becomes each store's version.
+<!--#if (useMacAppStore)-->
+- [mac-app-store.md](./mac-app-store.md) — the Mac App Store package, its Apple setup and secrets.
+<!--#endif-->
 <!--#if (hasTvos)-->
 - [tvos.md](./tvos.md) — the Apple TV head and its signing setup.
 <!--#endif-->

@@ -87,7 +87,7 @@ public class WorkflowTests
     [TestMethod]
     public void StoreOps_IsAbsentWithNoStoreToOperate()
     {
-        var app = TemplateFixture.Generate("wf-ops-desktop", "App1", "--platforms", "desktop");
+        var app = TemplateFixture.Generate("wf-ops-desktop", "App1", "--platforms", "desktop", "--mac-app-store", "false");
 
         app.Exists(".github/workflows/store-ops.yml").Should().BeFalse();
     }
@@ -108,7 +108,7 @@ public class WorkflowTests
     public void StoreScripts_ComeWithTheirPlatformOnly(string platform, string script)
     {
         var withIt = TemplateFixture.Generate($"wf-script-{platform}", "App1", "--platforms", platform);
-        var without = TemplateFixture.Generate($"wf-script-no{platform}", "App1", "--platforms", "desktop");
+        var without = TemplateFixture.Generate($"wf-script-no{platform}", "App1", "--platforms", "desktop", "--mac-app-store", "false");
 
         withIt.Exists(script).Should().BeTrue();
         without.Exists(script).Should().BeFalse();

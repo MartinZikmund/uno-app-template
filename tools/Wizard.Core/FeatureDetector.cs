@@ -34,6 +34,7 @@ public static class FeatureDetector
         // Apps copied before the multi-store pipeline have one of these instead.
         ("packaging", "/.github/workflows/tag-release.yml"),
         ("packaging", "/.github/workflows/package-"),
+        ("macAppStore", "/Platforms/Desktop/macOS/Entitlements.plist"),
         ("agents", "/AGENTS.md"),
         ("specKit", "/.specify/"),
         ("community", "/.github/ISSUE_TEMPLATE/"),

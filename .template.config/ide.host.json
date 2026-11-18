@@ -21,6 +21,7 @@
     { "id": "tests", "isVisible": true },
     { "id": "ci", "isVisible": true },
     { "id": "packaging", "isVisible": true },
+    { "id": "macAppStore", "isVisible": true },
     { "id": "agents", "isVisible": true },
     { "id": "specKit", "isVisible": true },
     { "id": "community", "isVisible": true }

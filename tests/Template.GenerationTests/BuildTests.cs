@@ -16,6 +16,23 @@ public class BuildTests
         TemplateFixture.Run("dotnet", ["build", project, "-f", framework, "-v", "q", "-nologo"], app.Root);
     }
 
+    // A built app is several hundred MB, and keeping them all until the run ends fills the CI runner's disk.
+    [TestCleanup]
+    public void DeleteBuiltApps()
+    {
+        foreach (var app in Directory.EnumerateDirectories(TemplateFixture.WorkRoot, "b-*"))
+        {
+            try
+            {
+                Directory.Delete(app, recursive: true);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // A build server can still hold a file. What's left goes with the work root at the end.
+            }
+        }
+    }
+
     private static void GitInit(GeneratedApp app)
     {
         TemplateFixture.Run("git", ["init", "-q"], app.Root);
@@ -86,6 +103,7 @@ public class BuildTests
     [DataRow("tests")]
     [DataRow("ci")]
     [DataRow("packaging")]
+    [DataRow("mac-app-store")]
     [DataRow("spec-kit")]
     [DataRow("community")]
     public void FeatureOff_Builds(string feature)

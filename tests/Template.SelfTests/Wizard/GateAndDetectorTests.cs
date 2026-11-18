@@ -146,6 +146,13 @@ public class GateAndDetectorTests
     }
 
     [TestMethod]
+    public void Detect_MacAppStoreFromItsEntitlements()
+    {
+        FeatureDetector.Detect(["src/App/Platforms/Desktop/macOS/Entitlements.plist"], _ => null)["macAppStore"].Should().Be("True");
+        FeatureDetector.Detect(["src/App/Platforms/Desktop/Program.cs"], _ => null)["macAppStore"].Should().Be("False");
+    }
+
+    [TestMethod]
     public void Detect_NoReleaseWorkflow_HasNoPackaging()
     {
         FeatureDetector.Detect([".github/workflows/ci.yml"], _ => null)["packaging"].Should().Be("False");

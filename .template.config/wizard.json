@@ -19,7 +19,7 @@
       "title": "CI and release",
       "description": "GitHub Actions for the platforms you picked.",
       "icon": "",
-      "features": [ "ci", "packaging" ]
+      "features": [ "ci", "packaging", "macAppStore" ]
     },
     {
       "id": "repository",
