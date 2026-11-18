@@ -23,6 +23,7 @@
     "tests": "__opt_tests__",
     "ci": "__opt_ci__",
     "packaging": "__opt_packaging__",
+    "macAppStore": "__opt_macAppStore__",
     "agents": "__opt_agents__",
     "specKit": "__opt_specKit__",
     "community": "__opt_community__"

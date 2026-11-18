@@ -40,6 +40,21 @@
         </PropertyGroup>
     </Target>
 
+    <!--#if (hasDesktop)-->
+    <!-- macOS app bundle. Uno writes ApplicationVersion into CFBundleVersion, but every desktop build gets 0 there
+         (Uno.Resizetizer's manifest takes only an integer) and NBGV doesn't stamp desktop at all. The bundle is
+         generated after the manifest, so both are set here. https://github.com/unoplatform/uno/issues/24662 -->
+    <Target Name="SetMacOSBundleVersion"
+            Condition="'$(IsDesktop)' == 'true'"
+            BeforeTargets="_UnoPublishAppBundle"
+            DependsOnTargets="GetBuildVersion">
+        <PropertyGroup>
+            <ApplicationDisplayVersion Condition="'$(CiVersionInjected)' != 'true'">$(BuildVersionSimple)</ApplicationDisplayVersion>
+            <ApplicationVersion>$(ApplicationDisplayVersion)</ApplicationVersion>
+        </PropertyGroup>
+    </Target>
+
+    <!--#endif-->
     <!--#if (worktreeIdentity)-->
     <!-- Per-worktree app identity (applies the suffix + generates the in-app name).
          Must be a .targets import: the suffix layers on top of the ApplicationId the project

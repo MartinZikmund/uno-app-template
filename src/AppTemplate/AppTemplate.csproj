@@ -67,6 +67,27 @@
         <UnoSplashScreenScale>0.85</UnoSplashScreenScale>
     </PropertyGroup>
 
+    <!--#if (useMacAppStore)-->
+    <!-- The Mac App Store bundle. See docs/mac-app-store.md. -->
+    <PropertyGroup Condition="'$(IsDesktop)' == 'true'">
+        <UnoMacOSCustomInfoPlist>$(MSBuildThisFileDirectory)Platforms/Desktop/macOS/Info.plist</UnoMacOSCustomInfoPlist>
+        <UnoMacOSMinimumSystemVersion>12.0</UnoMacOSMinimumSystemVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <!-- Only the bundle's icon.icns uses these. build/macos/export-icon.cs renders them. -->
+        <DefaultItemExcludes>$(DefaultItemExcludes);Platforms/Desktop/macOS/AppIcon/**</DefaultItemExcludes>
+    </PropertyGroup>
+
+    <!-- Uno builds icon.icns only from images named icon16x16@1x and so on, and the desktop icon has other names.
+         https://github.com/unoplatform/uno/issues/24661 -->
+    <Target Name="AddMacOSAppIcon" Condition="'$(IsDesktop)' == 'true'" BeforeTargets="_UnoPublishAppBundle">
+        <ItemGroup>
+            <_UnoResizetizerCollectedImages Include="$(MSBuildThisFileDirectory)Platforms/Desktop/macOS/AppIcon/*.png" />
+        </ItemGroup>
+    </Target>
+
+    <!--#endif-->
     <ItemGroup>
         <PackageReference Include="MZikmund.Toolkit.WinUI" />
     </ItemGroup>
