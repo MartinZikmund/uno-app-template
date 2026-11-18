@@ -28,7 +28,7 @@ jobs:
       ContinuousIntegrationBuild: true
       APP_NAME: AppTemplate
       PROJECT_FILE: src/AppTemplate/AppTemplate.csproj
-      TFM: net10.0-desktop
+      TFM: net11.0-desktop
 
     steps:
       - uses: actions/checkout@v7

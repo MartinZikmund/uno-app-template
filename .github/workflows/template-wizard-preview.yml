@@ -28,7 +28,7 @@ jobs:
       DOTNET_NOLOGO: 1
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
       WORKER: uno-app-wizard
-      PUBLISH_DIR: tools/Wizard.Ui/bin/Release/net10.0-browserwasm/publish/wwwroot
+      PUBLISH_DIR: tools/Wizard.Ui/bin/Release/net11.0-browserwasm/publish/wwwroot
       # The `secrets` context isn't usable in a step-level `if:`, and forks don't get these.
       HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
     steps:
@@ -45,7 +45,7 @@ jobs:
 
       - name: Publish the wizard
         working-directory: tools/Wizard.Ui
-        run: dotnet publish Wizard.Ui.csproj -c Release -f net10.0-browserwasm
+        run: dotnet publish Wizard.Ui.csproj -c Release -f net11.0-browserwasm
 
       # From the same config the tool reads, so the preview can't drift from the template on this branch.
       # The cache policy is the app's: both are published with the same fingerprinted layout.

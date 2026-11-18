@@ -2,7 +2,7 @@
   <!--#if (hasDesktop)-->
   <configuration default="false" name="AppTemplate (Desktop)" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
     <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/AppTemplate/AppTemplate.csproj" />
-    <option name="LAUNCH_PROFILE_TFM" value="net10.0-desktop" />
+    <option name="LAUNCH_PROFILE_TFM" value="net11.0-desktop" />
     <option name="LAUNCH_PROFILE_NAME" value="AppTemplate (Desktop)" />
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <option name="USE_MONO" value="0" />
@@ -19,7 +19,7 @@
   <!--#if (hasWasm)-->
   <configuration default="false" name="AppTemplate (WebAssembly IIS Express)" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
     <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/AppTemplate/AppTemplate.csproj" />
-    <option name="LAUNCH_PROFILE_TFM" value="net10.0-browserwasm" />
+    <option name="LAUNCH_PROFILE_TFM" value="net11.0-browserwasm" />
     <option name="LAUNCH_PROFILE_NAME" value="AppTemplate (WebAssembly IIS Express)" />
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <option name="USE_MONO" value="0" />
@@ -34,7 +34,7 @@
   </configuration>
   <configuration default="false" name="AppTemplate (WebAssembly)" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
     <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/AppTemplate/AppTemplate.csproj" />
-    <option name="LAUNCH_PROFILE_TFM" value="net10.0-browserwasm" />
+    <option name="LAUNCH_PROFILE_TFM" value="net11.0-browserwasm" />
     <option name="LAUNCH_PROFILE_NAME" value="AppTemplate (WebAssembly)" />
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <option name="USE_MONO" value="0" />
@@ -51,7 +51,7 @@
   <!--#if (hasWindows)-->
   <configuration default="false" name="AppTemplate (WinAppSDK Unpackaged)" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
     <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/AppTemplate/AppTemplate.csproj" />
-    <option name="LAUNCH_PROFILE_TFM" value="net10.0-windows10.0.26100.0" />
+    <option name="LAUNCH_PROFILE_TFM" value="net11.0-windows10.0.26100.0" />
     <option name="LAUNCH_PROFILE_NAME" value="AppTemplate (WinAppSDK Unpackaged)" />
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <option name="USE_MONO" value="0" />

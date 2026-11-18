@@ -165,7 +165,7 @@ Worktree 'worktree-identity': serve this head on its own origin with --urls http
 Pass it through:
 
 ```bash
-dotnet run -f net10.0-browserwasm --urls http://localhost:5033
+dotnet run -f net11.0-browserwasm --urls http://localhost:5033
 ```
 
 The launch profiles in `Properties/launchSettings.json`, `.vscode/launch.json` and
@@ -176,8 +176,8 @@ and editing them on every feature branch would conflict on every merge.
 
 ```powershell
 # From each worktree, in its own shell:
-dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-windows10.0.26100 -c Debug
-$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net10.0-windows10.0.26100"
+dotnet build src/AppTemplate/AppTemplate.csproj -f net11.0-windows10.0.26100 -c Debug
+$out = Join-Path (Get-Location) "src\AppTemplate\bin\Debug\net11.0-windows10.0.26100"
 $app = winapp run $out --exe AppTemplate.exe --detach --json | ConvertFrom-Json
 ```
 

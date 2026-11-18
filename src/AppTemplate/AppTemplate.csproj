@@ -2,22 +2,22 @@
     <PropertyGroup>
         <TargetFrameworks>
             <!--#if (hasAndroid)-->
-            net10.0-android;
+            net11.0-android;
             <!--#endif-->
             <!--#if (hasIos)-->
-            net10.0-ios;
+            net11.0-ios;
             <!--#endif-->
             <!--#if (hasTvos)-->
-            net10.0-tvos;
+            net11.0-tvos;
             <!--#endif-->
             <!--#if (hasWindows)-->
-            net10.0-windows10.0.26100;
+            net11.0-windows10.0.26100;
             <!--#endif-->
             <!--#if (hasDesktop)-->
-            net10.0-desktop;
+            net11.0-desktop;
             <!--#endif-->
             <!--#if (hasWasm)-->
-            net10.0-browserwasm;
+            net11.0-browserwasm;
             <!--#endif-->
         </TargetFrameworks>
 
@@ -102,7 +102,7 @@
     </ItemGroup>
 
     <PropertyGroup Condition="'$(IsWinAppSdk)' == 'true'">
-        <!-- Uno.Sdk 7.0.0-dev.179 bundles the runtime into the MSIX; a later SDK defaults this to false for MSIX heads. Drop then. -->
+        <!-- Uno.Sdk 7.0.22 still bundles the runtime into the MSIX; a later SDK defaults this to false for MSIX heads. Drop then. -->
         <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
 
         <!-- Full trimming strips what XAML reaches through WinRT: the Localize extension, converters and {Binding} sources. -->

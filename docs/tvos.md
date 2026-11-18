@@ -1,6 +1,6 @@
 # tvOS
 
-Run the app on Apple TV. `net10.0-tvos` is a regular head of `src/AppTemplate`, sharing its views,
+Run the app on Apple TV. `net11.0-tvos` is a regular head of `src/AppTemplate`, sharing its views,
 view models and services with every other head. Its platform files live in
 `src/AppTemplate/Platforms/tvOS`.
 
@@ -8,10 +8,10 @@ view models and services with every other head. Its platform files live in
 
 ```bash
 # Compiles the C# on any OS except Linux - handy for a quick check on Windows
-dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-tvos
+dotnet build src/AppTemplate/AppTemplate.csproj -f net11.0-tvos
 
 # On a Mac: build and launch in the Apple TV simulator
-dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-tvos -t:Run -p:RuntimeIdentifier=tvossimulator-arm64
+dotnet build src/AppTemplate/AppTemplate.csproj -f net11.0-tvos -t:Run -p:RuntimeIdentifier=tvossimulator-arm64
 ```
 
 Because restore evaluates every target framework, the `tvos` workload is needed for all heads, not
@@ -96,6 +96,6 @@ Store. `release.yml` still builds it, and a failed tvOS build blocks the release
 <!--#endif-->
 ## Dropping tvOS
 
-If your app has no use for Apple TV, remove `net10.0-tvos` from `AppTemplate.csproj` and
+If your app has no use for Apple TV, remove `net11.0-tvos` from `AppTemplate.csproj` and
 `AppTemplate.Core.csproj`, delete `Platforms/tvOS`, and remove its row from the `ci.yml` matrix.
 To only stop packaging it, set the repository variable `ENABLE_TVOS` to `false`.

@@ -110,7 +110,7 @@ on every head. It checks that the properties were *passed*, using values `src/Di
 captures before any SDK default applies, rather than comparing them against the defaults `1` and
 `1.0.0`: those are legitimate versions too, and a real `1.0.0` release must not fail.
 
-A global property does **not** beat a property set inside a *target*, and NBGV's `NBGV_SetVersionForMauiAndroid` / `…IOS` targets do exactly that (Android once got `versionCode=65708` instead of the injected one). `src/Directory.Build.props` therefore sets `NBGV_SetMauiVersionProperties=false` whenever `CiVersionInjected=true`. Without the injection (a local `dotnet build -f net10.0-android`), NBGV derives the version itself: `versionCode = major<<24 + minor<<16 + build number`, `versionName = $(Version)`.
+A global property does **not** beat a property set inside a *target*, and NBGV's `NBGV_SetVersionForMauiAndroid` / `…IOS` targets do exactly that (Android once got `versionCode=65708` instead of the injected one). `src/Directory.Build.props` therefore sets `NBGV_SetMauiVersionProperties=false` whenever `CiVersionInjected=true`. Without the injection (a local `dotnet build -f net11.0-android`), NBGV derives the version itself: `versionCode = major<<24 + minor<<16 + build number`, `versionName = $(Version)`.
 
 ## AppChannel
 

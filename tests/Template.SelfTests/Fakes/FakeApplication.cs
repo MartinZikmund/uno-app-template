@@ -9,14 +9,14 @@ internal sealed class FakeApplication : IApplication
     public ApplicationTheme RequestedTheme { get; set; } = ApplicationTheme.Light;
 
     /// <summary>
-    /// Not available under test. Uno's <c>net10.0</c> build is a reference assembly, so
+    /// Not available under test. Uno's <c>net11.0</c> build is a reference assembly, so
     /// constructing a <see cref="ResourceDictionary"/> throws <see cref="NotSupportedException"/>
     /// ("Ref assembly"). Kept as a throwing property rather than an eager field so that view
     /// models which never touch it stay testable.
     /// </summary>
     public ResourceDictionary Resources =>
         throw new NotSupportedException(
-            "FakeApplication does not provide Resources: Uno's net10.0 reference assembly cannot instantiate ResourceDictionary.");
+            "FakeApplication does not provide Resources: Uno's net11.0 reference assembly cannot instantiate ResourceDictionary.");
 
     public string AppVersion { get; set; } = "1.0.0";
 

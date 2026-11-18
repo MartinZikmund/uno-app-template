@@ -59,7 +59,7 @@
       Android and iOS have NO equivalent local fallback, and this is deliberate. Both SDKs
       consume ApplicationVersion / ApplicationDisplayVersion from evaluation-time
       PropertyGroups, so a target cannot reliably override them. A local
-      `dotnet build -f net10.0-android` therefore still emits versionCode=1. That is
+      `dotnet build -f net11.0-android` therefore still emits versionCode=1. That is
       harmless - you never upload from a laptop. Pass the properties on the command line
       if a local number matters.
     -->
