@@ -86,6 +86,7 @@ public class BuildTests
     [DataRow("tests")]
     [DataRow("ci")]
     [DataRow("packaging")]
+    [DataRow("mac-app-store")]
     [DataRow("spec-kit")]
     [DataRow("community")]
     public void FeatureOff_Builds(string feature)
