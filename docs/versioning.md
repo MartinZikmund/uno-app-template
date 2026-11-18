@@ -102,6 +102,7 @@ evaluation-time assignments, so every packaging job passes:
 | iOS | `X.Y.Z` | `X.Y.Z` | `Info.plist` inside the `.ipa` |
 | Windows | `X.Y.Z` | `0` | the bundle manifest inside the `.msixbundle` |
 | Desktop | `X.Y.Z` | `0` | not checked: no store version |
+| Desktop, Mac App Store bundle | `X.Y.Z` | `0`, then `X.Y.Z` in the bundle | `Info.plist` inside the `.app` |
 | WebAssembly | `X.Y.Z` | `0` | not checked: no store version |
 
 Every `X.Y.Z` and the `versionCode` come from the `.github/actions/app-version` composite. Desktop takes `0` for the same reason Windows does: Uno.Resizetizer generates its `Package.appxmanifest` too, and rejects a non-integer `ApplicationVersion`. `src/Directory.Build.targets`
