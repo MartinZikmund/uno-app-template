@@ -480,6 +480,7 @@
           "condition": "(!hasDesktop)",
           "exclude": [
             "src/AppTemplate/Platforms/Desktop/**",
+            "src/AppTemplate/Infrastructure/MacAppearance.cs",
             ".github/workflows/_build-desktop.yml"
           ]
         },
