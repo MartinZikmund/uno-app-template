@@ -68,7 +68,7 @@ xcrun altool --upload-app -t macos -f artifacts/macos/AppTemplate.pkg --apiKey <
 
 `--validate-app` runs App Store Connect's checks without uploading. Without a profile, the script stops at an unsigned
 universal bundle in `artifacts/macos/AppTemplate.app.zip`, which is enough to check a build. An App Store-signed bundle
-won't start outside the App Store, so try the app with `dotnet run -f net10.0-desktop` instead.
+won't start outside the App Store, so try the app with `dotnet run -f net11.0-desktop` instead.
 
 The script:
 

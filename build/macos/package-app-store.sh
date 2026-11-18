@@ -18,7 +18,7 @@ INSTALLER_KEY=${INSTALLER_KEY:-3rd Party Mac Developer Installer}
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 PROJECT="$ROOT/src/AppTemplate/AppTemplate.csproj"
-TFM=net10.0-desktop
+TFM=net11.0-desktop
 BIN="$ROOT/src/AppTemplate/bin/Release/$TFM"
 OUT="$ROOT/artifacts/macos"
 rm -rf "$OUT"

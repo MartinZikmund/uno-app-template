@@ -78,6 +78,6 @@ Apps with the `desktop` platform. Windows, Linux and the other heads behave as b
 
 ## Verify
 
-`dotnet build src/AppTemplate/AppTemplate.csproj -f net10.0-desktop` succeeds. On a Mac, run the desktop head, switch the
+`dotnet build src/AppTemplate/AppTemplate.csproj -f net11.0-desktop` succeeds. On a Mac, run the desktop head, switch the
 app to the theme opposite to the system's: the title bar follows. Scrolling a long page and switching pages leaves no
 trails.
