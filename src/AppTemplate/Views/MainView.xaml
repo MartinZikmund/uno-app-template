@@ -14,7 +14,7 @@
                 HorizontalAlignment="Center"
                 FontSize="64"
                 Foreground="{ThemeResource AccentFillColorDefaultBrush}"
-                Glyph="&#xE80F;" />
+                Glyph="{StaticResource HomeIcon}" />
             <TextBlock
                 HorizontalAlignment="Center"
                 AutomationProperties.AutomationId="HelloTextBlock"

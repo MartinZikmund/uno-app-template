@@ -25,6 +25,7 @@ One page per topic. Keep it that way.
 
 ## Architecture
 
+- [icons.md](./icons.md) — centralized glyph constants in `Resources/Icons.xaml` and how to reference them from XAML.
 - [json-aot-serialization.md](./json-aot-serialization.md) — `JsonSerializerContext` conventions for AOT-safe, trim-safe JSON serialization.
 - [views.md](./views.md) — `ViewBase<TViewModel>`, `IViewBase`, and how views resolve their view models.
 
