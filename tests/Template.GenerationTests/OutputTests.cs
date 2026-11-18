@@ -317,6 +317,19 @@ public class OutputTests
     }
 
     [TestMethod]
+    [DataRow("ios", true)]
+    [DataRow("desktop", false)]
+    public void PrBuildMatrix_CompilesIosOnlyWhenTheAppHasIt(string platforms, bool expected)
+    {
+        var app = TemplateFixture.Generate($"pr-matrix-{platforms}", "App1", "--platforms", platforms);
+
+        var ci = app.Read(".github/workflows/ci.yml");
+
+        ci.Contains("tfm: net11.0-ios").Should().Be(expected);
+        ci.Contains("  build:").Should().BeTrue();
+    }
+
+    [TestMethod]
     public void TvosOn_DropsDocsForWhatTheAppLeftOut()
     {
         var bare = TemplateFixture.Generate("tvos-bare-docs", "App1", "--platforms", "tvos", "--sqlite", "false", "--share", "false", "--rating", "false", "--launcher", "false", "--ci", "false", "--packaging", "false");
