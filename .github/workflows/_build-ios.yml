@@ -24,10 +24,9 @@ permissions:
 
 jobs:
   build:
-    # The xcode-27 image's default Xcode is the one the iOS SDK wants. `dotnet workload restore`
-    # floats to the newest workload set (iOS SDK 27.1, needs Xcode 27.1); macos-26 images top out
-    # at Xcode 26.6. App Store Connect also rejects uploads built with an older SDK, so do not
-    # downgrade this.
+    # `dotnet workload restore` floats to the newest workload set, which needs the newest Xcode;
+    # macos-26 images top out at Xcode 26.6. select-xcode then picks the exact version. App Store
+    # Connect also rejects uploads built with an older SDK, so do not downgrade this.
     runs-on: xcode-27
     timeout-minutes: 90
     env:
@@ -50,9 +49,10 @@ jobs:
         with:
           workloads: src/AppTemplate.slnx
 
-      # No Xcode selection step: latest-stable would pick the 27.2 RC, which the SDK rejects.
-      - name: Show Xcode version
-        run: xcodebuild -version
+      - uses: ./.github/actions/select-xcode
+        with:
+          platform: iOS
+          tfm: ${{ env.TFM }}
 
       - name: Import signing certificate
         if: env.HAS_SIGNING == 'true'

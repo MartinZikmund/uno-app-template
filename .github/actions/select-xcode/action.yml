@@ -1,0 +1,39 @@
+name: Select the Xcode the workload needs
+description: >
+  Each iOS/tvOS workload requires one Xcode major.minor, and `dotnet workload restore`
+  floats to the newest workload. Reads the version from the installed SDK pack and
+  selects the matching Xcode on the image, instead of trusting the image default.
+
+inputs:
+  platform:
+    description: "iOS or tvOS"
+    required: true
+  tfm:
+    description: "Target framework, e.g. net11.0-ios"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Select Xcode
+      shell: bash
+      run: |
+        packs="$(dirname "$(command -v dotnet)")/packs"
+        net="${{ inputs.tfm }}"; net="${net%%-*}"
+        # Pack folders are named Microsoft.<platform>.Sdk.<net>_<xcode major.minor>
+        pack=$(ls -d "$packs"/Microsoft.${{ inputs.platform }}.Sdk.${net}_* 2>/dev/null | sort -V | tail -1)
+        if [ -z "$pack" ]; then
+          echo "::error::No Microsoft.${{ inputs.platform }}.Sdk.${net}_* pack under $packs"
+          exit 1
+        fi
+        want="${pack##*_}"
+        for app in "/Applications/Xcode_${want}.app" "/Applications/Xcode_${want}.0.app"; do
+          if [ -d "$app" ]; then
+            sudo xcode-select -s "$app"
+            xcodebuild -version
+            exit 0
+          fi
+        done
+        echo "::error::The ${{ inputs.platform }} workload needs Xcode ${want}, which this image doesn't have. Installed:"
+        ls -d /Applications/Xcode*.app
+        exit 1

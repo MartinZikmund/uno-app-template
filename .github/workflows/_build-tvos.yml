@@ -46,8 +46,10 @@ jobs:
         with:
           workloads: src/AppTemplate.slnx
 
-      - name: Show Xcode version
-        run: xcodebuild -version
+      - uses: ./.github/actions/select-xcode
+        with:
+          platform: tvOS
+          tfm: ${{ env.TFM }}
 
       - name: Import signing certificate
         if: env.HAS_SIGNING == 'true'
