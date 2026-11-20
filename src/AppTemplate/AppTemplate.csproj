@@ -101,6 +101,16 @@
         <PrunePackageReference Include="SkiaSharp.NativeAssets.WinUI" Version="99.0.0" />
     </ItemGroup>
 
+    <!--
+      .NET 11 precompiles the whole app into one composite ReadyToRun image on Android (+19 MB per ABI download).
+      MAUI apps get partial R2R by default; this opts in the same way: the app assembly and the runtime's
+      profiled hot paths stay precompiled, the rest is JIT-ed.
+      Remove once Uno.Sdk does this itself: https://github.com/unoplatform/uno/issues/26623
+    -->
+    <PropertyGroup Condition="'$(IsAndroid)' == 'true'">
+        <PublishReadyToRunCrossgen2ExtraArgs>$(PublishReadyToRunCrossgen2ExtraArgs);--partial</PublishReadyToRunCrossgen2ExtraArgs>
+    </PropertyGroup>
+
     <PropertyGroup Condition="'$(IsWinAppSdk)' == 'true'">
         <!-- Uno.Sdk 7.0.22 still bundles the runtime into the MSIX; a later SDK defaults this to false for MSIX heads. Drop then. -->
         <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
