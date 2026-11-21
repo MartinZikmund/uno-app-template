@@ -141,6 +141,21 @@
     <comment>{0} is the git worktree name; shown under the version in About for local worktree builds.</comment>
   </data>
   <!--#endif-->
+  <data name="FeedbackAndContributing" xml:space="preserve">
+    <value>Feedback &amp; contributing</value>
+  </data>
+  <data name="ReportProblem" xml:space="preserve">
+    <value>Report a problem</value>
+  </data>
+  <data name="ReportProblemDescription" xml:space="preserve">
+    <value>Open an issue on GitHub</value>
+  </data>
+  <data name="SourceCode" xml:space="preserve">
+    <value>Source code</value>
+  </data>
+  <data name="SourceCodeDescription" xml:space="preserve">
+    <value>Browse the code and contribute on GitHub</value>
+  </data>
   <data name="Debugging" xml:space="preserve">
     <value>Debugging</value>
   </data>

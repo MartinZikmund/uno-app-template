@@ -62,6 +62,35 @@
                     </StackPanel>
                 </toolkit:SettingsCard>
 
+                <!--  Feedback section: hidden unless AppConfig:RepositoryUrl is set  -->
+                <StackPanel Spacing="4" Visibility="{x:Bind ViewModel.HasRepositoryLinks}">
+                    <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="{markup:Localize Key=FeedbackAndContributing}" />
+
+                    <toolkit:SettingsCard
+                        x:Name="ReportProblemCard"
+                        AutomationProperties.AutomationId="ReportProblemLink"
+                        Click="OnReportProblemClick"
+                        Description="{markup:Localize Key=ReportProblemDescription}"
+                        Header="{markup:Localize Key=ReportProblem}"
+                        IsClickEnabled="True">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE9CE;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                    </toolkit:SettingsCard>
+
+                    <toolkit:SettingsCard
+                        x:Name="SourceCodeCard"
+                        AutomationProperties.AutomationId="SourceCodeLink"
+                        Click="OnSourceCodeClick"
+                        Description="{markup:Localize Key=SourceCodeDescription}"
+                        Header="{markup:Localize Key=SourceCode}"
+                        IsClickEnabled="True">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE943;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                    </toolkit:SettingsCard>
+                </StackPanel>
+
                 <!--  Debug section  -->
                 <StackPanel Visibility="{x:Bind ViewModel.IsDebug}">
                     <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="{markup:Localize Key=Debugging}" />

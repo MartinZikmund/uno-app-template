@@ -1,7 +1,10 @@
 using AppTemplate.Core.Infrastructure;
+using AppTemplate.Core.Models;
 using AppTemplate.Core.Services;
 using AppTemplate.Core.ViewModels;
 using AppTemplate.Infrastructure;
+using AppTemplate.Models;
+using Microsoft.Extensions.Options;
 //#if (useDialogs)
 using AppTemplate.Services.Dialogs;
 //#endif
@@ -103,6 +106,7 @@ public partial class App : Application, IApplication
     {
         // Singleton services
         services.AddSingleton<IApplication>(sp => Current);
+        services.AddSingleton(sp => new RepositoryLinks(sp.GetRequiredService<IOptions<AppConfig>>().Value.RepositoryUrl));
         services.AddSingleton<MZikmund.Toolkit.WinUI.Services.IPreferences, Preferences>();
         services.AddSingleton<IAppPreferences, AppPreferences>();
         //#if (displayRequest)

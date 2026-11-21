@@ -12,4 +12,18 @@ public sealed partial class SettingsView : SettingsViewBase
     {
         this.InitializeComponent();
     }
+
+    private async void OnReportProblemClick(object sender, RoutedEventArgs e) =>
+        await LaunchAsync(ViewModel.RepositoryLinks.ReportProblemUri);
+
+    private async void OnSourceCodeClick(object sender, RoutedEventArgs e) =>
+        await LaunchAsync(ViewModel.RepositoryLinks.RepositoryUri);
+
+    private static async Task LaunchAsync(Uri? uri)
+    {
+        if (uri is not null)
+        {
+            await Windows.System.Launcher.LaunchUriAsync(uri);
+        }
+    }
 }
