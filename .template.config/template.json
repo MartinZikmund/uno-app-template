@@ -118,6 +118,19 @@
       "defaultValue": "your-org/your-repo",
       "replaces": "__opt_githubRepo__"
     },
+    "repositoryUrlSetting": {
+      "type": "generated",
+      "generator": "join",
+      "parameters": {
+        "symbols": [
+          { "type": "const", "value": "\"RepositoryUrl\": \"https://github.com/" },
+          { "type": "ref", "value": "githubRepo" },
+          { "type": "const", "value": "\"" }
+        ],
+        "separator": ""
+      },
+      "replaces": "\"RepositoryUrl\": \"https://github.com/MartinZikmund/uno-app-template\""
+    },
     "githubDiscussions": {
       "type": "generated",
       "generator": "join",

@@ -1,4 +1,5 @@
 using Template.SelfTests.Fakes;
+using AppTemplate.Core.Models;
 using AppTemplate.Core.ViewModels;
 using AwesomeAssertions;
 
@@ -53,5 +54,6 @@ public class SettingsViewModelTests
             new FakeAppPreferences(),
             new FakeThemeManager(),
             new FakePreferences(),
-            new FakeApplication { WorktreeName = worktreeName });
+            new FakeApplication { WorktreeName = worktreeName },
+            new RepositoryLinks(null));
 }

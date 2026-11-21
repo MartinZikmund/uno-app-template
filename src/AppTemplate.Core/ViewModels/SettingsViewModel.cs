@@ -1,4 +1,5 @@
 using AppTemplate.Core.Infrastructure;
+using AppTemplate.Core.Models;
 using AppTemplate.Services.Settings;
 using AppTemplate.Services.Theming;
 using MZikmund.Toolkit.WinUI.Services;
@@ -19,13 +20,15 @@ public partial class SettingsViewModel : ViewModelBase
         IAppPreferences appPreferences,
         IThemeManager themeManager,
         IPreferences preferences,
-        IApplication application)
+        IApplication application,
+        RepositoryLinks repositoryLinks)
     {
         _localizer = localizer;
         _appPreferences = appPreferences;
         _themeManager = themeManager;
         _preferences = preferences;
         _application = application;
+        RepositoryLinks = repositoryLinks;
         PageTitle = _localizer["Settings"];
     }
 
@@ -58,6 +61,10 @@ public partial class SettingsViewModel : ViewModelBase
         _themeManager.SetTheme(value);
         _appPreferences.Theme = value;
     }
+
+    public RepositoryLinks RepositoryLinks { get; }
+
+    public bool HasRepositoryLinks => RepositoryLinks.IsAvailable;
 
     public string AppVersion => _application.AppVersion;
 
