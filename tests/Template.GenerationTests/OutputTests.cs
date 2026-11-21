@@ -174,6 +174,16 @@ public class OutputTests
     }
 
     [TestMethod]
+    public void GithubRepo_FillsTheRepositoryUrlSetting()
+    {
+        var app = TemplateFixture.Generate("repo-url", "ContosoNotes", "--github-repo", "contoso/notes");
+
+        var settings = app.Read("src/ContosoNotes/appsettings.json");
+        settings.Should().Contain("\"RepositoryUrl\": \"https://github.com/contoso/notes\"");
+        settings.Should().NotContain("uno-app-template");
+    }
+
+    [TestMethod]
     [DataRow("http", "src/App1/Services/Http/DebugHttpHandler.cs", "UseHttp", "src/App1/App.xaml.cs")]
     [DataRow("sqlite", null, "sqlite-net-e", "src/Directory.Packages.props")]
     [DataRow("dialogs", null, null, null)]
