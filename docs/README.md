@@ -27,6 +27,7 @@ One page per topic. Keep it that way.
 
 - [github-links.md](./github-links.md) — the Feedback & contributing links in Settings and the `AppConfig:RepositoryUrl` setting behind them.
 - [json-aot-serialization.md](./json-aot-serialization.md) — `JsonSerializerContext` conventions for AOT-safe, trim-safe JSON serialization.
+- [json-per-api-contexts.md](./json-per-api-contexts.md) — giving every external API its own `JsonSerializerContext`.
 - [views.md](./views.md) — `ViewBase<TViewModel>`, `IViewBase`, and how views resolve their view models.
 
 ## Release
