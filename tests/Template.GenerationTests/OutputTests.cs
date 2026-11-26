@@ -198,6 +198,7 @@ public class OutputTests
     [DataRow("tests", "tests/App1.Core.Tests/App1.Core.Tests.csproj", "Core.Tests", "src/App1.slnx")]
     [DataRow("ci", ".github/workflows/ci.yml", null, null)]
     [DataRow("packaging", ".github/workflows/release.yml", null, null)]
+    [DataRow("mac-app-store", "src/App1/Platforms/Desktop/macOS/Entitlements.plist", "build-macos", ".github/workflows/release.yml")]
     [DataRow("agents", null, null, null)]
     [DataRow("spec-kit", ".specify/memory/constitution.md", null, null)]
     [DataRow("community", ".github/PULL_REQUEST_TEMPLATE.md", null, null)]
@@ -312,6 +313,35 @@ public class OutputTests
                 _ => "net11.0-browserwasm",
             });
         }
+    }
+
+    [TestMethod]
+    public void MacAppStoreWithoutIos_KeepsTheAppStoreConnectTooling()
+    {
+        var app = TemplateFixture.Generate("mac-no-ios", "App1", "--platforms", "desktop");
+
+        app.Exists("build/macos/package-app-store.sh").Should().BeTrue();
+        app.Exists(".github/scripts/asc_op.py").Should().BeTrue("the macOS review submission runs it");
+        app.Read(".github/workflows/release.yml").Should().Contain("submit-mac-appstore").And.NotContain("submit-appstore:");
+        app.Read(".github/workflows/store-ops.yml").Should().Contain("- macappstore-pause").And.NotContain("- appstore-pause");
+        app.Read("src/App1/App1.csproj").Should().Contain("UnoMacOSCustomInfoPlist");
+    }
+
+    [TestMethod]
+    public void DesktopOff_DropsTheMacAppStore()
+    {
+        var app = TemplateFixture.Generate("mac-no-desktop", "App1", "--platforms", "windows");
+
+        app.Exists("src/App1/Platforms/Desktop").Should().BeFalse();
+        app.Exists("src/App1/Infrastructure/MacAppearance.cs").Should().BeFalse();
+        app.Exists("build/macos").Should().BeFalse();
+        app.Exists(".github/workflows/_build-macos.yml").Should().BeFalse();
+        app.Exists(".github/scripts/asc_op.py").Should().BeFalse();
+        app.Exists("docs/mac-app-store.md").Should().BeFalse();
+        app.Read(".github/workflows/release.yml").Should().NotContain("macos").And.NotContain("#if");
+        app.Read("src/App1/App1.csproj").Should().NotContain("UnoMacOS");
+        app.Read("src/Directory.Build.targets").Should().NotContain("SetMacOSBundleVersion");
+        app.Read("src/App1/WindowShell.xaml.cs").Should().NotContain("MacAppearance");
     }
 
     [TestMethod]

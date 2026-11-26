@@ -42,8 +42,8 @@ public sealed partial class WindowShell : Page, IWindowShell
 
         InnerFrame.Navigated += InnerFrame_Navigated;
         Loading += WindowShell_Loading;
-        Loaded += (_, _) => UpdateStatusBarForeground();
-        ActualThemeChanged += (_, _) => UpdateStatusBarForeground();
+        Loaded += (_, _) => ApplyThemeToSystemChrome();
+        ActualThemeChanged += (_, _) => ApplyThemeToSystemChrome();
 
         UpdateWindowTitle();
     }
@@ -131,6 +131,14 @@ public sealed partial class WindowShell : Page, IWindowShell
         }
     }
 
+    private void ApplyThemeToSystemChrome()
+    {
+        UpdateStatusBarForeground();
+        //#if (hasDesktop)
+        MacAppearance.Apply(ActualTheme);
+        //#endif
+    }
+
     // The Android theme asks for dark status bar icons, which vanish against the dark theme.
     private void UpdateStatusBarForeground()
     {
@@ -171,7 +179,9 @@ public sealed partial class WindowShell : Page, IWindowShell
         }
 #endif
 
-        if (ApiInformation.IsPropertyPresent("Microsoft.UI.Xaml.Window", "SystemBackdrop"))
+        // With a backdrop set, the macOS desktop head leaves stale frames on screen while scrolling and navigating
+        // (https://github.com/unoplatform/uno/issues/24495), so the page keeps its own background there.
+        if (ApiInformation.IsPropertyPresent("Microsoft.UI.Xaml.Window", "SystemBackdrop") && !OperatingSystem.IsMacOS())
         {
             _associatedWindow.SystemBackdrop = new MicaBackdrop();
             Background = null;

@@ -31,6 +31,9 @@ One page per topic. Keep it that way.
 
 ## Release
 
+<!--#if (useMacAppStore)-->
+- [mac-app-store.md](./mac-app-store.md) — the Desktop head as a universal, sandboxed Mac App Store app: Apple setup, packaging, CI.
+<!--#endif-->
 <!--#if (packaging && hasWasm)-->
 - [deployment.md](./deployment.md) — hosting the WebAssembly head on Cloudflare Workers: production, PR previews, one-time setup.
 <!--#endif-->

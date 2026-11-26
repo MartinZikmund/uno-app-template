@@ -20,6 +20,7 @@
     "tests": { "longName": "tests", "shortName": "" },
     "ci": { "longName": "ci", "shortName": "" },
     "packaging": { "longName": "packaging", "shortName": "" },
+    "macAppStore": { "longName": "mac-app-store", "shortName": "" },
     "agents": { "longName": "agents", "shortName": "" },
     "specKit": { "longName": "spec-kit", "shortName": "" },
     "community": { "longName": "community", "shortName": "" }
