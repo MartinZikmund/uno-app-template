@@ -305,4 +305,6 @@ Notes for agents driving Play Console in a browser.
 - [release-pipeline.md](./release-pipeline.md): the workflows, environments and secrets.
 - [release-runbook.md](./release-runbook.md): staged rollout, halting, finalizing.
 - [versioning.md](./versioning.md): versionCode and version names.
+<!--#if (hasWindows)-->
 - [windows-packaging.md](./windows-packaging.md): the Microsoft Store counterpart.
+<!--#endif-->
