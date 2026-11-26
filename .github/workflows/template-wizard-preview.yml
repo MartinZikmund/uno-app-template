@@ -121,7 +121,7 @@ jobs:
 
       - name: Comment the preview URL
         if: steps.url.outputs.value != ''
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: wizard-preview
           message: |
