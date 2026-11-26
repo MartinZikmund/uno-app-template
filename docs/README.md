@@ -35,6 +35,9 @@ One page per topic. Keep it that way.
 - [deployment.md](./deployment.md) — hosting the WebAssembly head on Cloudflare Workers: production, PR previews, one-time setup.
 <!--#endif-->
 <!--#if (packaging)-->
+<!--#if (hasIos)-->
+- [app-store-publishing.md](./app-store-publishing.md) — first App Store publish end to end: certificates and keys, toolchain traps, listing, in-app purchase, RevenueCat, App Privacy, Kids category, review notes.
+<!--#endif-->
 <!--#if (hasAndroid)-->
 - [google-play-publishing.md](./google-play-publishing.md) — first Google Play publish end to end: keys, service accounts, listing, in-app product, RevenueCat, every declaration, and the caveats.
 <!--#endif-->

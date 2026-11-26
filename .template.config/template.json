@@ -458,6 +458,7 @@
         {
           "condition": "(!hasIos)",
           "exclude": [
+            "docs/app-store-publishing.md",
             "src/AppTemplate/Platforms/iOS/**",
             ".github/workflows/_build-ios.yml",
             ".github/scripts/asc_op.py"
@@ -625,6 +626,7 @@
             ".github/actions/prepare-wasm-assets/**",
             "wrangler.jsonc",
             "src/AppTemplate/Platforms/WebAssembly/wwwroot/_headers",
+            "docs/app-store-publishing.md",
             "docs/deployment.md",
             "docs/google-play-publishing.md",
             "docs/release-pipeline.md",
