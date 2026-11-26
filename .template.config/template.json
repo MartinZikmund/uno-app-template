@@ -474,7 +474,8 @@
         {
           "condition": "(!hasIos && !hasTvos)",
           "exclude": [
-            ".github/actions/select-xcode/**"
+            ".github/actions/select-xcode/**",
+            "tests/AppTemplate.Core.Tests/Packaging/PrivacyManifestTests.cs"
           ]
         },
         {
