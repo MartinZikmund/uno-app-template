@@ -35,6 +35,9 @@ One page per topic. Keep it that way.
 - [deployment.md](./deployment.md) — hosting the WebAssembly head on Cloudflare Workers: production, PR previews, one-time setup.
 <!--#endif-->
 <!--#if (packaging)-->
+<!--#if (hasAndroid)-->
+- [google-play-publishing.md](./google-play-publishing.md) — first Google Play publish end to end: keys, service accounts, listing, in-app product, RevenueCat, every declaration, and the caveats.
+<!--#endif-->
 - [release-pipeline.md](./release-pipeline.md) — what each workflow builds and publishes, environments, secrets, fork behaviour.
 - [release-runbook.md](./release-runbook.md) — cutting a release, shipping a patch, halting a bad rollout.
 <!--#endif-->
