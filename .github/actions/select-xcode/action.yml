@@ -30,6 +30,8 @@ runs:
         for app in "/Applications/Xcode_${want}.app" "/Applications/Xcode_${want}.0.app"; do
           if [ -d "$app" ]; then
             sudo xcode-select -s "$app"
+            # The .NET iOS SDK reads MD_APPLE_SDK_ROOT before xcode-select, and runner images set it.
+            echo "MD_APPLE_SDK_ROOT=$app" >> "$GITHUB_ENV"
             xcodebuild -version
             exit 0
           fi
