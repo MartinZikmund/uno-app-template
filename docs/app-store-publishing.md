@@ -5,7 +5,7 @@ toolchain traps, the listing, the in-app purchase, RevenueCat, App Privacy, the 
 side (what `release.yml` builds and uploads) is in [release-pipeline.md](./release-pipeline.md); this page is the App
 Store Connect side and the decisions around it.
 
-It was written while publishing Merry Countdown (a kids' app with one non-consumable in-app purchase) in November
+It was written while publishing Merry Countdown (a family app for young children, with one non-consumable in-app purchase) in November
 2026. Values from that app are shown as examples. Each step says who has to do it:
 
 - **Agent**: an agent driving the browser, or the Mac's command line, can do it.
@@ -200,15 +200,21 @@ include at least what the bundled privacy manifests declare.
 ## 11. Age rating and the Kids category
 
 - **Age rating**: answer the questionnaire honestly (Merry Countdown: 4+).
-- **Made for Kids** is **permanent** once the app is approved, and the age band (5 and under, 6–8, 9–11) shows on the
-  store. Pick it deliberately; Merry Countdown nearly shipped as 6–8 by mistake.
-- Kids apps must put every purchase and every link out of the app behind a **parental gate** (guideline 1.3).
-  The template doesn't include one; Merry Countdown asks a multiplication question written in words.
-- No third-party analytics or advertising, and nothing that sends personal data, in a kids' app.
+- **Decision: the Kids category or not.** *Made for Kids* is **permanent** once the app is approved, and it rules out
+  third-party analytics and advertising for good. Weigh where the app might go, not only where it is. Merry Countdown
+  first chose Kids (5 and under), then left it because ads may come later: it's rated 4+ with the age category
+  *Not Applicable*, under Lifestyle and Entertainment.
+- A Kids submission gets an automated **guideline 1.3 questionnaire** (third-party analytics, advertising, data
+  sharing, other data use) in the Resolution Center, and review pauses until it's answered.
+- If you do choose Kids, the age band (5 and under, 6–8, 9–11) shows on the store; pick it deliberately (Merry
+  Countdown nearly shipped as 6–8 by mistake). Every purchase and every link out of the app must sit behind a
+  **parental gate**. The template doesn't include one; Merry Countdown keeps its own (a multiplication question
+  written in words) outside the Kids category too.
 
 ## 12. App Review information
 
-The notes are what decides a kids' app's review. Merry Countdown's covered:
+The notes are what a reviewer reads first, and for an app aimed at families they decide the review. Merry Countdown's
+covered:
 
 - **The parental gate**, in words, and **every** link out of the app it guards (videos, sharing). Don't list links the
   app doesn't have: a leftover rating prompt that's never called isn't one.
@@ -233,11 +239,16 @@ The notes are what decides a kids' app's review. Merry Countdown's covered:
 
 ## 14. Submit for review
 
-On the version page: choose the build, check every section shows no warning, choose the release option (manual
-release lets you pick the day), then *Add for Review* → *Submit*. Attach the in-app purchase to the same submission
-(it's listed under *In-App Purchases and Subscriptions* on the version page) — a first in-app purchase can only be
-reviewed together with a version. Review of a new kids' app can take days; leave a margin before any date that
-matters.
+On the version page: choose the build, check every section shows no warning, and choose the release option (manual
+release lets you pick the day).
+
+- **The first in-app purchase must be in the same submission as the version.** Use the purchase's own *Add for Review*
+  first, then the version's *Add for Review*, so the draft submission lists both ("2 items"), then *Submit*. A version
+  submitted on its own goes to review without the purchase, and the purchase can't follow it in later.
+- If that already happened: remove the version from that submission (*Remove last item with issues* once it's paused
+  or rejected), then add the purchase and the version to one new draft and submit them together.
+- Review of a new app can take days, and a paused review (such as the Kids questionnaire) waits for you. Leave a margin
+  before any date that matters.
 
 ## Automating App Store Connect
 
